@@ -1,0 +1,192 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <title>Lista dos Jogadores</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+
+            .top-left-logo img {
+                width: 160px;
+            }
+
+        .main-container {
+            padding-top: 160px;
+            margin-bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        h2 {
+            font-size: 40px;
+            margin-bottom: 40px;
+            color: black;
+        }
+
+        .input-row {
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        label {
+            font-size: 20px;
+            color: black;
+        }
+
+        input[type="number"] {
+            width: 100px;
+            padding: 10px;
+            font-size: 18px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .player-table {
+            width: 100%;
+            max-width: 600px;
+            border-collapse: collapse;
+            background-color: white;
+            margin-bottom: 40px;
+        }
+
+            .player-table th {
+                background-color: #dcdcdc;
+                padding: 12px;
+                text-align: left;
+                font-size: 18px;
+            }
+
+            .player-table td {
+                padding: 12px;
+                font-size: 18px;
+                border-top: 1px solid #ccc;
+            }
+
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+
+        .action-button {
+            font-size: 22px;
+            padding: 16px 50px;
+            border: 2px solid black;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+        }
+
+            .action-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .back-button {
+            position: absolute;
+            right: 40px;
+            bottom: 40px;
+            padding: 12px 24px;
+            font-size: 18px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        media (max-width: 768px) {
+            h2
+
+        {
+            font-size: 28px;
+        }
+
+        .input-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .button-row {
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .action-button {
+            width: 100%;
+        }
+
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <img src="img/logotipo.png" alt="Logotipo" />
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="main-container">
+        <h2>Lista dos Jogadores</h2>
+
+        <div class="input-row">
+            <label for="numJogadores">Número de Jogadores:</label>
+            <input type="number" id="numJogadores" name="numJogadores" min="1" />
+        </div>
+
+        <table class="player-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Giacomo Guilizzoni</td></tr>
+                <tr><td>Marco Botton</td></tr>
+                <tr><td>Mariah Maclachlan</td></tr>
+                <tr><td>João Ribeiro</td></tr>
+            </tbody>
+        </table>
+
+        <div class="button-row">
+            <button type="button" class="action-button">Alterar Lista</button>
+            <button type="button" class="action-button">Emparelhar</button>
+        </div>
+    </div>
+
+    <!-- Botão Voltar -->
+    <a href="/" class="back-button">&lt;Voltar</a>
+
+</body>
+</html>

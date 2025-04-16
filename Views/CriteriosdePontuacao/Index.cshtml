@@ -1,0 +1,191 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <title>Configurar Competição</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+
+            .top-left-logo img {
+                width: 160px;
+            }
+
+        .main-container {
+            padding-top: 160px;
+            margin-bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        h2 {
+            font-size: 40px;
+            margin-bottom: 40px;
+            color: black;
+        }
+
+        form {
+            width: 100%;
+            max-width: 700px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            row-gap: 25px;
+            column-gap: 20px;
+            align-items: center;
+        }
+
+        label {
+            font-size: 20px;
+            color: black;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .checkbox-list {
+            padding: 12px;
+            background: white;
+            border: 1px solid #333;
+            border-radius: 8px;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+            .checkbox-list label {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+
+        .save-button {
+            grid-column: span 2;
+            justify-self: center;
+            margin-top: 20px;
+            font-size: 20px;
+            padding: 16px 40px;
+            border: 2px solid black;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+        }
+
+            .save-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .back-button {
+            position: absolute;
+            right: 40px;
+            bottom: 40px;
+            padding: 12px 24px;
+            font-size: 18px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            opacity: 1 !important;
+        }
+
+        media (max-width: 768px) {
+            h2
+
+        {
+            font-size: 28px;
+        }
+
+        form {
+            grid-template-columns: 1fr;
+        }
+
+        .save-button {
+            width: 100%;
+        }
+
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <img src="img/logotipo.png" alt="Logotipo" />
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="main-container">
+        <h2>Configurar Competição</h2>
+
+        <form method="post">
+            <label for="formato">Formato:</label>
+            <select id="formato" name="formato">
+                <option value="liga">Liga (Round Robin)</option>
+            </select>
+
+            <label for="vitoria">Pontos por Vitória:</label>
+            <input type="number" id="vitoria" name="vitoria" min="0" />
+
+            <label for="empate">Pontos por Empate:</label>
+            <input type="number" id="empate" name="empate" min="0" />
+
+            <label for="derrota">Pontos por Derrota:</label>
+            <input type="number" id="derrota" name="derrota" min="0" value="0" />
+
+            <label>Critérios de Desempate:</label>
+            <div class="checkbox-list">
+                <label><input type="checkbox" name="criterios" value="saldo"> Saldo de partidas (ganhas - perdidas)</label>
+                <label><input type="checkbox" name="criterios" value="confronto"> Confronto direto (entre os empatados)</label>
+                <label><input type="checkbox" name="criterios" value="vitorias"> Maior número de vitórias</label>
+                <label><input type="checkbox" name="criterios" value="menor-derrotas"> Menor número de derrotas</label>
+            </div>
+
+            <button type="submit" class="save-button">Salvar Configuração</button>
+        </form>
+    </div>
+
+    <!-- Botão Voltar -->
+    <a href="/" class="back-button">&lt;Voltar</a>
+
+</body>
+</html>
