@@ -1,0 +1,130 @@
+﻿@{
+    Layout = null;
+}
+@* página de login *@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <title>Login - Bilhar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            color: #333;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 60px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-box {
+            background-color: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            width: 100%;
+        }
+
+            .login-box h2 {
+                text-align: center;
+                margin-bottom: 30px;
+                color: #333;
+            }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                margin-bottom: 8px;
+                font-size: 16px;
+            }
+
+            .form-group input {
+                padding: 14px;
+                font-size: 16px;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+            }
+
+        .button {
+            background: white;
+            border: 2px solid black;
+            border-radius: 10px;
+            padding: 18px 30px;
+            cursor: pointer;
+            font-size: 20px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+            .button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+        }
+
+            .back-link:hover {
+                text-decoration: underline;
+            }
+
+        .main-image {
+            width: 150px;
+            margin-bottom: 30px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <img src="img/logotipo.png" alt="Logotipo" class="main-image" />
+
+        <div class="login-box">
+            <h2>Iniciar Sessão</h2>
+
+            <form method="post" action="/login">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Palavra-passe:</label>
+                    <input type="password" id="password" name="password" required />
+                </div>
+
+                <button type="submit" class="button">Entrar</button>
+            </form>
+        </div>
+
+        <a href="/" class="back-link">← Voltar à página inicial</a>
+    </div>
+
+</body>
+</html>
