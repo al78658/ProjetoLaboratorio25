@@ -1,0 +1,182 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <title>Agendar Jogo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+            .top-left-logo img {
+                width: 100px;
+            }
+
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .schedule-box {
+            background-color: transparent;
+            padding: 40px;
+            text-align: center;
+            max-width: 650px;
+            width: 100%;
+        }
+
+        h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: black;
+        }
+
+        .participants-label {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: black;
+        }
+
+        .vs-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+            .vs-container input {
+                width: 250px;
+                padding: 14px;
+                font-size: 18px;
+                border: 2px solid #000;
+                border-radius: 8px;
+                text-align: center;
+            }
+
+        .vs-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: black;
+        }
+
+        .datetime-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .datetime-wrapper {
+            position: relative;
+        }
+
+            .datetime-wrapper input {
+                width: 250px;
+                padding: 14px;
+                font-size: 18px;
+                border: 2px solid #000;
+                border-radius: 8px;
+                text-align: center;
+            }
+
+            .datetime-wrapper .icon {
+                position: absolute;
+                right: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 20px;
+                pointer-events: none;
+            }
+
+        .save-button {
+            width: 250px;
+            font-size: 22px;
+            padding: 14px;
+            background: white;
+            border: 2px solid black;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+            .save-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .back-button {
+            position: absolute;
+            right: 30px;
+            bottom: 30px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="top-left-logo">
+        <img src="img/logotipo.png" alt="Logotipo" />
+    </div>
+
+    <div class="main-container">
+        <div class="schedule-box">
+            <h2>Agendar Jogo</h2>
+            <div class="participants-label">Participantes</div>
+
+            <form method="post">
+                <div class="vs-container">
+                    <input type="text" name="jogador1" value="João Miguel" required />
+                    <div class="vs-text">VS</div>
+                    <input type="text" name="jogador2" value="Luís Miguel" required />
+                </div>
+
+                <div class="datetime-container">
+                    <div class="datetime-wrapper">
+                        <input type="text" name="data" placeholder="Data" onfocus="this.type='date'" />
+                    </div>
+                    <div class="datetime-wrapper">
+                        <input type="text" name="hora" placeholder="Hora" onfocus="this.type='time'" />
+                    </div>
+                </div>
+
+                <button type="submit" class="save-button">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <a href="/" class="back-button">&lt;Voltar</a>
+
+</body>
+</html>

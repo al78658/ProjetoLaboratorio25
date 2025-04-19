@@ -1,0 +1,199 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <title>Ranking Mundial - Bilhar</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+
+            .top-left-logo img {
+                width: 160px;
+            }
+
+        .main-container {
+            margin-top: 80px;
+            margin-bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            padding: 60px 20px;
+        }
+
+        .box {
+            background-color: transparent;
+            padding: 40px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 820px;
+        }
+
+        h2 {
+            font-size: 42px;
+            color: black;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .ranking-options {
+            font-size: 18px;
+            color: black;
+        }
+
+            .ranking-options label {
+                margin-right: 15px;
+            }
+
+        .table-wrapper {
+            max-height: 320px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background-color: #ddd;
+            z-index: 1;
+        }
+
+        th, td {
+            border: 1px solid #333;
+            background-color: white;
+            padding: 16px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f2f2f2;
+        }
+
+        .back-button {
+            position: absolute;
+            right: 40px;
+            bottom: 40px;
+            padding: 12px 24px;
+            font-size: 18px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+    </style>
+</head>
+<body>
+
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <img src="img/logotipo.png" alt="Logotipo" />
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="main-container">
+        <div class="box">
+            <div class="header-row">
+                <h2>Ranking Mundial</h2>
+                <div class="ranking-options">
+                    <span>Ranking por:</span>
+                    <label>
+                        <input type="checkbox" id="chkJogadores" checked onclick="exclusivo(this)" /> Jogadores
+                    </label>
+                    <label>
+                        <input type="checkbox" id="chkEquipas" onclick="exclusivo(this)" /> Equipas
+                    </label>
+                </div>
+            </div>
+
+            <!-- Tabela com scroll apenas no corpo -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Jogador</th>
+                            <th>Pontuação</th>
+                        </tr>
+                    </thead>
+                        <tbody>
+                            <tr><td>1</td><td>Higgins</td><td>210</td></tr>
+                            <tr><td>2</td><td>Andres</td><td>189</td></tr>
+                            <tr><td>3</td><td>Federer</td><td>167</td></tr>
+                            <tr><td>4</td><td>Nadal</td><td>146</td></tr>
+                            <tr><td>5</td><td>Marco</td><td>129</td></tr>
+                            <tr><td>6</td><td>Alberto</td><td>108</td></tr>
+                            <tr><td>7</td><td>Andrea</td><td>97</td></tr>
+                            <tr><td>8</td><td>Caspirenovic</td><td>75</td></tr>
+                            <tr><td>9</td><td>Ronaldì</td><td>63</td></tr>
+                            <tr><td>10</td><td>João</td><td>60</td></tr>
+                            <tr><td>11</td><td>Pedro</td><td>55</td></tr>
+                            <tr><td>12</td><td>Tiago</td><td>48</td></tr>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Voltar absoluto -->
+    <a href="/" class="back-button">&lt;Voltar</a>
+
+    <!-- Script para exclusividade dos checkboxes -->
+    <script>
+        function exclusivo(clickedCheckbox) {
+            const jogador = document.getElementById("chkJogadores");
+            const equipa = document.getElementById("chkEquipas");
+
+            if (clickedCheckbox === jogador && jogador.checked) {
+                equipa.checked = false;
+            } else if (clickedCheckbox === equipa && equipa.checked) {
+                jogador.checked = false;
+            }
+        }
+    </script>
+
+</body>
+</html>

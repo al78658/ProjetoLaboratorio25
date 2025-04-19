@@ -1,0 +1,264 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competições</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+		html, body {
+			height: 100%;
+			overflow: hidden;
+		}
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+        }
+
+            .top-left-logo img {
+                width: 100px;
+            }
+
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .schedule-box {
+            background-color: transparent;
+            padding: 40px;
+            text-align: center;
+            max-width: 650px;
+            width: 100%;
+        }
+
+        h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: black;
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        .participants-label {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: black;
+        }
+
+        .vs-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+            .vs-container input {
+                width: 250px;
+                padding: 14px;
+                font-size: 18px;
+                border: 2px solid #000;
+                border-radius: 8px;
+                text-align: center;
+            }
+
+        .vs-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: black;
+        }
+
+        .datetime-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .datetime-wrapper {
+            position: relative;
+        }
+
+            .datetime-wrapper input {
+                width: 250px;
+                padding: 14px;
+                font-size: 18px;
+                border: 2px solid #000;
+                border-radius: 8px;
+                text-align: center;
+            }
+
+            .datetime-wrapper .icon {
+                position: absolute;
+                right: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 20px;
+                pointer-events: none;
+            }
+
+        .save-button {
+            width: 250px;
+            font-size: 22px;
+            padding: 14px;
+            background: white;
+            border: 2px solid black;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+            .save-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .back-button {
+            position: absolute;
+            right: 30px;
+            bottom: 30px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        /* Estilos da lista de competições */
+        .competition-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        .competition-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 colunas */
+            gap: 20px;
+            max-height: 400px; /* Altura fixa */
+            overflow-y: auto; /* Barra de rolagem vertical */
+            border: 2px solid black; /* Borda do retângulo */
+            padding: 20px; /* Espaçamento interno */
+            border-radius: 12px; /* Bordas arredondadas */
+            background-color: white; /* Cor de fundo */
+            width: 80%; /* Largura do contêiner */
+            justify-items: center; /* Centraliza os itens horizontalmente */
+            align-items: center; /* Centraliza os itens verticalmente */
+        }
+
+        .competition {
+            background-color: white;
+            border: 2px solid black;
+            border-radius: 12px;
+            width: 160px;
+            height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+            .competition:hover {
+                background-color: #dcdcdc;
+                transform: scale(1.05);
+            }
+
+        .thumb {
+            width: 80px;
+            height: 80px;
+            background-color: #ccc;
+            border-radius: 50%;
+            margin-bottom: 16px;
+        }
+
+        .competition p {
+            font-size: 20px;
+            font-weight: bold;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <img src="img/logotipo.png" alt="Logotipo" />
+    </div>
+
+    <!-- Título -->
+    <h2>Competições a decorrer</h2>
+
+    <!-- Lista de Competições -->
+    <div class="competition-wrapper">
+        <div class="competition-container">
+            <div class="competition">
+                <div class="thumb"></div>
+                <p>Fireballs</p>
+            </div>
+            <div class="competition">
+                <div class="thumb"></div>
+                <p>Big 8</p>
+            </div>
+            <div class="competition">
+                <div class="thumb"></div>
+                <p>Round balls</p>
+            </div>
+            <div class="competition">
+                <div class="thumb"></div>
+                <p>Power</p>
+            </div>
+            <div class="competition">
+                <div class="thumb"></div>
+                <p>Speedsters</p>
+            </div>
+            <div class="competition">
+                <div class="thumb"></div>
+                <p>Champions</p>
+            </div>
+            <div class="competition">
+                <div class="thumb"></div>
+                <p>Warriors</p>
+            </div>
+            <div class="competition">
+                <div class="thumb"></div>
+                <p>Legends</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Voltar -->
+    <a href="/" class="back-button">&lt;Voltar</a>
+
+</body>
+</html>

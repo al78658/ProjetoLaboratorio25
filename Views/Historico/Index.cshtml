@@ -1,0 +1,163 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+        }
+
+            .top-left-logo img {
+                width: 100px;
+            }
+
+        .main-container {
+            margin-top: 80px;
+            margin-bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            padding: 60px 20px;
+        }
+
+        h2 {
+            font-size: 42px;
+            margin-bottom: 40px;
+            color: black;
+            text-align: center;
+        }
+
+        .table-container {
+            max-height: 300px; /* Altura fixa com rolagem */
+            overflow-y: auto;
+            width: 100%;
+            border: 1px solid #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #333;
+            background-color: white;
+            padding: 16px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #ddd;
+        }
+
+        .back-button {
+            position: absolute;
+            right: 30px;
+            bottom: 30px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+    </style>
+</head>
+<body>
+
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <img src="img/logotipo.png" alt="Logotipo" />
+    </div>
+
+    <div class="main-container">
+        <div>
+            <!-- Título -->
+            <h2>Histórico</h2>
+
+            <!-- Tabela com scroll -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Partidas</th>
+                            <th>Data e Horário</th>
+                            <th>Resultado</th>
+                            <th>Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Time A vs Time B</td>
+                            <td>01/01/2023 - 15:00</td>
+                            <td>2 - 1</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Time C vs Time D</td>
+                            <td>02/01/2023 - 18:00</td>
+                            <td>1 - 1</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Time E vs Time F</td>
+                            <td>03/01/2023 - 20:00</td>
+                            <td>3 - 0</td>
+                            <td>Falta de Comparência</td>
+                        </tr>
+                        <tr>
+                            <td>Time E vs Time F</td>
+                            <td>03/01/2023 - 20:00</td>
+                            <td>3 - 0</td>
+                            <td>Falta de Comparência</td>
+                        </tr>
+                        <tr>
+                            <td>Time E vs Time F</td>
+                            <td>03/01/2023 - 20:00</td>
+                            <td>3 - 0</td>
+                            <td>Falta de Comparência</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Voltar -->
+    <a href="/" class="back-button">&lt;Voltar</a>
+
+</body>
+</html>
