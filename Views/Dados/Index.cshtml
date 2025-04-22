@@ -1,0 +1,206 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <title>Perfil de Jogador</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+
+            .top-left-logo img {
+                width: 160px;
+            }
+
+        .main-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 200px;
+            padding-left: 40px;
+            padding-right: 40px;
+            gap: 80px;
+        }
+
+        .left-panel {
+            flex: 1;
+            max-width: 500px;
+            margin-top: 80px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-name {
+            font-size: 52px; /* nome ainda maior */
+            color: #1e1e1e;
+            font-weight: bold;
+            margin-bottom: 60px; /* menos margem inferior */
+            margin-top: -110px; /* mais para cima */
+        }
+
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            max-width: 600px;
+        }
+
+        .section {
+            background: #f0f0f0;
+            border: 2px solid #333;
+            padding: 25px;
+            border-radius: 8px;
+            min-height: 160px;
+            font-size: 18px;
+        }
+
+            .section h2 {
+                font-size: 28px;
+                margin-bottom: 16px;
+            }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .info-table td {
+                border: 1px solid #444;
+                padding: 10px 14px;
+                font-size: 18px;
+            }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .bottom-buttons {
+            position: absolute;
+            right: 40px;
+            bottom: 40px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .report-button {
+            padding: 14px 30px;
+            font-size: 18px;
+            background: white;
+            border: 2px solid black;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+            .report-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .back-button {
+            padding: 14px 24px;
+            font-size: 18px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        media (max-width: 900px) {
+            .main-wrapper
+
+        {
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .bottom-buttons {
+            position: static;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <img src="img/logotipo.png" alt="Logotipo" />
+    </div>
+
+    <!-- Layout Principal -->
+    <div class="main-wrapper">
+
+        <!-- Coluna Esquerda -->
+        <div class="left-panel">
+            <div class="player-name">João Ribeiro</div>
+            <div class="section">
+                <h2>Informação Pessoal</h2>
+                <table class="info-table">
+                    <tr><td class="bold">Nome</td><td>Tiago Pinto</td></tr>
+                    <tr><td class="bold">Idade</td><td>19</td></tr>
+                    <tr><td class="bold">Data de Nascimento</td><td>1995-06-15</td></tr>
+                    <tr><td class="bold">Categoria</td><td>Profissional</td></tr>
+                    <tr><td class="bold">Equipa</td><td>Benfica</td></tr>
+                    <tr><td class="bold">Ranking</td><td>2 🏆</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Coluna Direita -->
+        <div class="right-panel">
+            <div class="section">
+                <h2>Resultados Recentes</h2>
+                <p>22/03/2025: Vitória contra José</p>
+                <p>18/03/2025: Derrota contra Ana</p>
+            </div>
+
+            <div class="section">
+                <h2>Estatísticas Recentes</h2>
+                <p>Vitórias: 8 / Derrotas: 4</p>
+                <p>Taxa de Vitória: 66%</p>
+            </div>
+
+            <div class="section">
+                <h2>Histórico de Participações</h2>
+                <p>Competição Nacional 2024: 1º lugar</p>
+                <p>Torneio Regional 2023: 2º lugar</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botões -->
+    <div class="bottom-buttons">
+        <button class="report-button">Criar Relatório</button>
+        <a href="/" class="back-button">&lt;Voltar</a>
+    </div>
+
+</body>
+</html>

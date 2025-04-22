@@ -1,0 +1,231 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <title>Gestão de Resultados</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+
+            .top-left-logo img {
+                width: 160px;
+            }
+
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        h2 {
+            font-size: 32px;
+            color: black;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            border: 1px solid #888;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        th {
+            background-color: #ccc;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .victory-button {
+            padding: 6px 10px;
+            background-color: white;
+            border: 2px solid #000;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 2px;
+        }
+
+            .victory-button:hover {
+                background-color: #e0e0e0;
+            }
+
+        .arrow-button {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-color: green;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            line-height: 24px;
+            margin: 0 4px;
+        }
+
+        .comment-section {
+            width: 100%;
+        }
+
+            .comment-section label {
+                font-size: 20px;
+                color: black;
+            }
+
+        .comment-box {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .confirm-button {
+            display: block;
+            margin: 30px auto 0 auto;
+            font-size: 18px;
+            padding: 12px 30px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+            .confirm-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .back-button {
+            position: absolute;
+            right: 40px;
+            bottom: 40px;
+            padding: 12px 24px;
+            font-size: 18px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .pontuacao-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <img src="~/img/logotipo.png" alt="Logotipo" />
+    </div>
+
+    <!-- Conteúdo Centralizado -->
+    <div class="content-wrapper">
+        <!-- Título -->
+        <h2>Gestão de Resultados</h2>
+
+        <!-- Tabela -->
+        <table>
+            <tr>
+                <th>Partidas</th>
+                <th>Pontuação</th>
+                <th>Vitória</th>
+                <th>Motivo</th>
+            </tr>
+            <tr>
+                <td>Higgins vs Federer</td>
+                <td>2-11</td>
+                <td>Federer</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Marco vs Alberto</td>
+                <td>
+                    <div class="pontuacao-flex">
+                        <button class="arrow-button">↑</button>
+                        3-1
+                        <button class="arrow-button">↑</button>
+                    </div>
+                </td>
+                <td>
+                    <button class="victory-button">Dar Vitória</button>
+                    <button class="victory-button">Dar Vitória</button>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Andrea vs Caspirenov</td>
+                <td>indisponível</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Ronaldi vs Messino</td>
+                <td>-</td>
+                <td>Ronaldi</td>
+                <td>Falta de Comparência</td>
+            </tr>
+        </table>
+
+        <!-- Comentário -->
+        <div class="comment-section">
+            <label for="comentario">Adicionar Comentário:</label>
+            <input type="text" id="comentario" name="comentario" class="comment-box" />
+        </div>
+
+        <!-- Botão Confirmar -->
+        <button class="confirm-button">Confirmar Alterações</button>
+    </div>
+
+    <!-- Botão Voltar -->
+    <a href="/" class="back-button">&lt;Voltar</a>
+
+</body>
+</html>
