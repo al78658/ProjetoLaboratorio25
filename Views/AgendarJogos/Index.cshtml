@@ -4,126 +4,125 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8" />
-    <title>Agendar Jogo</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #808080;
-            min-height: 100vh;
-            position: relative;
-        }
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #808080;
+        min-height: 100vh;
+        position: relative;
+    }
 
         .top-left-logo {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 40px;
+            left: 50px;
         }
 
             .top-left-logo img {
-                width: 100px;
+                width: 160px;
             }
 
-        .main-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+    .main-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 40px;
+    }
 
-        .schedule-box {
-            background-color: transparent;
-            padding: 40px;
-            text-align: center;
-            max-width: 650px;
-            width: 100%;
-        }
+    .schedule-box {
+        background-color: transparent;
+        padding: 54px;
+        text-align: center;
+        max-width: 900px;
+        width: 100%;
+    }
 
-        h2 {
-            font-size: 36px;
-            margin-bottom: 20px;
-            color: black;
-        }
+    h2 {
+        font-size: 58px;
+        margin-bottom: 36px;
+        color: black;
+    }
 
-        .participants-label {
-            font-size: 20px;
-            margin-bottom: 20px;
-            color: black;
-        }
+    .participants-label {
+        font-size: 32px;
+        margin-bottom: 26px;
+        color: black;
+    }
 
-        .vs-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 30px;
-            gap: 20px;
-        }
+    .vs-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 45px;
+        gap: 36px;
+    }
 
-            .vs-container input {
-                width: 250px;
-                padding: 14px;
-                font-size: 18px;
-                border: 2px solid #000;
-                border-radius: 8px;
-                text-align: center;
-            }
-
-        .vs-text {
-            font-size: 24px;
-            font-weight: bold;
-            color: black;
-        }
-
-        .datetime-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .datetime-wrapper {
-            position: relative;
-        }
-
-            .datetime-wrapper input {
-                width: 250px;
-                padding: 14px;
-                font-size: 18px;
-                border: 2px solid #000;
-                border-radius: 8px;
-                text-align: center;
-            }
-
-            .datetime-wrapper .icon {
-                position: absolute;
-                right: 14px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 20px;
-                pointer-events: none;
-            }
-
-        .save-button {
-            width: 250px;
-            font-size: 22px;
-            padding: 14px;
-            background: white;
-            border: 2px solid black;
+        .vs-container input {
+            width: 360px;
+            padding: 22px;
+            font-size: 25px;
+            border: 3px solid #000;
             border-radius: 10px;
-            cursor: pointer;
-            margin-top: 20px;
+            text-align: center;
         }
 
-            .save-button:hover {
-                background-color: #dcdcdc;
-            }
+    .vs-text {
+        font-size: 32px;
+        font-weight: bold;
+        color: black;
+    }
+
+    .datetime-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 36px;
+        margin-bottom: 45px;
+    }
+
+    .datetime-wrapper {
+        position: relative;
+    }
+
+        .datetime-wrapper input {
+            width: 360px;
+            padding: 22px;
+            font-size: 25px;
+            border: 3px solid #000;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .datetime-wrapper .icon {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            pointer-events: none;
+        }
+
+    .save-button {
+        width: 360px;
+        font-size: 25px;
+        padding: 18px;
+        background: white;
+        border: 3px solid black;
+        border-radius: 12px;
+        cursor: pointer;
+        margin-top: 28px;
+    }
+
+        .save-button:hover {
+            background-color: #dcdcdc;
+        }
 
         .back-button {
             position: absolute;
@@ -142,7 +141,7 @@
             .back-button:hover {
                 background-color: #dcdcdc;
             }
-    </style>
+</style>
 </head>
 <body>
 

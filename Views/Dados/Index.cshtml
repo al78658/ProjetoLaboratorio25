@@ -34,49 +34,50 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding-top: 200px;
-            padding-left: 40px;
-            padding-right: 40px;
-            gap: 80px;
+            padding-top: 160px;
+            padding-left: 20px;
+            padding-right: 20px;
+            gap: 60px;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
         .left-panel {
             flex: 1;
-            max-width: 500px;
-            margin-top: 80px;
+            max-width: 450px;
+            margin-top: 60px;
             display: flex;
             flex-direction: column;
         }
 
         .player-name {
-            font-size: 52px; /* nome ainda maior */
+            font-size: 42px;
             color: #1e1e1e;
             font-weight: bold;
-            margin-bottom: 60px; /* menos margem inferior */
-            margin-top: -110px; /* mais para cima */
+            margin-bottom: 40px;
+            margin-top: -80px;
         }
-
 
         .right-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 30px;
-            max-width: 600px;
+            gap: 20px;
+            max-width: 500px;
         }
 
         .section {
             background: #f0f0f0;
             border: 2px solid #333;
-            padding: 25px;
+            padding: 20px;
             border-radius: 8px;
-            min-height: 160px;
-            font-size: 18px;
+            min-height: 140px;
+            font-size: 16px;
         }
 
             .section h2 {
-                font-size: 28px;
-                margin-bottom: 16px;
+                font-size: 22px;
+                margin-bottom: 10px;
             }
 
         .info-table {
@@ -86,25 +87,26 @@
 
             .info-table td {
                 border: 1px solid #444;
-                padding: 10px 14px;
-                font-size: 18px;
+                padding: 8px 12px;
+                font-size: 16px;
             }
 
         .bold {
             font-weight: bold;
         }
 
-        .bottom-buttons {
+        .button-wrapper {
             position: absolute;
-            right: 40px;
-            bottom: 40px;
+            right: 30px;
+            bottom: 30px;
             display: flex;
-            gap: 20px;
+            flex-direction: row;
+            gap: 12px;
         }
 
         .report-button {
-            padding: 14px 30px;
-            font-size: 18px;
+            padding: 10px 20px;
+            font-size: 16px;
             background: white;
             border: 2px solid black;
             border-radius: 8px;
@@ -116,8 +118,8 @@
             }
 
         .back-button {
-            padding: 14px 24px;
-            font-size: 18px;
+            padding: 10px 20px;
+            font-size: 16px;
             border: 2px solid #000;
             background: white;
             border-radius: 8px;
@@ -139,10 +141,11 @@
             gap: 40px;
         }
 
-        .bottom-buttons {
-            position: static;
-            margin-top: 20px;
-            justify-content: center;
+        .button-wrapper {
+            flex-direction: column;
+            align-items: center;
+            right: 50%;
+            transform: translateX(50%);
         }
 
         }
@@ -197,7 +200,7 @@
     </div>
 
     <!-- Botões -->
-    <div class="bottom-buttons">
+    <div class="button-wrapper">
         <button class="report-button">Criar Relatório</button>
         <a href="/" class="back-button">&lt;Voltar</a>
     </div>

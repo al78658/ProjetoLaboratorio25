@@ -5,7 +5,7 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8" />
-    <title>Emparelhamento - Bilhar</title>
+    <title>Emparelhamento</title>
     <style>
         * {
             box-sizing: border-box;
@@ -13,18 +13,15 @@
             padding: 0;
         }
 
-        html, body {
-            height: 100%;
-            overflow: hidden;
-        }
-
         body {
             font-family: Arial, sans-serif;
             background-color: #808080;
+            min-height: 100vh;
+            position: relative;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            position: relative;
+            align-items: center;
+            justify-content: center;
         }
 
         .top-left-logo {
@@ -37,73 +34,74 @@
                 width: 160px;
             }
 
-        .main-container {
-            margin-top: 80px;
-            margin-bottom: 60px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex-grow: 1;
-            padding: 60px 20px;
-        }
-
-        .box {
-            background-color: transparent;
-            padding: 40px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 820px;
+        h1 {
+            font-size: 36px;
+            color: black;
+            margin-bottom: 40px;
             text-align: center;
         }
 
-        h2 {
-            font-size: 42px;
-            margin-bottom: 40px;
-            color: black;
+        .table-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
 
         table {
-            width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
+            background-color: white;
+            width: 60%;
+            min-width: 600px;
         }
 
         th, td {
-            border: 1px solid #333;
-            background-color: white;
-            padding: 16px;
-            font-size: 18px;
+            border: 1px solid black;
+            padding: 14px;
             text-align: center;
+            font-size: 18px;
         }
 
         th {
-            background-color: #ddd;
-        }
-
-        .btn {
-            padding: 10px 22px;
-            background-color: white;
-            border: 2px solid black;
-            border-radius: 10px;
+            background-color: #e0e0e0;
             font-weight: bold;
-            cursor: pointer;
-            font-size: 18px;
         }
 
-        .btn-group {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 20px;
-            flex-wrap: wrap;
+        .definir-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: 2px solid black;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
         }
+
+            .definir-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .save-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .save-button {
+            padding: 12px 28px;
+            font-size: 18px;
+            border: 2px solid black;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+            .save-button:hover {
+                background-color: #dcdcdc;
+            }
 
         .back-button {
             position: absolute;
-            right: 40px;
-            bottom: 40px;
-            padding: 12px 24px;
+            right: 30px;
+            bottom: 30px;
+            padding: 10px 20px;
             font-size: 18px;
             border: 2px solid #000;
             background: white;
@@ -113,10 +111,27 @@
             color: black;
         }
 
-            .back-button:hover,
-            .btn:hover {
+            .back-button:hover {
                 background-color: #dcdcdc;
             }
+
+        media (max-width: 700px) {
+            table
+
+        {
+            width: 90%;
+            min-width: unset;
+        }
+
+        .save-button, .definir-button {
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+        }
+
+        }
     </style>
 </head>
 <body>
@@ -126,46 +141,45 @@
         <img src="img/logotipo.png" alt="Logotipo" />
     </div>
 
-    <!-- Conteúdo principal -->
-    <div class="main-container">
-        <div class="box">
-            <h2>Emparelhamento</h2>
+    <!-- Título -->
+    <h1>Emparelhamento</h1>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Jogador 1</th>
-                        <th>Data e Horário</th>
-                        <th>Jogador 2</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Joao Miguel</td>
-                        <td><button class="btn">Definir</button></td>
-                        <td>Luis Miguel</td>
-                    </tr>
-                    <tr>
-                        <td>Ricardo Miguel</td>
-                        <td><button class="btn">Definir</button></td>
-                        <td>Tiago Miguel</td>
-                    </tr>
-                    <tr>
-                        <td>João Tomás</td>
-                        <td><button class="btn">Definir</button></td>
-                        <td>Tomás João</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="btn-group">
-                <button class="btn">Salvar</button>
-                <button class="btn">&lt; Voltar</button>
-            </div>
-        </div>
+    <!-- Tabela de emparelhamento -->
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Jogador 1</th>
+                    <th>Data e Horário</th>
+                    <th>Jogador 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Joao Miguel</td>
+                    <td><button class="definir-button">Definir</button></td>
+                    <td>Luis Miguel</td>
+                </tr>
+                <tr>
+                    <td>Ricardo Miguel</td>
+                    <td><button class="definir-button">Definir</button></td>
+                    <td>Tiago Miguel</td>
+                </tr>
+                <tr>
+                    <td>João Tomás</td>
+                    <td><button class="definir-button">Definir</button></td>
+                    <td>Tomás João</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    <!-- Botão Voltar absoluto -->
+    <!-- Botão Salvar -->
+    <div class="save-container">
+        <button class="save-button">Salvar</button>
+    </div>
+
+    <!-- Botão Voltar -->
     <a href="/" class="back-button">&lt;Voltar</a>
 
 </body>

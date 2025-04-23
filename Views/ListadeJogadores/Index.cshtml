@@ -31,50 +31,52 @@
             }
 
         .main-container {
-            padding-top: 160px;
-            margin-bottom: 80px;
+            padding-top: 140px;
+            margin-bottom: 60px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-left: 40px;
-            padding-right: 40px;
+            padding-left: 20px;
+            padding-right: 20px;
+            width: 90%;
+            max-width: 800px; /* reduzido */
+            margin-left: auto;
+            margin-right: auto;
         }
 
         h2 {
-            font-size: 40px;
-            margin-bottom: 60px;
+            font-size: 32px; /* reduzido */
+            margin-bottom: 40px;
             color: black;
         }
 
         .input-row {
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
         }
 
         label {
-            font-size: 22px;
+            font-size: 18px;
             color: black;
         }
 
         input[type="number"] {
-            width: 100px;
-            padding: 10px;
-            font-size: 18px;
-            border-radius: 8px;
+            width: 80px;
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 6px;
             border: 1px solid #444;
         }
 
-        /* TABELA COM SCROLL NO CORPO */
         .player-table {
             width: 100%;
-            max-width: 600px;
             border-collapse: collapse;
             background-color: white;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             display: block;
-            margin-bottom: 60px;
+            margin-bottom: 50px;
         }
 
             .player-table thead {
@@ -85,14 +87,14 @@
 
             .player-table th {
                 background-color: #dcdcdc;
-                padding: 14px 16px;
+                padding: 12px;
                 text-align: left;
-                font-size: 18px;
+                font-size: 16px;
             }
 
         .scrollable-body {
             display: block;
-            max-height: 250px;
+            max-height: 220px;
             overflow-y: auto;
             width: 100%;
         }
@@ -104,8 +106,8 @@
             }
 
             .scrollable-body td {
-                padding: 14px 16px;
-                font-size: 18px;
+                padding: 12px;
+                font-size: 16px;
                 border-top: 1px solid #ccc;
             }
 
@@ -114,15 +116,15 @@
             justify-content: space-between;
             width: 100%;
             max-width: 600px;
-            padding: 0 20px;
+            padding: 0 10px;
         }
 
         .action-button {
-            font-size: 22px;
-            padding: 16px 50px;
+            font-size: 18px;
+            padding: 14px 32px;
             border: 2px solid black;
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
         }
@@ -153,7 +155,7 @@
             h2
 
         {
-            font-size: 28px;
+            font-size: 24px;
         }
 
         .input-row {
@@ -163,13 +165,21 @@
 
         .button-row {
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
             align-items: center;
         }
 
         .action-button {
             width: 100%;
             text-align: center;
+        }
+
+        .scrollable-body td {
+            font-size: 14px;
+        }
+
+        .player-table th {
+            font-size: 14px;
         }
 
         }

@@ -31,33 +31,37 @@
             }
 
         .main-container {
-            padding-top: 160px;
-            margin-bottom: 60px;
+            padding-top: 140px;
+            margin-bottom: 40px;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding-left: 20px;
             padding-right: 20px;
+            width: 90%;
+            max-width: 800px; /* reduzido */
+            margin-left: auto;
+            margin-right: auto;
         }
 
         h2 {
-            font-size: 40px;
-            margin-bottom: 40px;
+            font-size: 32px; /* reduzido */
+            margin-bottom: 32px;
             color: black;
+            text-align: center;
         }
 
         form {
             width: 100%;
-            max-width: 700px;
             display: grid;
             grid-template-columns: 1fr 2fr;
-            row-gap: 25px;
-            column-gap: 20px;
+            row-gap: 20px;
+            column-gap: 16px;
             align-items: center;
         }
 
         label {
-            font-size: 20px;
+            font-size: 18px;
             color: black;
         }
 
@@ -65,40 +69,40 @@
         input[type="number"],
         select {
             width: 100%;
-            padding: 12px;
-            font-size: 18px;
-            border-radius: 8px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
             border: 1px solid #444;
         }
 
         .checkbox-list {
-            padding: 12px;
+            padding: 10px;
             background: white;
             border: 1px solid #333;
-            border-radius: 8px;
-            max-height: 160px;
+            border-radius: 6px;
+            max-height: 140px;
             overflow-y: auto;
         }
 
             .checkbox-list label {
                 display: flex;
                 align-items: center;
-                gap: 10px;
-                font-size: 18px;
-                margin-bottom: 8px;
+                gap: 8px;
+                font-size: 16px;
+                margin-bottom: 6px;
             }
 
         .save-button {
             grid-column: span 2;
             justify-self: center;
-            margin-top: 20px;
-            font-size: 20px;
-            padding: 16px 40px;
+            margin-top: 16px;
+            font-size: 18px;
+            padding: 14px 32px;
             border: 2px solid black;
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
             .save-button:hover {
@@ -107,9 +111,9 @@
 
         .back-button {
             position: absolute;
-            right: 40px;
-            bottom: 40px;
-            padding: 12px 24px;
+            right: 30px;
+            bottom: 30px;
+            padding: 10px 20px;
             font-size: 18px;
             border: 2px solid #000;
             background: white;
@@ -132,7 +136,7 @@
             h2
 
         {
-            font-size: 28px;
+            font-size: 24px;
         }
 
         form {

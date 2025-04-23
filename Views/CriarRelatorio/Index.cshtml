@@ -5,7 +5,7 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8" />
-    <title>Criar Novo Relatório</title>
+    <title>Criar Relatório</title>
     <style>
         * {
             box-sizing: border-box;
@@ -23,7 +23,8 @@
             background-color: #808080;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: center;
+            align-items: center;
             position: relative;
         }
 
@@ -38,41 +39,38 @@
             }
 
         .main-container {
-            margin-top: 80px;
-            margin-bottom: 60px;
+            padding: 20px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            flex-grow: 1;
-            padding: 60px 20px;
+            width: 100%;
         }
 
         .box {
             background-color: transparent;
-            padding: 40px;
+            padding: 24px;
             border-radius: 12px;
-            width: 100%;
-            max-width: 820px;
+            width: 90%;
+            max-width: 860px; /* largura intermédia */
         }
 
         h2 {
-            font-size: 42px;
-            margin-bottom: 40px;
+            font-size: 26px;
+            margin-bottom: 24px;
             color: black;
-			text-align: center;
+            text-align: center;
         }
 
         form {
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 16px;
         }
 
         label {
-            font-size: 20px;
+            font-size: 15px;
             color: black;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             display: block;
         }
 
@@ -80,25 +78,25 @@
         textarea,
         select {
             width: 100%;
-            padding: 12px;
-            font-size: 18px;
+            padding: 8px 10px;
+            font-size: 15px;
             border: 2px solid #333;
             border-radius: 6px;
         }
 
         textarea {
             resize: none;
-            height: 120px;
+            height: 90px;
         }
 
         .btn {
-            padding: 12px 28px;
+            padding: 10px 24px;
             background-color: white;
             border: 2px solid black;
-            border-radius: 10px;
+            border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 15px;
             align-self: center;
         }
 
@@ -108,9 +106,9 @@
 
         .back-button {
             position: absolute;
-            right: 40px;
-            bottom: 40px;
-            padding: 12px 24px;
+            right: 30px;
+            bottom: 30px;
+            padding: 10px 20px;
             font-size: 18px;
             border: 2px solid #000;
             background: white;
@@ -135,7 +133,7 @@
     <!-- Conteúdo principal -->
     <div class="main-container">
         <div class="box">
-            <h2>Criar Novo Relatório</h2>
+            <h2>Criar Relatório</h2>
 
             <form>
                 <div>
@@ -162,7 +160,7 @@
         </div>
     </div>
 
-    <!-- Botão Voltar absoluto -->
+    <!-- Botão Voltar -->
     <a href="/" class="back-button">&lt;Voltar</a>
 
 </body>

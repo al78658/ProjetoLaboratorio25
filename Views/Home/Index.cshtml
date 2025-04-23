@@ -1,7 +1,6 @@
 ﻿@{
     Layout = null;
 }
-@* pagina principal *@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -21,10 +20,10 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1100px; /* reduzido */
             margin: 0 auto;
             min-height: 100vh;
-            padding: 60px;
+            padding: 40px 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -36,33 +35,33 @@
             display: flex;
             justify-content: flex-end;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
         }
 
         .search-box {
             display: flex;
             align-items: center;
             border: 2px solid #ccc;
-            border-radius: 40px;
+            border-radius: 30px;
             background: white;
-            padding: 10px 25px;
+            padding: 8px 20px;
         }
 
             .search-box input {
                 border: none;
                 outline: none;
-                padding: 15px;
-                font-size: 18px;
-                width: 400px;
+                padding: 10px;
+                font-size: 16px;
+                width: 280px; /* reduzido */
             }
 
         .button {
             background: white;
             border: 2px solid black;
-            border-radius: 10px;
-            padding: 18px 30px;
+            border-radius: 8px;
+            padding: 14px 24px;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 18px;
         }
 
             .button:hover {
@@ -70,7 +69,7 @@
             }
 
         .icon {
-            font-size: 32px;
+            font-size: 26px;
             text-decoration: none;
             color: black;
         }
@@ -84,36 +83,37 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 40px;
+            gap: 30px;
             flex-grow: 1;
             justify-content: center;
             width: 100%;
+            text-align: center;
         }
 
         .main-image {
-            width: 420px;
-            margin-top: 30px;
-            margin-bottom: 40px;
+            width: 320px; /* reduzido */
+            margin-top: 20px;
+            margin-bottom: 30px;
         }
 
         h1 {
-            font-size: 28px;
+            font-size: 24px;
             color: white;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
         }
 
         .main-buttons {
             display: flex;
             justify-content: center;
-            gap: 50px;
+            gap: 30px;
             flex-wrap: wrap;
         }
 
             .main-buttons .button {
-                padding: 50px 80px;
-                font-size: 28px;
-                min-width: 350px;
-                border-radius: 16px;
+                padding: 36px 60px;
+                font-size: 22px;
+                min-width: 280px;
+                border-radius: 14px;
                 box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.25);
             }
 
@@ -122,22 +122,26 @@
 
         {
             flex-direction: column;
-            gap: 30px;
+            gap: 24px;
         }
 
         .main-buttons .button {
             width: 100%;
-            max-width: 320px;
-            font-size: 22px;
-            padding: 36px 40px;
+            max-width: 300px;
+            font-size: 18px;
+            padding: 30px 36px;
         }
 
         .search-box input {
-            width: 250px;
+            width: 200px;
         }
 
         .main-image {
-            width: 300px;
+            width: 240px;
+        }
+
+        h1 {
+            font-size: 20px;
         }
 
         }
@@ -150,7 +154,7 @@
         <!-- TOPO DIREITO -->
         <div class="top-bar">
             <div class="search-box">
-                <span style="font-size: 20px; margin-right: 10px;">🔍</span>
+                <span style="font-size: 18px; margin-right: 10px;">🔍</span>
                 <input type="text" placeholder="Pesquise um jogador ou equipa">
             </div>
             <button class="button">Pesquisar</button>
