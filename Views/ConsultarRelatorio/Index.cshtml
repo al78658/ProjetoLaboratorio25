@@ -146,7 +146,9 @@
 
     <!-- Logotipo -->
     <div class="top-left-logo">
-        <img src="img/logotipo.png" alt="Logotipo" />
+        <a href="/home">
+            <img src="img/logotipo.png" alt="Logotipo" />
+        </a>
     </div>
 
     <!-- Conteúdo principal -->
@@ -156,7 +158,9 @@
 
             <!-- Botões superiores -->
             <div class="button-group">
-                <button class="btn">Criar Relatório</button>
+                <button type="button" class="btn" onclick="window.location.href='/CriarRelatorio'">
+                    Criar Relatorio
+                </button>
                 <button class="btn">&lt;Relatório Anterior</button>
                 <button class="btn">Próximo Relatório&gt;</button>
             </div>
@@ -185,7 +189,7 @@
     </div>
 
     <!-- Botão Voltar absoluto -->
-    <a href="/" class="back-button">&lt;Voltar</a>
+    <a href="/Menu" class="back-button">&lt;Voltar</a>
 
 </body>
 </html>

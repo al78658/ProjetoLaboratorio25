@@ -136,7 +136,9 @@
 
     <!-- Logotipo -->
     <div class="top-left-logo">
-        <img src="img/logotipo.png" alt="Logotipo" />
+        <a href="/home">
+            <img src="img/logotipo.png" alt="Logotipo" />
+        </a>
     </div>
 
     <!-- Conteúdo principal -->
@@ -145,9 +147,10 @@
             <h2>Jogos Agendados</h2>
 
             <!-- Botão no topo à direita -->
-            <div class="button-top-right">
-                <button class="btn">Agendar Jogos</button>
-            </div>
+            <button type="button" class="btn" onclick="window.location.href='/AgendarJogos'">
+                Agendar Jogos
+            </button>
+
 
             <!-- Tabela com scroll -->
             <div class="table-wrapper">
@@ -196,7 +199,7 @@
     </div>
 
     <!-- Botão Voltar absoluto -->
-    <a href="/" class="back-button">&lt;Voltar</a>
+    <a href="/Menu" class="back-button">&lt;Voltar</a>
 
 </body>
 </html>
