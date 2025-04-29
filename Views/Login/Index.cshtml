@@ -161,8 +161,11 @@
 
     <!-- Logotipo -->
     <div class="top-left-logo">
-        <img src="img/logotipo.png" alt="Logotipo" />
+        <a href="/">
+            <img src="img/logotipo.png" alt="Logotipo" />
+        </a>
     </div>
+
 
     <!-- Conteúdo principal -->
     <div class="login-container">
@@ -181,10 +184,13 @@
                 </div>
 
                 <div class="register-link">
-                    Novo por aqui? <a href="/registo">Criar Conta</a>
+                    Novo por aqui? <a href="/Registar">Criar Conta</a>
                 </div>
 
-                <button type="submit" class="login-button">Iniciar Sessão</button>
+                <button type="button" class="login-button" onclick="window.location.href='/home'">
+                    Iniciar Sessão
+                </button>
+
             </form>
         </div>
     </div>

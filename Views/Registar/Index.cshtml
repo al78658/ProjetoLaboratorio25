@@ -145,8 +145,11 @@
 <body>
 
     <div class="top-left-logo">
-        <img src="img/logotipo.png" alt="Logotipo" />
+        <a href="/home">
+            <img src="img/logotipo.png" alt="Logotipo" />
+        </a>
     </div>
+
 
     <div class="login-container">
         <div class="login-box">
@@ -168,12 +171,14 @@
                     <input type="password" id="senha" name="senha" required />
                 </div>
 
-                <button type="submit" class="login-button">Criar Conta</button>
+                <button type="button" class="login-button" onclick="window.location.href='/Login'">
+                    Criar Conta
+                </button>
             </form>
         </div>
     </div>
 
-    <a href="/" class="back-button">&lt;Voltar</a>
+    <a href="/login" class="back-button">&lt;Voltar</a>
 
 </body>
 </html>
