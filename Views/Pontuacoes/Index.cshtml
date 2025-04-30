@@ -191,11 +191,12 @@
                 <td>Marco vs Alberto</td>
                 <td>
                     <div class="pontuacao-flex">
-                        <button class="arrow-button">↑</button>
-                        3-1
-                        <button class="arrow-button">↑</button>
+                        <button class="arrow-button" onclick="incrementScore('score-marco-alberto', 1)">↑</button>
+                        <span id="score-marco-alberto">3-1</span>
+                        <button class="arrow-button" onclick="incrementScore('score-marco-alberto', 2)">↑</button>
                     </div>
                 </td>
+
                 <td>
                     <button class="victory-button">Dar Vitória</button>
                     <button class="victory-button">Dar Vitória</button>
@@ -230,6 +231,30 @@
 
     <!-- Botão Voltar -->
     <a href="/Menu" class="back-button">&lt;Voltar</a>
+    <script>
+        function incrementScore(scoreId, playerNumber) {
+            const scoreElement = document.getElementById(scoreId);
+            if (!scoreElement) return;
+
+                     // Obtém o texto atual da pontuação, por exemplo, "3-1"
+            const currentScore = scoreElement.textContent.trim();
+
+            // Divide a pontuação em dois números
+            const scores = currentScore.split('-').map(Number);
+
+            // Verifica se a pontuação é válida
+            if (scores.length !== 2 || scores.some(isNaN)) return;
+
+            // Incrementa o número do jogador correspondente
+            if (scores[playerNumber - 1] <= 10) {
+                scores[playerNumber - 1] += 1;
+            }
+
+
+            // Atualiza o texto da pontuação
+            scoreElement.textContent = `${scores[0]}-${scores[1]}`;
+        }
+    </script>
 
 </body>
 </html>
