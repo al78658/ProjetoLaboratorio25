@@ -187,10 +187,14 @@
                     Novo por aqui? <a href="/Registar">Criar Conta</a>
                 </div>
 
-                <button type="button" class="login-button" onclick="window.location.href='/home'">
+                <button type="submit" class="login-button">
                     Iniciar Sessão
                 </button>
 
+                @if (ViewBag.Erro != null)
+                {
+                    <div style="color:red; margin-top:16px;">@ViewBag.Erro</div>
+                }
             </form>
         </div>
     </div>

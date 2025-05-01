@@ -180,8 +180,16 @@
         </div>
     </div>
 
-    <!-- Botão Voltar absoluto -->
-    <a href="/" class="back-button">&lt;Voltar</a>
+    <!-- Botão Voltar -->
+    @if (User.Identity.IsAuthenticated)
+    {
+        <a href="/Dashboard" class="back-button">&lt;Voltar</a>
+    }
+    else
+    {
+        <a href="/Home" class="back-button">&lt;Voltar</a>
+    }
+
 
     <!-- Script para exclusividade dos checkboxes -->
     <script>

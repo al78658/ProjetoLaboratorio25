@@ -170,7 +170,14 @@
     </div>
 
     <!-- Botão Voltar -->
-    <a href="/" class="back-button">&lt;Voltar</a>
+    @if (User.Identity.IsAuthenticated)
+    {
+        <a href="/Dashboard" class="back-button">&lt;Voltar</a>
+    }
+    else
+    {
+        <a href="/Home" class="back-button">&lt;Voltar</a>
+    }
 
 </body>
 </html>
