@@ -8,5 +8,16 @@ namespace ProjetoLaboratorio25.Controllers
         {
             return View();
         }
+
+        [HttpPost]
+        public IActionResult Criar(string nome, string tipo)
+        {
+            // Store the competition data in TempData to pass to the next view
+            TempData["NomeCompeticao"] = nome;
+            TempData["TipoCompeticao"] = tipo;
+
+            // Redirect to FormatodaCompeticao
+            return RedirectToAction("Index", "FormatodaCompeticao");
+        }
     }
 }

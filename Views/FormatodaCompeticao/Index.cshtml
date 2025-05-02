@@ -209,8 +209,8 @@
                         </select>
                     </td>
                     <td>
-                        <button class="config-button">Configurar</button>
-                        <span class="config-icon">⚙️</span>
+                        <button class="config-button" onclick="window.location.href='@Url.Action("Index", "CriteriosdePontuacao", new { faseNumero = 1 })'">Configurar</button>
+                        <span class="config-icon" onclick="window.location.href='@Url.Action("Index", "CriteriosdePontuacao", new { faseNumero = 1 })'">⚙️</span>
                     </td>
                 </tr>
                 <tr>
@@ -225,18 +225,19 @@
                         </select>
                     </td>
                     <td>
-                        <button class="config-button">Configurar</button>
-                        <span class="config-icon">⚙️</span>
+                        <button class="config-button" onclick="window.location.href='@Url.Action("Index", "CriteriosdePontuacao", new { faseNumero = 2 })'">Configurar</button>
+                        <span class="config-icon" onclick="window.location.href='@Url.Action("Index", "CriteriosdePontuacao", new { faseNumero = 2 })'">⚙️</span>
                     </td>
                 </tr>
             </tbody>
+
         </table>
 
-        <button class="next-button">Seguinte</button>
+        <button class="next-button" onclick="window.location.href='@Url.Action("Index", "ListadeJogadores")'">Seguinte</button>
     </div>
 
     <!-- Botão Voltar -->
-    <a href="/" class="back-button">&lt;Voltar</a>
+    <a href="/CriarCompeticao" class="back-button">&lt;Voltar</a>
 
 </body>
 </html>

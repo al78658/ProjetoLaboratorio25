@@ -115,27 +115,23 @@
                 background-color: #dcdcdc;
             }
 
-        media (max-width: 700px) {
-            table
+        @@media (max-width: 700px) {
+            table {
+                width: 90%;
+                min-width: unset;
+            }
 
-        {
-            width: 90%;
-            min-width: unset;
-        }
+            .save-button, .definir-button {
+                width: 100%;
+            }
 
-        .save-button, .definir-button {
-            width: 100%;
-        }
-
-        h1 {
-            font-size: 28px;
-        }
-
+            h1 {
+                font-size: 28px;
+            }
         }
     </style>
 </head>
 <body>
-
     <!-- Logotipo -->
     <div class="top-left-logo">
         <img src="img/logotipo.png" alt="Logotipo" />
@@ -154,33 +150,52 @@
                     <th>Jogador 2</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>Joao Miguel</td>
-                    <td><button class="definir-button">Definir</button></td>
-                    <td>Luis Miguel</td>
-                </tr>
-                <tr>
-                    <td>Ricardo Miguel</td>
-                    <td><button class="definir-button">Definir</button></td>
-                    <td>Tiago Miguel</td>
-                </tr>
-                <tr>
-                    <td>João Tomás</td>
-                    <td><button class="definir-button">Definir</button></td>
-                    <td>Tomás João</td>
-                </tr>
+            <tbody id="pairsTableBody">
+                <!-- Os pares serão adicionados dinamicamente aqui -->
             </tbody>
         </table>
     </div>
 
     <!-- Botão Salvar -->
     <div class="save-container">
-        <button class="save-button">Salvar</button>
+        <button class="save-button" id="saveButton">Salvar</button>
     </div>
 
     <!-- Botão Voltar -->
-    <a href="/" class="back-button">&lt;Voltar</a>
+    <a href="/ListadeJogadores" class="back-button">&lt;Voltar</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pairsTableBody = document.getElementById('pairsTableBody');
+            const saveButton = document.getElementById('saveButton');
+
+            // Recupera os pares do localStorage
+            const pairs = JSON.parse(localStorage.getItem('playerPairs')) || [];
+
+            // Adiciona os pares à tabela
+            pairs.forEach(pair => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${pair.player1.name} (${pair.player1.team})</td>
+                    <td><button class="definir-button" onclick="redirectToProximosJogos()">Definir</button></td>
+                    <td>${pair.player2.name} (${pair.player2.team})</td>
+                `;
+                pairsTableBody.appendChild(row);
+            });
+
+            // Adiciona evento de clique ao botão Salvar
+            saveButton.addEventListener('click', function () {
+                // Aqui você pode adicionar a lógica para salvar os emparelhamentos
+                alert('Emparelhamentos salvos com sucesso!');
+                window.location.href = '/Menu';
+            });
+        });
+
+        // Função para redirecionar para a view "ProximosJogos"
+        function redirectToProximosJogos() {
+            window.location.href = '/ProximosJogos';
+        }
+    </script>
 
 </body>
 </html>

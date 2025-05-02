@@ -1,5 +1,6 @@
 ﻿@{
     Layout = null;
+    var configuracao = ViewBag.Configuracao as ProjetoLaboratorio25.Models.ConfiguracaoFase;
 }
 <!DOCTYPE html>
 <html lang="pt">
@@ -39,13 +40,13 @@
             padding-left: 20px;
             padding-right: 20px;
             width: 90%;
-            max-width: 800px; /* reduzido */
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
         }
 
         h2 {
-            font-size: 32px; /* reduzido */
+            font-size: 32px;
             margin-bottom: 32px;
             color: black;
             text-align: center;
@@ -132,26 +133,22 @@
             opacity: 1 !important;
         }
 
-        media (max-width: 768px) {
-            h2
+        @@media (max-width: 768px) {
+            h2 {
+                font-size: 24px;
+            }
 
-        {
-            font-size: 24px;
-        }
+            form {
+                grid-template-columns: 1fr;
+            }
 
-        form {
-            grid-template-columns: 1fr;
-        }
-
-        .save-button {
-            width: 100%;
-        }
-
+            .save-button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-
     <!-- Logotipo -->
     <div class="top-left-logo">
         <img src="img/logotipo.png" alt="Logotipo" />
@@ -159,29 +156,65 @@
 
     <!-- Conteúdo -->
     <div class="main-container">
-        <h2>Configurar Competição</h2>
+        <h2>Configurar Fase @ViewBag.FaseNumero</h2>
 
         <form method="post">
+            <input type="hidden" name="faseNumero" value="@ViewBag.FaseNumero" />
+
             <label for="formato">Formato:</label>
-            <select id="formato" name="formato">
-                <option value="liga">Liga (Round Robin)</option>
+            <select id="formato" name="formato" required>
+                <option value="">Escolher Formato</option>
+                @{
+                    var formatos = new Dictionary<string, string>
+                    {
+                        { "liga", "Liga (Round Robin)" },
+                        { "eliminacao", "Eliminação Simples" },
+                        { "grupos", "Grupos" }
+                    };
+
+                    foreach (var formato in formatos)
+                    {
+                        if (configuracao?.Formato == formato.Key)
+                        {
+                            <option value="@formato.Key" selected>@formato.Value</option>
+                        }
+                        else
+                        {
+                            <option value="@formato.Key">@formato.Value</option>
+                        }
+                    }
+                }
             </select>
 
             <label for="vitoria">Pontos por Vitória:</label>
-            <input type="number" id="vitoria" name="vitoria" min="0" />
+            <input type="number" id="vitoria" name="vitoria" min="0" value="@(configuracao?.PontosVitoria ?? 0)" required />
 
             <label for="empate">Pontos por Empate:</label>
-            <input type="number" id="empate" name="empate" min="0" />
+            <input type="number" id="empate" name="empate" min="0" value="@(configuracao?.PontosEmpate ?? 0)" required />
 
             <label for="derrota">Pontos por Derrota:</label>
-            <input type="number" id="derrota" name="derrota" min="0" value="0" />
+            <input type="number" id="derrota" name="derrota" min="0" value="@(configuracao?.PontosDerrota ?? 0)" required />
 
             <label>Critérios de Desempate:</label>
             <div class="checkbox-list">
-                <label><input type="checkbox" name="criterios" value="saldo"> Saldo de partidas (ganhas - perdidas)</label>
-                <label><input type="checkbox" name="criterios" value="confronto"> Confronto direto (entre os empatados)</label>
-                <label><input type="checkbox" name="criterios" value="vitorias"> Maior número de vitórias</label>
-                <label><input type="checkbox" name="criterios" value="menor-derrotas"> Menor número de derrotas</label>
+                @{
+                    var criterios = new Dictionary<string, string>
+                    {
+                        { "saldo", "Saldo de partidas (ganhas - perdidas)" },
+                        { "confronto", "Confronto direto (entre os empatados)" },
+                        { "vitorias", "Maior número de vitórias" },
+                        { "menor-derrotas", "Menor número de derrotas" }
+                    };
+
+                    foreach (var criterio in criterios)
+                    {
+                        var isChecked = configuracao?.CriteriosDesempate?.Contains(criterio.Key) == true;
+                        <label>
+                            <input type="checkbox" name="criterios" value="@criterio.Key" @(isChecked ? "checked" : "") />
+                            @criterio.Value
+                        </label>
+                    }
+                }
             </div>
 
             <button type="submit" class="save-button">Salvar Configuração</button>
@@ -189,7 +222,6 @@
     </div>
 
     <!-- Botão Voltar -->
-    <a href="/" class="back-button">&lt;Voltar</a>
-
+    <a href="/FormatodaCompeticao" class="back-button">&lt;Voltar</a>
 </body>
 </html>

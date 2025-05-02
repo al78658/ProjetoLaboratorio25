@@ -221,13 +221,25 @@
         </table>
 
         <div class="button-row">
-            <button type="button" class="action-button">Alterar Lista</button>
-            <button type="button" class="action-button">Emparelhar</button>
+            <button type="button" class="action-button" id="alterarListaButton">Alterar Lista</button>
+            <button type="button" class="action-button" id="emparelharButton">Emparelhar</button>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const emparelharButton = document.getElementById('emparelharButton');
+
+                emparelharButton.addEventListener('click', function () {
+                    // Redireciona para a view "Emparelhamento"
+                    window.location.href = '/Emparelhamento';
+                });
+            });
+        </script>
+
     </div>
 
     <!-- Botão Voltar -->
-    <a href="/" class="back-button">&lt;Voltar</a>
+    <a href="/FormatodaCompeticao" class="back-button">&lt;Voltar</a>
 
 </body>
 </html>
