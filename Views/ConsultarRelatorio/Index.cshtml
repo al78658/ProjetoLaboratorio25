@@ -66,9 +66,10 @@
 
         .button-group {
             display: flex;
-            justify-content: center;
+            justify-content: flex-end; /* Alinha os botões à direita */
             gap: 12px;
             margin-bottom: 20px;
+            padding-right: 0px; /* Aumentei o espaçamento à direita */
         }
 
         .btn {
@@ -157,25 +158,30 @@
             <h2>Relatórios</h2>
 
             <!-- Botões superiores -->
+            <!-- Botões superiores -->
             <div class="button-group">
-                <button type="button" class="btn" onclick="window.location.href='/CriarRelatorio'">
-                    Criar Relatorio
-                </button>
                 <button class="btn">&lt;Relatório Anterior</button>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <button type="button" class="btn" onclick="window.location.href='/CriarRelatorio'">
+                        Criar Relatório
+                    </button>
+                }
                 <button class="btn">Próximo Relatório&gt;</button>
             </div>
+
 
             <!-- Cabeçalho do relatório -->
             <div class="report-header">
                 <div class="report-title">Relatório Braga</div>
                 <div class="report-actions">
-                     @if (User.Identity.IsAuthenticated)
-                        {
-                    <button class="btn icon-button">
-                        <img src="~/img/1160515.png" alt="Editar" />
-                        Editar Relatório
-                    </button>
-                        }
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <button class="btn icon-button">
+                            <img src="~/img/1160515.png" alt="Editar" />
+                            Editar Relatório
+                        </button>
+                    }
                     <button class="btn icon-button">
                         <img src="~/img/724827.png" alt="Exportar" />
                         Exportar
