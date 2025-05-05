@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using ProjetoLaboratorio25.Models;
 
@@ -27,6 +28,17 @@ namespace ProjetoLaboratorio25.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+        public async Task<IActionResult> Logout()
+        {
+            // Limpar todos os cookies de autenticação
+            await HttpContext.SignOutAsync("CookieAuth");
+
+            // Limpar a sessão
+            HttpContext.Session.Clear();
+
+            // Redirecionar para a página Home
+            return RedirectToAction("Index", "Home");
         }
     }
 }

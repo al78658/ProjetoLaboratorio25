@@ -8,189 +8,188 @@
     <title>Agendar Jogo</title>
     <style>
         * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background-color: #808080;
-            min-height: 100vh;
-            position: relative;
+        font-family: Arial, sans-serif;
+        background-color: #808080;
+        min-height: 100vh;
+        position: relative;
         }
 
         .top-left-logo {
-            position: absolute;
-            top: 40px;
-            left: 50px;
+        position: absolute;
+        top: 40px;
+        left: 50px;
         }
 
-            .top-left-logo img {
-                width: 160px;
-            }
+        .top-left-logo img {
+        width: 160px;
+        }
 
         .main-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 40px;
         }
 
         .schedule-box {
-            background-color: transparent;
-            padding: 54px;
-            text-align: center;
-            max-width: 900px;
-            width: 100%;
+        background-color: transparent;
+        padding: 54px;
+        text-align: center;
+        max-width: 900px;
+        width: 100%;
         }
 
         h2 {
-            font-size: 58px;
-            margin-bottom: 36px;
-            color: black;
+        font-size: 58px;
+        margin-bottom: 36px;
+        color: black;
         }
 
         .participants-label {
-            font-size: 32px;
-            margin-bottom: 26px;
-            color: black;
+        font-size: 32px;
+        margin-bottom: 26px;
+        color: black;
         }
 
         .vs-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 45px;
-            gap: 36px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 45px;
+        gap: 36px;
         }
 
-            .vs-container input {
-                width: 360px;
-                padding: 22px;
-                font-size: 25px;
-                border: 3px solid #000;
-                border-radius: 10px;
-                text-align: center;
-            }
+        .vs-container input {
+        width: 360px;
+        padding: 22px;
+        font-size: 25px;
+        border: 3px solid #000;
+        border-radius: 10px;
+        text-align: center;
+        }
 
         .vs-text {
-            font-size: 32px;
-            font-weight: bold;
-            color: black;
+        font-size: 32px;
+        font-weight: bold;
+        color: black;
         }
 
         .datetime-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 36px;
-            margin-bottom: 45px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 36px;
+        margin-bottom: 45px;
         }
 
         .datetime-wrapper {
-            position: relative;
+        position: relative;
         }
 
-            .datetime-wrapper input {
-                width: 360px;
-                padding: 22px;
-                font-size: 25px;
-                border: 3px solid #000;
-                border-radius: 10px;
-                text-align: center;
-            }
+        .datetime-wrapper input {
+        width: 360px;
+        padding: 22px;
+        font-size: 25px;
+        border: 3px solid #000;
+        border-radius: 10px;
+        text-align: center;
+        }
 
-            .datetime-wrapper .icon {
-                position: absolute;
-                right: 18px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 24px;
-                pointer-events: none;
-            }
+        .datetime-wrapper .icon {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 24px;
+        pointer-events: none;
+        }
 
         .save-button {
-            width: 360px;
-            font-size: 25px;
-            padding: 18px;
-            background: white;
-            border: 3px solid black;
-            border-radius: 12px;
-            cursor: pointer;
-            margin-top: 28px;
+        width: 360px;
+        font-size: 25px;
+        padding: 18px;
+        background: white;
+        border: 3px solid black;
+        border-radius: 12px;
+        cursor: pointer;
+        margin-top: 28px;
         }
 
-            .save-button:hover {
-                background-color: #dcdcdc;
-            }
+        .save-button:hover {
+        background-color: #dcdcdc;
+        }
 
         .back-button {
-            position: absolute;
-            right: 30px;
-            bottom: 30px;
-            padding: 10px 20px;
-            font-size: 18px;
-            border: 2px solid #000;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            color: black;
+        position: absolute;
+        right: 30px;
+        bottom: 30px;
+        padding: 10px 20px;
+        font-size: 18px;
+        border: 2px solid #000;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        color: black;
         }
 
-            .back-button:hover {
-                background-color: #dcdcdc;
-            }
+        .back-button:hover {
+        background-color: #dcdcdc;
+        }
     </style>
 </head>
 <body>
-
-    <div class="top-left-logo">
-        <a href="/home">
-            <img src="img/logotipo.png" alt="Logotipo" />
-        </a>
-    </div>
-
-    <div class="main-container">
-        <div class="schedule-box">
-            <h2>Agendar Jogo</h2>
-            <div class="participants-label">Participantes</div>
-
-            <form id="agendarJogoForm">
-                <div class="vs-container">
-                    <input type="text" name="jogador1" value="João Miguel" required />
-                    <div class="vs-text">VS</div>
-                    <input type="text" name="jogador2" value="Luís Miguel" required />
-                </div>
-
-                <div class="datetime-container">
-                    <div class="datetime-wrapper">
-                        <input type="text" name="data" placeholder="Data" onfocus="this.type='date'" />
-                    </div>
-                    <div class="datetime-wrapper">
-                        <input type="text" name="hora" placeholder="Hora" onfocus="this.type='time'" />
-                    </div>
-                </div>
-
-                <button type="submit" class="save-button">Salvar</button>
-            </form>
+        <div class="top-left-logo">
+            <a href="/home">
+                <img src="img/logotipo.png" alt="Logotipo" />
+            </a>
         </div>
-    </div>
 
-    <a href="/ProximosJogos" class="back-button">&lt;Voltar</a>
+        <div class="main-container">
+            <div class="schedule-box">
+                <h2>Agendar Jogo</h2>
+                <div class="participants-label">Participantes</div>
 
-    <script>
-        document.getElementById("agendarJogoForm").addEventListener("submit", function(event) {
+                <form id="agendarJogoForm">
+                    <div class="vs-container">
+                        <input type="text" name="jogador1" value="João Miguel" required />
+                        <div class="vs-text">VS</div>
+                        <input type="text" name="jogador2" value="Luís Miguel" required />
+                    </div>
+
+                    <div class="datetime-container">
+                        <div class="datetime-wrapper">
+                            <input type="text" name="data" placeholder="Data" onfocus="this.type='date'" />
+                        </div>
+                        <div class="datetime-wrapper">
+                            <input type="text" name="hora" placeholder="Hora" onfocus="this.type='time'" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="save-button">Salvar</button>
+                </form>
+            </div>
+        </div>
+
+        <a href="/ProximosJogos" class="back-button">&lt;Voltar</a>
+  
+        <script>
+            document.getElementById("agendarJogoForm").addEventListener("submit", function(event) {
             event.preventDefault(); // Impede o envio padrão do formulário
 
             // Aqui você pode adicionar lógica para processar os dados do formulário, se necessário
 
             // Após o processamento, redireciona para a página AgendarJogos
             window.location.href = "/ProximosJogos";
-        });
-    </script>
-
+            });
+        </script>
+}
 </body>
 </html>

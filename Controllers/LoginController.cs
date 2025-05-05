@@ -58,7 +58,7 @@ namespace ProjetoLaboratorio25.Controllers
                 authProperties);
 
             // Redirecionar para Dashboard
-            return RedirectToAction("Index", "Dashboard");
+            return RedirectToAction("Index", "Home");
         }
     }
 }
