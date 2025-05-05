@@ -169,10 +169,13 @@
             <div class="report-header">
                 <div class="report-title">Relatório Braga</div>
                 <div class="report-actions">
+                     @if (User.Identity.IsAuthenticated)
+                        {
                     <button class="btn icon-button">
                         <img src="~/img/1160515.png" alt="Editar" />
                         Editar Relatório
                     </button>
+                        }
                     <button class="btn icon-button">
                         <img src="~/img/724827.png" alt="Exportar" />
                         Exportar

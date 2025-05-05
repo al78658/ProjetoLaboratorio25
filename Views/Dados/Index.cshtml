@@ -8,144 +8,144 @@
     <title>Perfil de Jogador</title>
     <style>
         * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background-color: #808080;
-            min-height: 100vh;
-            position: relative;
+        font-family: Arial, sans-serif;
+        background-color: #808080;
+        min-height: 100vh;
+        position: relative;
         }
 
         .top-left-logo {
-            position: absolute;
-            top: 40px;
-            left: 50px;
+        position: absolute;
+        top: 40px;
+        left: 50px;
         }
 
-            .top-left-logo img {
-                width: 160px;
-            }
+        .top-left-logo img {
+        width: 160px;
+        }
 
         .main-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding-top: 160px;
-            padding-left: 20px;
-            padding-right: 20px;
-            gap: 60px;
-            max-width: 1000px;
-            margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 160px;
+        padding-left: 20px;
+        padding-right: 20px;
+        gap: 60px;
+        max-width: 1000px;
+        margin: 0 auto;
         }
 
         .left-panel {
-            flex: 1;
-            max-width: 450px;
-            margin-top: 60px;
-            display: flex;
-            flex-direction: column;
+        flex: 1;
+        max-width: 450px;
+        margin-top: 60px;
+        display: flex;
+        flex-direction: column;
         }
 
         .player-name {
-            font-size: 42px;
-            color: #1e1e1e;
-            font-weight: bold;
-            margin-bottom: 40px;
-            margin-top: -80px;
+        font-size: 42px;
+        color: #1e1e1e;
+        font-weight: bold;
+        margin-bottom: 40px;
+        margin-top: -80px;
         }
 
         .right-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            max-width: 500px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-width: 500px;
         }
 
         .section {
-            background: #f0f0f0;
-            border: 2px solid #333;
-            padding: 20px;
-            border-radius: 8px;
-            min-height: 140px;
-            font-size: 16px;
+        background: #f0f0f0;
+        border: 2px solid #333;
+        padding: 20px;
+        border-radius: 8px;
+        min-height: 140px;
+        font-size: 16px;
         }
 
-            .section h2 {
-                font-size: 22px;
-                margin-bottom: 10px;
-            }
+        .section h2 {
+        font-size: 22px;
+        margin-bottom: 10px;
+        }
 
         .info-table {
-            width: 100%;
-            border-collapse: collapse;
+        width: 100%;
+        border-collapse: collapse;
         }
 
-            .info-table td {
-                border: 1px solid #444;
-                padding: 8px 12px;
-                font-size: 16px;
-            }
+        .info-table td {
+        border: 1px solid #444;
+        padding: 8px 12px;
+        font-size: 16px;
+        }
 
         .bold {
-            font-weight: bold;
+        font-weight: bold;
         }
 
         .button-wrapper {
-            position: absolute;
-            right: 30px;
-            bottom: 30px;
-            display: flex;
-            flex-direction: row;
-            gap: 12px;
+        position: absolute;
+        right: 30px;
+        bottom: 30px;
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
         }
 
         .report-button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background: white;
-            border: 2px solid black;
-            border-radius: 8px;
-            cursor: pointer;
+        padding: 10px 20px;
+        font-size: 16px;
+        background: white;
+        border: 2px solid black;
+        border-radius: 8px;
+        cursor: pointer;
         }
 
-            .report-button:hover {
-                background-color: #dcdcdc;
-            }
+        .report-button:hover {
+        background-color: #dcdcdc;
+        }
 
         .back-button {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: 2px solid #000;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            color: black;
+        padding: 10px 20px;
+        font-size: 16px;
+        border: 2px solid #000;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        color: black;
         }
 
-            .back-button:hover {
-                background-color: #dcdcdc;
-            }
+        .back-button:hover {
+        background-color: #dcdcdc;
+        }
 
         media (max-width: 900px) {
-            .main-wrapper
+        .main-wrapper
 
         {
-            flex-direction: column;
-            align-items: center;
-            gap: 40px;
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
         }
 
         .button-wrapper {
-            flex-direction: column;
-            align-items: center;
-            right: 50%;
-            transform: translateX(50%);
+        flex-direction: column;
+        align-items: center;
+        right: 50%;
+        transform: translateX(50%);
         }
 
         }
@@ -155,8 +155,11 @@
 
     <!-- Logotipo -->
     <div class="top-left-logo">
-        <img src="img/logotipo.png" alt="Logotipo" />
+        <a href="/Home">
+            <img src="img/logotipo.png" alt="Logotipo" />
+        </a>
     </div>
+
 
     <!-- Layout Principal -->
     <div class="main-wrapper">
@@ -201,9 +204,13 @@
 
     <!-- Botões -->
     <div class="button-wrapper">
-        <button class="report-button" onclick="window.location.href='/CriarRelatorio'">
-            Criar Relatório
-        </button>        <a href="/" class="back-button">&lt;Voltar</a>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <button class="report-button" onclick="window.location.href='/CriarRelatorio'">
+                Criar Relatório
+        </button>     
+        }
+        <a href="/" class="back-button">&lt;Voltar</a>
     </div>
 
 </body>

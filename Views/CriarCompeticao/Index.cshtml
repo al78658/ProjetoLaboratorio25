@@ -142,7 +142,7 @@
 
     <!-- Logotipo -->
     <div class="top-left-logo">
-        <a href="/Dashboard">
+        <a href="/Home">
             <img src="img/logotipo.png" alt="Logotipo" />
         </a>
     </div>
@@ -171,15 +171,9 @@
         </div>
     </div>
 
-    <!-- Botão Voltar -->
-    @if (User.Identity.IsAuthenticated)
-    {
-        <a href="/Dashboard" class="back-button">&lt;Voltar</a>
-    }
-    else
-    {
+    <!-- Botão Voltar -->   
         <a href="/Home" class="back-button">&lt;Voltar</a>
-    }
+    
 
 </body>
 </html>
