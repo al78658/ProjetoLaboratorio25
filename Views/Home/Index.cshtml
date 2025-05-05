@@ -428,7 +428,7 @@
     @if (User.Identity.IsAuthenticated)
     {
 
-    <div class="container">
+        <div class="container">
 
         <!-- TOPO DIREITO -->
         <div class="top-bar">
@@ -509,48 +509,48 @@
             <!-- Botão do sino -->
             <button id="notificationButton" class="icon" title="Ver notificações">🔔</button>
 
-            <!-- Caixa de notificações -->
-            <div id="notificationBox" class="notification-box">
-                <div class="notification-header">
-                    <strong>Notificações</strong>
-                    <button id="closeNotification" class="close-btn">&times;</button>
+                <!-- Caixa de notificações -->
+                <div id="notificationBox" class="notification-box">
+                    <div class="notification-header">
+                        <strong>Notificações</strong>
+                        <button id="closeNotification" class="close-btn">&times;</button>
+                    </div>
+                    <ul class="notification-list">
+                        <li><strong>João Silva</strong> venceu o jogo contra <strong>Pedro Costa</strong>.</li>
+                        <li><strong>Maria Lopes</strong> subiu para o 2º lugar no ranking.</li>
+                        <li><strong>Nova competição</strong> agendada para 15 de maio.</li>
+                    </ul>
                 </div>
-                <ul class="notification-list">
-                    <li><strong>João Silva</strong> venceu o jogo contra <strong>Pedro Costa</strong>.</li>
-                    <li><strong>Maria Lopes</strong> subiu para o 2º lugar no ranking.</li>
-                    <li><strong>Nova competição</strong> agendada para 15 de maio.</li>
-                </ul>
             </div>
-        </div>
 
-        <!-- CONTEÚDO CENTRAL -->
-        <div class="main">
-            <img src="img/logotipo.png" alt="Logotipo" class="main-image" />
-            <h1>Começa a acompanhar Torneios de Bilhar AGORA!</h1>
+            <!-- CONTEÚDO CENTRAL -->
+            <div class="main">
+                <img src="img/logotipo.png" alt="Logotipo" class="main-image" />
+                <h1>Começa a acompanhar Torneios de Bilhar AGORA!</h1>
 
-            <div class="main-buttons">
-                <a href="/Competicoes" class="button">Competições</a>
-                <a href="/Regras" class="button">Regras e Regulamentos</a>
-                <a href="/Ranking" class="button">Ranking</a>
+                <div class="main-buttons">
+                    <a href="/Competicoes" class="button">Competições</a>
+                    <a href="/Regras" class="button">Regras e Regulamentos</a>
+                    <a href="/Ranking" class="button">Ranking</a>
+                </div>
             </div>
+
         </div>
+        <script>
+            const notificationButton = document.getElementById('notificationButton');
+            const notificationBox = document.getElementById('notificationBox');
+            const closeNotification = document.getElementById('closeNotification');
 
-    </div>
-    <script>
-        const notificationButton = document.getElementById('notificationButton');
-        const notificationBox = document.getElementById('notificationBox');
-        const closeNotification = document.getElementById('closeNotification');
+            // Alterna a visibilidade da caixa de notificações ao clicar no botão do sino
+            notificationButton.addEventListener('click', (event) => {
+                event.stopPropagation(); // Impede que o clique se propague para o documento
+                notificationBox.style.display = notificationBox.style.display === 'block' ? 'none' : 'block';
+            });
 
-        // Alterna a visibilidade da caixa de notificações ao clicar no botão do sino
-        notificationButton.addEventListener('click', (event) => {
-            event.stopPropagation(); // Impede que o clique se propague para o documento
-            notificationBox.style.display = notificationBox.style.display === 'block' ? 'none' : 'block';
-        });
-
-        // Fecha a caixa de notificações ao clicar no botão de fechar
-        closeNotification.addEventListener('click', () => {
-            notificationBox.style.display = 'none';
-        });
+            // Fecha a caixa de notificações ao clicar no botão de fechar
+            closeNotification.addEventListener('click', () => {
+                notificationBox.style.display = 'none';
+            });
 
         // Fecha a caixa de notificações ao clicar fora dela
         document.addEventListener('click', (event) => {
@@ -559,7 +559,7 @@
             }
         });
     </script>
-    }
+
 </body>
 </html>
 
