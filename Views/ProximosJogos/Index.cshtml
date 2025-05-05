@@ -85,7 +85,7 @@
 
         .table-wrapper {
             max-height: 320px;
-            overflow-y: auto; 
+            overflow-y: auto;
             border: 1px solid #333;
         }
 
@@ -147,9 +147,12 @@
             <h2>Jogos Agendados</h2>
 
             <!-- Botão no topo à direita -->
-            <button type="button" class="btn" onclick="window.location.href='/AgendarJogos'">
-                Agendar Jogos
-            </button>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <button type="button" class="btn" onclick="window.location.href='/AgendarJogos'">
+                    Agendar Jogos
+                </button>
+            }
 
 
             <!-- Tabela com scroll -->
@@ -199,7 +202,8 @@
     </div>
 
     <!-- Botão Voltar absoluto -->
-    <a href="/Emparelhamento" class="back-button">&lt;Voltar</a>
+    <a href="/Menu" class="back-button">&lt;Voltar</a>
+
 
 </body>
 </html>

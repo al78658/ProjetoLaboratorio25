@@ -191,9 +191,12 @@
         <!-- Tabela Classificativa -->
         <h2>Tabela Classificativa</h2>
         <div class="table-buttons">
-            <button type="button" class="login-button" onclick="window.location.href='/CriarRelatorio'">
-                Criar Relatório
-            </button>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <button type="button" class="login-button" onclick="window.location.href='/CriarRelatorio'">
+                    Criar Relatório
+                </button>
+            }
             <button type="button" class="login-button" onclick="window.location.href='/PesquisarRelatorio'">
                 Consultar Relatórios
             </button>
@@ -253,9 +256,12 @@
             <h2>Resultados</h2>
             <div class="table-buttons">
                 <div>
-                    <button type="button" class="login-button" onclick="window.location.href='/Pontuacoes'">
-                        Alterar Resultados
-                    </button>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <button type="button" class="login-button" onclick="window.location.href='/Pontuacoes'">
+                            Alterar Resultados
+                        </button>
+                    }
                     <button type="button" class="login-button" onclick="window.location.href='/Historico'">
                         Histórico
                     </button>
