@@ -147,12 +147,14 @@
             <h2>Jogos Agendados</h2>
 
             <!-- Botão no topo à direita -->
-            @if (User.Identity.IsAuthenticated)
-            {
-                <button type="button" class="btn" onclick="window.location.href='/AgendarJogos'">
-                    Agendar Jogos
-                </button>
-            }
+            <div class="button-top-right">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <button type="button" class="btn" onclick="window.location.href='/AgendarJogos'">
+                        Agendar Jogos
+                    </button>
+                }
+            </div>
 
 
             <!-- Tabela com scroll -->
