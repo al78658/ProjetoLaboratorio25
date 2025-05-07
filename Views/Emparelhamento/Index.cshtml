@@ -132,17 +132,14 @@
     </style>
 </head>
 <body>
-    <!-- Logotipo -->
     <div class="top-left-logo">
         <a href="/Home">
             <img src="img/logotipo.png" alt="Logotipo" />
         </a>
     </div>
 
-    <!-- Título -->
     <h1>Emparelhamento</h1>
 
-    <!-- Tabela de emparelhamento -->
     <div class="table-wrapper">
         <table>
             <thead>
@@ -152,18 +149,14 @@
                     <th>Jogador 2</th>
                 </tr>
             </thead>
-            <tbody id="pairsTableBody">
-                <!-- Os pares serão adicionados dinamicamente aqui -->
-            </tbody>
+            <tbody id="pairsTableBody"></tbody>
         </table>
     </div>
 
-    <!-- Botão Salvar -->
     <div class="save-container">
         <button class="save-button" id="saveButton">Salvar</button>
     </div>
 
-    <!-- Botão Voltar -->
     <a href="/ListadeJogadores" class="back-button">&lt;Voltar</a>
 
     <script>
@@ -171,25 +164,43 @@
             const pairsTableBody = document.getElementById('pairsTableBody');
             const saveButton = document.getElementById('saveButton');
 
-            // Recupera jogadores do localStorage
             const jogadores = JSON.parse(localStorage.getItem('jogadores')) || [];
+            const agendamentos = JSON.parse(localStorage.getItem('agendamentos')) || [];
 
-            // Divide jogadores em pares
             const meio = Math.ceil(jogadores.length / 2);
             const ladoEsquerdo = jogadores.slice(0, meio);
             const ladoDireito = jogadores.slice(meio);
 
-            // Preenche a tabela com os pares
             for (let i = 0; i < Math.max(ladoEsquerdo.length, ladoDireito.length); i++) {
                 const jogador1 = ladoEsquerdo[i] || '';
                 const jogador2 = ladoDireito[i] || '';
 
+                const agendamento = agendamentos.find(a =>
+                    (a.jogador1 === jogador1 && a.jogador2 === jogador2) ||
+                    (a.jogador1 === jogador2 && a.jogador2 === jogador1)
+                );
+
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${jogador1}</td>
-                    <td><button class="definir-button" onclick="redirectToProximosJogos()">Definir</button></td>
-                    <td>${jogador2}</td>
-                `;
+
+                if (agendamento) {
+                    row.innerHTML = `
+                        <td>${jogador1}</td>
+                        <td>${agendamento.data} ${agendamento.hora}</td>
+                        <td>${jogador2}</td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td>${jogador1}</td>
+                        <td>
+                            <button class="definir-button"
+                                data-jogador1="${jogador1}"
+                                data-jogador2="${jogador2}"
+                                onclick="definirJogo(this)">Definir</button>
+                        </td>
+                        <td>${jogador2}</td>
+                    `;
+                }
+
                 pairsTableBody.appendChild(row);
             }
 
@@ -199,10 +210,14 @@
             });
         });
 
-        function redirectToProximosJogos() {
-            window.location.href = '/ProximosJogos';
+        function definirJogo(button) {
+            const jogador1 = button.getAttribute('data-jogador1');
+            const jogador2 = button.getAttribute('data-jogador2');
+
+            localStorage.setItem('jogoSelecionado', JSON.stringify({ jogador1, jogador2 }));
+            localStorage.setItem('paginaOrigem', 'emparelhamento');
+            window.location.href = '/AgendarJogos';
         }
     </script>
-
 </body>
 </html>

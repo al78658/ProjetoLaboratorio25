@@ -146,50 +146,73 @@
     </style>
 </head>
 <body>
-        <div class="top-left-logo">
-            <a href="/home">
-                <img src="img/logotipo.png" alt="Logotipo" />
-            </a>
-        </div>
+    <div class="top-left-logo">
+        <a href="/home">
+            <img src="img/logotipo.png" alt="Logotipo" />
+        </a>
+    </div>
 
-        <div class="main-container">
-            <div class="schedule-box">
-                <h2>Agendar Jogo</h2>
-                <div class="participants-label">Participantes</div>
+    <div class="main-container">
+        <div class="schedule-box">
+            <h2>Agendar Jogo</h2>
+            <div class="participants-label">Participantes</div>
 
-                <form id="agendarJogoForm">
-                    <div class="vs-container">
-                        <input type="text" name="jogador1" value="João Miguel" required />
-                        <div class="vs-text">VS</div>
-                        <input type="text" name="jogador2" value="Luís Miguel" required />
+            <form id="agendarJogoForm">
+                <div class="vs-container">
+                    <input type="text" name="jogador1" required />
+                    <div class="vs-text">VS</div>
+                    <input type="text" name="jogador2" required />
+                </div>
+
+                <div class="datetime-container">
+                    <div class="datetime-wrapper">
+                        <input type="text" name="data" placeholder="Data" onfocus="this.type='date'" />
                     </div>
-
-                    <div class="datetime-container">
-                        <div class="datetime-wrapper">
-                            <input type="text" name="data" placeholder="Data" onfocus="this.type='date'" />
-                        </div>
-                        <div class="datetime-wrapper">
-                            <input type="text" name="hora" placeholder="Hora" onfocus="this.type='time'" />
-                        </div>
+                    <div class="datetime-wrapper">
+                        <input type="text" name="hora" placeholder="Hora" onfocus="this.type='time'" />
                     </div>
+                </div>
 
-                    <button type="submit" class="save-button">Salvar</button>
-                </form>
-            </div>
+                <button type="submit" class="save-button">Salvar</button>
+            </form>
         </div>
+    </div>
 
-        <a href="/ProximosJogos" class="back-button">&lt;Voltar</a>
-  
-        <script>
+    <a id="botaoVoltar" href="/ProximosJogos" class="back-button">&lt;Voltar</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const data = JSON.parse(localStorage.getItem('jogoSelecionado'));
+            const origem = localStorage.getItem('paginaOrigem');
+            const botaoVoltar = document.getElementById('botaoVoltar');
+
+            if (data) {
+                document.querySelector('input[name="jogador1"]').value = data.jogador1;
+                document.querySelector('input[name="jogador2"]').value = data.jogador2;
+            }
+
+            if (origem === 'emparelhamento') {
+                botaoVoltar.href = '/Emparelhamento';
+            }
+
             document.getElementById("agendarJogoForm").addEventListener("submit", function(event) {
-            event.preventDefault(); // Impede o envio padrão do formulário
+                event.preventDefault();
 
-            // Aqui você pode adicionar lógica para processar os dados do formulário, se necessário
+                const jogador1 = document.querySelector('input[name="jogador1"]').value;
+                const jogador2 = document.querySelector('input[name="jogador2"]').value;
+                const data = document.querySelector('input[name="data"]').value;
+                const hora = document.querySelector('input[name="hora"]').value;
 
-            // Após o processamento, redireciona para a página AgendarJogos
-            window.location.href = "/ProximosJogos";
+                const agendamentos = JSON.parse(localStorage.getItem('agendamentos')) || [];
+                agendamentos.push({ jogador1, jogador2, data, hora });
+                localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+
+                localStorage.removeItem('jogoSelecionado');
+                localStorage.removeItem('paginaOrigem');
+
+                window.location.href = origem === 'emparelhamento' ? '/Emparelhamento' : '/ProximosJogos';
             });
-        </script>
-}
+        });
+    </script>
 </body>
 </html>
