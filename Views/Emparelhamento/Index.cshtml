@@ -171,29 +171,34 @@
             const pairsTableBody = document.getElementById('pairsTableBody');
             const saveButton = document.getElementById('saveButton');
 
-            // Recupera os pares do localStorage
-            const pairs = JSON.parse(localStorage.getItem('playerPairs')) || [];
+            // Recupera jogadores do localStorage
+            const jogadores = JSON.parse(localStorage.getItem('jogadores')) || [];
 
-            // Adiciona os pares à tabela
-            pairs.forEach(pair => {
+            // Divide jogadores em pares
+            const meio = Math.ceil(jogadores.length / 2);
+            const ladoEsquerdo = jogadores.slice(0, meio);
+            const ladoDireito = jogadores.slice(meio);
+
+            // Preenche a tabela com os pares
+            for (let i = 0; i < Math.max(ladoEsquerdo.length, ladoDireito.length); i++) {
+                const jogador1 = ladoEsquerdo[i] || '';
+                const jogador2 = ladoDireito[i] || '';
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${pair.player1.name} (${pair.player1.team})</td>
+                    <td>${jogador1}</td>
                     <td><button class="definir-button" onclick="redirectToProximosJogos()">Definir</button></td>
-                    <td>${pair.player2.name} (${pair.player2.team})</td>
+                    <td>${jogador2}</td>
                 `;
                 pairsTableBody.appendChild(row);
-            });
+            }
 
-            // Adiciona evento de clique ao botão Salvar
             saveButton.addEventListener('click', function () {
-                // Aqui você pode adicionar a lógica para salvar os emparelhamentos
                 alert('Emparelhamentos salvos com sucesso!');
                 window.location.href = '/Menu';
             });
         });
 
-        // Função para redirecionar para a view "ProximosJogos"
         function redirectToProximosJogos() {
             window.location.href = '/ProximosJogos';
         }
