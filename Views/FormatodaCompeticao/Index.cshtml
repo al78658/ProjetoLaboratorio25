@@ -186,10 +186,10 @@
 
         <div class="fase-selector">
             <label for="numFases">Número de Fases</label>
-            <input type="number" id="numFases" name="numFases" min="1" max="10" value="2" />
+            <input type="number" id="numFases" name="numFases" min="1" max="5" value="2" onchange="updateTableRows()" />
         </div>
 
-        <table>
+        <table id="fasesTable">
             <thead>
                 <tr>
                     <th>#</th>
@@ -198,41 +198,8 @@
                     <th>Configuração</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>Fase 1</td>
-                    <td>
-                        <select>
-                            <option>Escolher Formato</option>
-                            <option>Eliminação Simples</option>
-                            <option>Grupos</option>
-                            <option>Liga</option>
-                        </select>
-                    </td>
-                    <td>
-                        <button class="config-button" onclick="window.location.href='@Url.Action("Index", "CriteriosdePontuacao", new { faseNumero = 1 })'">Configurar</button>
-                        <span class="config-icon" onclick="window.location.href='@Url.Action("Index", "CriteriosdePontuacao", new { faseNumero = 1 })'">⚙️</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>Fase 2</td>
-                    <td>
-                        <select>
-                            <option>Escolher Formato</option>
-                            <option>Eliminação Simples</option>
-                            <option>Grupos</option>
-                            <option>Liga</option>
-                        </select>
-                    </td>
-                    <td>
-                        <button class="config-button" onclick="window.location.href='@Url.Action("Index", "CriteriosdePontuacao", new { faseNumero = 2 })'">Configurar</button>
-                        <span class="config-icon" onclick="window.location.href='@Url.Action("Index", "CriteriosdePontuacao", new { faseNumero = 2 })'">⚙️</span>
-                    </td>
-                </tr>
+            <tbody id="fasesTableBody">
             </tbody>
-
         </table>
 
         <button class="next-button" onclick="window.location.href='@Url.Action("Index", "ListadeJogadores")'">Seguinte</button>
@@ -241,5 +208,56 @@
     <!-- Botão Voltar -->
     <a href="/CriarCompeticao" class="back-button">&lt;Voltar</a>
 
+    <script>
+        // Armazena os formatos selecionados
+        const formatosSelecionados = {};
+
+        function updateFormat(formato, faseNumero) {
+            formatosSelecionados[faseNumero] = formato;
+        }
+
+        function configurarFase(faseNumero) {
+            const formato = formatosSelecionados[faseNumero];
+            if (!formato) {
+                alert('Por favor, selecione um formato para a fase antes de configurar.');
+                return;
+            }
+            window.location.href = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNumero}&formato=${formato}`;
+        }
+
+        function updateTableRows() {
+            const numFases = parseInt(document.getElementById('numFases').value);
+            const tableBody = document.getElementById('fasesTableBody');
+            tableBody.innerHTML = '';
+
+            for (let i = 1; i <= numFases; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${i}</td>
+                    <td>Fase ${i}</td>
+                    <td>
+                        <select onchange="updateFormat(this.value, ${i})">
+                            <option selected disabled>Escolher Formato</option>
+                            <option value="round-robin">Round Robin (Todos contra todos)</option>
+                            <option value="ave">Sistema AVE</option>
+                            <option value="eliminacao">Eliminatórias Diretas</option>
+                            <option value="campeonato">Campeonato (Liga)</option>
+                            <option value="duplo-ko">Duplo KO</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="config-button" onclick="configurarFase(${i})">Configurar</button>
+                        <span class="config-icon" onclick="configurarFase(${i})">⚙️</span>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+
+        // Initialize table with default value
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTableRows();
+        });
+    </script>
 </body>
 </html>
