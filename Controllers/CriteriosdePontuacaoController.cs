@@ -10,23 +10,35 @@ namespace ProjetoLaboratorio25.Controllers
         private static List<ConfiguracaoFase> _configuracoes = new List<ConfiguracaoFase>();
 
         [HttpGet]
-        public IActionResult Index(int faseNumero)
+        public IActionResult Index(int faseNumero, string formato)
         {
             // Busca a configuração da fase ou cria uma nova
             var configuracao = _configuracoes.FirstOrDefault(c => c.FaseNumero == faseNumero);
             if (configuracao == null)
             {
-                configuracao = new ConfiguracaoFase { FaseNumero = faseNumero };
+                configuracao = new ConfiguracaoFase 
+                { 
+                    FaseNumero = faseNumero,
+                    Formato = formato
+                };
             }
 
             ViewBag.FaseNumero = faseNumero;
             ViewBag.Configuracao = configuracao;
+            ViewBag.FormatoSelecionado = formato;
             return View();
         }
 
         [HttpPost]
         public IActionResult Index(int faseNumero, string formato, int vitoria, int empate, int derrota, List<string> criterios)
         {
+            // Validação dos critérios específicos por formato
+            if (!ValidateFormatCriteria(formato, criterios))
+            {
+                TempData["Erro"] = "Critérios inválidos para o formato selecionado.";
+                return RedirectToAction("Index", new { faseNumero, formato });
+            }
+
             var configuracao = new ConfiguracaoFase
             {
                 FaseNumero = faseNumero,
@@ -56,6 +68,29 @@ namespace ProjetoLaboratorio25.Controllers
 
             TempData["Mensagem"] = "Configuração salva com sucesso!";
             return RedirectToAction("Index", "FormatodaCompeticao");
+        }
+
+        private bool ValidateFormatCriteria(string formato, List<string> criterios)
+        {
+            if (criterios == null || !criterios.Any())
+                return false;
+
+            // Define os critérios válidos para cada formato
+            var validCriteria = new Dictionary<string, string[]>
+            {
+                { "round-robin", new[] { "diferenca-frames", "confronto", "frames-ganhos", "media-tacadas" } },
+                { "ave", new[] { "media-ave", "ranking-media" } },
+                { "eliminacao", new[] { "fase-alcancada", "pontos-fase" } },
+                { "campeonato", new[] { "diferenca-partidas", "confronto", "fair-play", "media-pontuacao" } },
+                { "duplo-ko", new[] { "fase-chave", "pontos-chave", "ranking-final" } }
+            };
+
+            // Verifica se o formato existe
+            if (!validCriteria.ContainsKey(formato))
+                return false;
+
+            // Verifica se todos os critérios selecionados são válidos para o formato
+            return criterios.All(c => validCriteria[formato].Contains(c));
         }
     }
 }
