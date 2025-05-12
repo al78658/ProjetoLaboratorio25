@@ -84,9 +84,9 @@
         }
 
         .table-wrapper {
-            max-height: 320px;
-            overflow-y: auto;
-            border: 1px solid #333;
+        max-height: 320px;
+        overflow-y: auto;
+        border: 1px solid #333;
         }
 
         table {
@@ -147,14 +147,14 @@
             <h2>Jogos Agendados</h2>
 
             <!-- Botão no topo à direita -->
-            <div class="button-top-right">
+            @*             <div class="button-top-right">
                 @if (User.Identity.IsAuthenticated)
                 {
                     <button type="button" class="btn" onclick="window.location.href='/AgendarJogos'">
                         Agendar Jogos
                     </button>
                 }
-            </div>
+            </div> *@
 
 
             <!-- Tabela com scroll -->
@@ -171,31 +171,42 @@
                         <!-- Repete os jogos para mostrar scroll -->
                         @for (int i = 0; i < 15; i++)
                         {
-                            <tr>
-                                <td>Higgins e Andres vs Federer e Nadal</td>
-                                <td>12 fev</td>
-                                <td>19h30</td>
-                            </tr>
-                            <tr>
-                                <td>Marco vs Alberto</td>
-                                <td>10 fev</td>
-                                <td>18h45</td>
-                            </tr>
-                            <tr>
-                                <td>Andrea vs Caspirenovic</td>
-                                <td>6 fev</td>
-                                <td>17h15</td>
-                            </tr>
-                            <tr>
-                                <td>Andrea vs Caspirenovic</td>
-                                <td>6 fev</td>
-                                <td>17h15</td>
-                            </tr>
-                            <tr>
-                                <td>Andrea vs Caspirenovic</td>
-                                <td>6 fev</td>
-                                <td>17h15</td>
-                            </tr>
+                            @if (!User.Identity.IsAuthenticated)
+                            {
+                                <tr>
+                                    <td>Higgins e Andres vs Federer e Nadal</td>
+                                    <td>12 fev</td>
+                                    <td>19h30</td>
+                                </tr>
+                                <tr>
+                                    <td>Marco vs Alberto</td>
+                                    <td>10 fev</td>
+                                    <td>18h45</td>
+                                </tr>
+                                <tr>
+                                    <td>Andrea vs Caspirenovic</td>
+                                    <td>6 fev</td>
+                                    <td>17h15</td>
+                                </tr>
+                                <tr>
+                                    <td>Andrea vs Caspirenovic</td>
+                                    <td>6 fev</td>
+                                    <td>17h15</td>
+                                </tr>
+                                <tr>
+                                    <td>Andrea vs Caspirenovic</td>
+                                    <td>6 fev</td>
+                                    <td>17h15</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td>Higgins e Andres vs Federer e Nadal</td>
+                                    <td>12 fev</td>
+                                    <td>19h30</td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
