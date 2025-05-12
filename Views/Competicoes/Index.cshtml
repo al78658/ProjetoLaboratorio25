@@ -1,4 +1,5 @@
-﻿@{
+﻿@model List<ProjetoLaboratorio25.Models.Competicao>
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -6,7 +7,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Competições</title>
+    <title>Competições - Bilhar</title>
     <style>
         * {
             box-sizing: border-box;
@@ -129,6 +130,68 @@
             .back-button:hover {
                 background-color: #dcdcdc;
             }
+
+        .container {
+            margin-top: 120px;
+            padding: 20px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
@@ -150,6 +213,116 @@
 
     <!-- Botão Voltar -->
         <a href="/Home" class="back-button">&lt;Voltar</a>
+
+    <div class="container">
+        <div class="section">
+            <h2>Criar Nova Competição</h2>
+            <form method="post" action="@Url.Action("CriarCompeticao")">
+                <div class="form-group">
+                    <label for="nome">Nome da Competição:</label>
+                    <input type="text" id="nome" name="nome" required />
+                </div>
+                <div class="form-group">
+                    <label for="tipo">Tipo de Competição:</label>
+                    <select id="tipo" name="tipo" required>
+                        <option value="Individual">Individual</option>
+                        <option value="Equipas">Equipas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="numJogadores">Número de Jogadores:</label>
+                    <input type="number" id="numJogadores" name="numJogadores" min="2" required />
+                </div>
+                <div class="form-group">
+                    <label for="numEquipas">Número de Equipas:</label>
+                    <input type="number" id="numEquipas" name="numEquipas" min="2" required />
+                </div>
+                <button type="submit">Criar Competição</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>Adicionar Fase à Competição</h2>
+            <form method="post" action="@Url.Action("AdicionarConfiguracaoFase")">
+                <div class="form-group">
+                    <label for="competicaoId">Competição:</label>
+                    <select id="competicaoId" name="competicaoId" required>
+                        @foreach (var comp in Model)
+                        {
+                            <option value="@comp.Id">@comp.Nome</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="faseNumero">Número da Fase:</label>
+                    <input type="number" id="faseNumero" name="faseNumero" min="1" required />
+                </div>
+                <div class="form-group">
+                    <label for="formato">Formato:</label>
+                    <select id="formato" name="formato" required>
+                        <option value="Eliminatórias">Eliminatórias</option>
+                        <option value="Grupos">Grupos</option>
+                        <option value="Liga">Liga</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="pontosVitoria">Pontos por Vitória:</label>
+                    <input type="number" id="pontosVitoria" name="pontosVitoria" min="0" required />
+                </div>
+                <div class="form-group">
+                    <label for="pontosEmpate">Pontos por Empate:</label>
+                    <input type="number" id="pontosEmpate" name="pontosEmpate" min="0" required />
+                </div>
+                <div class="form-group">
+                    <label for="pontosDerrota">Pontos por Derrota:</label>
+                    <input type="number" id="pontosDerrota" name="pontosDerrota" min="0" required />
+                </div>
+                <button type="submit">Adicionar Fase</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>Competições Cadastradas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Tipo</th>
+                        <th>Nº Jogadores</th>
+                        <th>Nº Equipas</th>
+                        <th>Fases</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var comp in Model)
+                    {
+                        <tr>
+                            <td>@comp.Nome</td>
+                            <td>@comp.TipoCompeticao</td>
+                            <td>@comp.NumJogadores</td>
+                            <td>@comp.NumEquipas</td>
+                            <td>
+                                @if (comp.ConfiguracoesFase != null && comp.ConfiguracoesFase.Any())
+                                {
+                                    <ul>
+                                        @foreach (var fase in comp.ConfiguracoesFase.OrderBy(f => f.FaseNumero))
+                                        {
+                                            <li>Fase @fase.FaseNumero - @fase.Formato</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span>Sem fases configuradas</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const lista = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
