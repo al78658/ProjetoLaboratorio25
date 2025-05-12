@@ -152,7 +152,7 @@
         <div class="form-box">
             <h2>Criar Competição</h2>
 
-            <form method="post" asp-action="Criar" asp-controller="CriarCompeticao">
+            <form id="formCriarCompeticao">
                 <div class="form-group">
                     <label for="nome">Nome da Competição</label>
                     <input type="text" id="nome" name="nome" required />
@@ -168,12 +168,29 @@
 
                 <button type="submit" class="submit-button">Criar</button>
             </form>
+
+
         </div>
     </div>
 
     <!-- Botão Voltar -->   
         <a href="/Home" class="back-button">&lt;Voltar</a>
-    
+
+    <script>
+        document.getElementById('formCriarCompeticao').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const nome = document.getElementById('nome').value;
+            const tipo = document.getElementById('tipo').value;
+
+            // Guarda temporariamente no localStorage
+            localStorage.setItem('competicaoAtual', JSON.stringify({ nome, tipo }));
+
+            // Redireciona para o formato da competição (como antes)
+            window.location.href = '/FormatodaCompeticao';
+        });
+    </script>
+
 
 </body>
 </html>

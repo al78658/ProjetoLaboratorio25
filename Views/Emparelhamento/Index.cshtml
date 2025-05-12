@@ -37,7 +37,14 @@
         h1 {
             font-size: 36px;
             color: black;
-            margin-bottom: 40px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        #nomeCompeticao {
+            font-size: 22px;
+            color: white;
+            margin-bottom: 30px;
             text-align: center;
         }
 
@@ -66,18 +73,12 @@
             font-weight: bold;
         }
 
-        .definir-button {
-            padding: 10px 20px;
+        input[type="date"],
+        input[type="time"] {
+            padding: 6px;
             font-size: 16px;
-            border: 2px solid black;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
+            width: 90%;
         }
-
-            .definir-button:hover {
-                background-color: #dcdcdc;
-            }
 
         .save-container {
             margin-top: 30px;
@@ -115,19 +116,22 @@
                 background-color: #dcdcdc;
             }
 
-        @@media (max-width: 700px) {
-            table {
-                width: 90%;
-                min-width: unset;
-            }
+        media (max-width: 700px) {
+            table
 
-            .save-button, .definir-button {
-                width: 100%;
-            }
+        {
+            width: 90%;
+            min-width: unset;
+        }
 
-            h1 {
-                font-size: 28px;
-            }
+        .save-button {
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+        }
+
         }
     </style>
 </head>
@@ -139,6 +143,7 @@
     </div>
 
     <h1>Emparelhamento</h1>
+    <h2 id="nomeCompeticao"></h2>
 
     <div class="table-wrapper">
         <table>
@@ -163,9 +168,22 @@
         document.addEventListener('DOMContentLoaded', function () {
             const pairsTableBody = document.getElementById('pairsTableBody');
             const saveButton = document.getElementById('saveButton');
+            const titulo = document.getElementById('nomeCompeticao');
 
-            const jogadores = JSON.parse(localStorage.getItem('jogadores')) || [];
-            const agendamentos = JSON.parse(localStorage.getItem('agendamentos')) || [];
+            const competicao = JSON.parse(localStorage.getItem('competicaoAtual'));
+
+            if (!competicao || !competicao.nome) {
+                alert("Erro: nenhuma competição ativa encontrada.");
+                return;
+            }
+
+            titulo.textContent = `Competição: ${competicao.nome}`;
+
+            const nomeChaveJogadores = `jogadores_${competicao.nome}`;
+            const nomeChaveAgendamentos = `agendamentos_${competicao.nome}`;
+
+            const jogadores = JSON.parse(localStorage.getItem(nomeChaveJogadores)) || [];
+            const agendamentos = JSON.parse(localStorage.getItem(nomeChaveAgendamentos)) || [];
 
             const meio = Math.ceil(jogadores.length / 2);
             const ladoEsquerdo = jogadores.slice(0, meio);
@@ -180,44 +198,57 @@
                     (a.jogador1 === jogador2 && a.jogador2 === jogador1)
                 );
 
+                const dataValue = agendamento ? agendamento.data : '';
+                const horaValue = agendamento ? agendamento.hora : '';
+
                 const row = document.createElement('tr');
-
-                if (agendamento) {
-                    row.innerHTML = `
-                        <td>${jogador1}</td>
-                        <td>${agendamento.data} ${agendamento.hora}</td>
-                        <td>${jogador2}</td>
-                    `;
-                } else {
-                    row.innerHTML = `
-                        <td>${jogador1}</td>
-                        <td>
-                            <button class="definir-button"
-                                data-jogador1="${jogador1}"
-                                data-jogador2="${jogador2}"
-                                onclick="definirJogo(this)">Definir</button>
-                        </td>
-                        <td>${jogador2}</td>
-                    `;
-                }
-
+                row.innerHTML = `
+                    <td>${jogador1}</td>
+                    <td>
+                        <input type="date" class="data-input" value="${dataValue}"
+                            data-jogador1="${jogador1}" data-jogador2="${jogador2}">
+                        <input type="time" class="hora-input" value="${horaValue}"
+                            data-jogador1="${jogador1}" data-jogador2="${jogador2}">
+                    </td>
+                    <td>${jogador2}</td>
+                `;
                 pairsTableBody.appendChild(row);
             }
 
             saveButton.addEventListener('click', function () {
-                alert('Emparelhamentos salvos com sucesso!');
+                const dataInputs = document.querySelectorAll('.data-input');
+                const horaInputs = document.querySelectorAll('.hora-input');
+
+                const novosAgendamentos = [];
+
+                dataInputs.forEach((dataInput, index) => {
+                    const horaInput = horaInputs[index];
+                    const data = dataInput.value;
+                    const hora = horaInput.value;
+                    const jogador1 = dataInput.dataset.jogador1;
+                    const jogador2 = dataInput.dataset.jogador2;
+
+                    if (data && hora) {
+                        novosAgendamentos.push({ jogador1, jogador2, data, hora });
+                    }
+                });
+
+                // Salvar com base na competição ativa
+                localStorage.setItem(nomeChaveAgendamentos, JSON.stringify(novosAgendamentos));
+
+                // Registar competição se ainda não existir
+                const todas = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
+                if (!todas.some(c => c.nome === competicao.nome)) {
+                    todas.push(competicao);
+                    localStorage.setItem('todasCompeticoes', JSON.stringify(todas));
+                }
+
+                // Limpar competicaoAtual (pronto a iniciar outra)
+                localStorage.removeItem('competicaoAtual');
+
                 window.location.href = '/Menu';
             });
         });
-
-        function definirJogo(button) {
-            const jogador1 = button.getAttribute('data-jogador1');
-            const jogador2 = button.getAttribute('data-jogador2');
-
-            localStorage.setItem('jogoSelecionado', JSON.stringify({ jogador1, jogador2 }));
-            localStorage.setItem('paginaOrigem', 'emparelhamento');
-            window.location.href = '/AgendarJogos';
-        }
     </script>
 </body>
 </html>

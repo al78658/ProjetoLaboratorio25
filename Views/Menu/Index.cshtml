@@ -164,6 +164,26 @@
         background-color: #e0e0e0;
         }
 
+        .date-navigation {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+        }
+
+            .date-navigation button {
+                padding: 6px 14px;
+                border: 2px solid black;
+                background: white;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 18px;
+            }
+
+        #selectedDateDisplay {
+            font-weight: bold;
+        }
+
         media (max-width: 768px) {
         .table-buttons, .result-nav
 
@@ -265,7 +285,9 @@
                     <button type="button" class="login-button" onclick="window.location.href='/Historico'">
                         Histórico
                     </button>
-                    <button>&lt; 2 de fev &gt;</button>
+                        <button id="prevDayBtn">&lt;</button>
+                        <span id="selectedDateDisplay"></span>
+                        <button id="nextDayBtn">&gt;</button>
                 </div>
             </div>
             <table>
@@ -298,5 +320,90 @@
     </div>
 
     <a href="/Competicoes" class="back-button">&lt;Voltar</a>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const nomeCompeticao = localStorage.getItem('competicaoSelecionada');
+            const tabelaResultados = document.querySelector('.section table');
+            const prevBtn = document.getElementById('prevDayBtn');
+            const nextBtn = document.getElementById('nextDayBtn');
+            const dateDisplay = document.getElementById('selectedDateDisplay');
+
+            if (!nomeCompeticao) {
+                alert('Nenhuma competição selecionada.');
+                return;
+            }
+
+            const chaveAgendamento = `agendamentos_${nomeCompeticao}`;
+            const agendamentos = JSON.parse(localStorage.getItem(chaveAgendamento)) || [];
+
+            // Atualiza o título da secção
+            const h2 = document.querySelector('.section h2');
+            h2.textContent = `Resultados – ${nomeCompeticao}`;
+
+            // Estado de data atual
+            let currentDate = new Date();
+
+            function formatDate(date) {
+                return date.toISOString().split('T')[0];
+            }
+
+            function formatDisplayDate(date) {
+                return date.toLocaleDateString('pt-PT', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+            }
+
+            function updateDateDisplay() {
+                dateDisplay.textContent = formatDisplayDate(currentDate);
+            }
+
+            function renderTableForDate(date) {
+                // Limpa todas as linhas exceto o cabeçalho
+                const rows = tabelaResultados.querySelectorAll('tr');
+                rows.forEach((row, index) => { if (index > 0) row.remove(); });
+
+                const dataFiltrada = formatDate(date);
+
+                const jogosDoDia = agendamentos.filter(a => a.data === dataFiltrada);
+
+                if (jogosDoDia.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td colspan="4">Nenhum jogo agendado para esta data.</td>`;
+                    tabelaResultados.appendChild(row);
+                    return;
+                }
+
+                jogosDoDia.forEach(a => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${a.jogador1} vs ${a.jogador2}</td>
+                        <td>${a.hora}</td>
+                        <td>Por definir</td>
+                        <td></td>
+                    `;
+                    tabelaResultados.appendChild(row);
+                });
+            }
+
+            // Botões para navegar entre dias
+            prevBtn.addEventListener('click', () => {
+                currentDate.setDate(currentDate.getDate() - 1);
+                updateDateDisplay();
+                renderTableForDate(currentDate);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                currentDate.setDate(currentDate.getDate() + 1);
+                updateDateDisplay();
+                renderTableForDate(currentDate);
+            });
+
+            // Inicialização
+            updateDateDisplay();
+            renderTableForDate(currentDate);
+        });
+    </script>
 </body>
 </html>

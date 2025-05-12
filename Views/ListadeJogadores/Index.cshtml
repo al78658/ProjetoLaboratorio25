@@ -286,8 +286,12 @@
                         return;
                     }
 
-                    localStorage.setItem('jogadores', JSON.stringify(jogadores));
-                    window.location.href = '/Emparelhamento';
+            const competicao = JSON.parse(localStorage.getItem('competicaoAtual'));
+            if (competicao && competicao.nome) {
+                localStorage.setItem(`jogadores_${competicao.nome}`, JSON.stringify(jogadores));
+            }
+            window.location.href = '/Emparelhamento';
+
                 });
             });
         </script>
