@@ -8,12 +8,19 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
+using ProjetoLaboratorio25.Data;
 
 namespace ProjetoLaboratorio25.Controllers
 {
     public class LoginController : Controller
     {
-        private readonly string usersFile = Path.Combine(Directory.GetCurrentDirectory(), "users.json");
+        private readonly ApplicationDbContext _context;
+
+        public LoginController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
         public IActionResult Index()
         {
@@ -23,19 +30,12 @@ namespace ProjetoLaboratorio25.Controllers
         [HttpPost]
         public async Task<IActionResult> Index(string email, string senha)
         {
-            // Ler utilizadores existentes
-            List<Utilizador> utilizadores = new List<Utilizador>();
-            if (System.IO.File.Exists(usersFile))
-            {
-                var json = System.IO.File.ReadAllText(usersFile);
-                if (!string.IsNullOrWhiteSpace(json))
-                    utilizadores = JsonSerializer.Deserialize<List<Utilizador>>(json);
-            }
+            // Buscar utilizador no banco de dados
+            var user = await _context.Utilizadores
+                .FirstOrDefaultAsync(u => 
+                    u.Email.Trim().ToLower() == email.Trim().ToLower() && 
+                    u.Senha.Trim() == senha.Trim());
 
-            // Validar credenciais
-            var user = utilizadores.FirstOrDefault(u => 
-                u.Email.Trim().ToLower() == email.Trim().ToLower() && 
-                u.Senha.Trim() == senha.Trim());
             if (user == null)
             {
                 ViewBag.Erro = "Email ou senha incorretos.";

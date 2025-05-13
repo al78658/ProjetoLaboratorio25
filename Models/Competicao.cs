@@ -4,10 +4,15 @@ namespace ProjetoLaboratorio25.Models
 {
     public class Competicao
     {
+        [Key]
+        public int Id { get; set; }
+
         [Required(ErrorMessage = "O nome da competição é obrigatório")]
+        [StringLength(100)]
         public string Nome { get; set; }
 
         [Required(ErrorMessage = "O tipo de competição é obrigatório")]
+        [StringLength(50)]
         public string TipoCompeticao { get; set; }
 
         [Required(ErrorMessage = "O número de jogadores é obrigatório")]
@@ -25,5 +30,8 @@ namespace ProjetoLaboratorio25.Models
         [Required(ErrorMessage = "Os pontos por empate são obrigatórios")]
         [Range(0, int.MaxValue, ErrorMessage = "Os pontos por empate não podem ser negativos")]
         public int PontosEmpate { get; set; }
+
+        // Navigation properties
+        public virtual ICollection<ConfiguracaoFase> ConfiguracoesFase { get; set; }
     }
 } 
