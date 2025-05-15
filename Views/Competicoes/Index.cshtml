@@ -1,4 +1,5 @@
-﻿@{
+﻿@model List<ProjetoLaboratorio25.Models.Competicao>
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -146,30 +147,47 @@
 
         <!-- Lista de Competições -->
         <div class="competition-container" id="competicaoList"></div>
+        
+        <div style="margin-top: 30px;">
+            <a href="/CriarCompeticao" class="action-button" style="text-decoration: none; padding: 14px 32px; font-size: 18px; border: 2px solid black; background: white; border-radius: 8px; cursor: pointer; box-shadow: 3px 3px 6px rgba(0,0,0,0.2);">
+                Criar Nova Competição
+            </a>
+        </div>
     </div>
 
     <!-- Botão Voltar -->
     <a href="/Home" class="back-button">&lt;Voltar</a>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const lista = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
             const container = document.getElementById('competicaoList');
-
-            lista.forEach(c => {
-                const div = document.createElement('div');
+            
+            @if (Model != null && Model.Any())
+            {
+                foreach (var competicao in Model)
+                {
+                <text>
+                let div = document.createElement('div');
                 div.className = 'competition';
-                div.onclick = () => {
-                    localStorage.setItem('competicaoSelecionada', c.nome);
+                div.onclick = function () {
+                    localStorage.setItem('competicaoSelecionada', '@competicao.Nome');
                     window.location.href = '/Menu';
                 };
-
                 div.innerHTML = `
                     <div class="thumb"></div>
-                    <p>${c.nome}</p>
+                    <p>@competicao.Nome</p>
                 `;
-
                 container.appendChild(div);
-            });
+                </text>
+
+                }
+            }
+            else
+            {
+                <text>
+                // Exibir mensagem de nenhuma competição
+                container.innerHTML = '<p style="grid-column: span 4; padding: 20px; font-size: 18px;">Nenhuma competição encontrada. Crie uma nova competição.</p>';
+                </text>
+            }
         });
     </script>
 </body>

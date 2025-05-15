@@ -12,6 +12,10 @@ namespace ProjetoLaboratorio25.Models
         public int FaseNumero { get; set; }
 
         [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "O número de jogos por fase deve ser pelo menos 1")]
+        public int NumJogosPorFase { get; set; }
+
+        [Required]
         [StringLength(50)]
         public string Formato { get; set; }
 

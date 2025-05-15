@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -152,7 +152,7 @@
         <div class="form-box">
             <h2>Criar Competição</h2>
 
-            <form id="formCriarCompeticao">
+            <form asp-controller="CriarCompeticao" asp-action="Criar" method="post">
                 <div class="form-group">
                     <label for="nome">Nome da Competição</label>
                     <input type="text" id="nome" name="nome" required />
@@ -166,7 +166,7 @@
                     </select>
                 </div>
 
-                <button type="submit" class="submit-button">Criar</button>
+                <button type="submit" class="submit-button">Próximo</button>
             </form>
 
 
@@ -176,20 +176,12 @@
     <!-- Botão Voltar -->   
         <a href="/Home" class="back-button">&lt;Voltar</a>
 
-    <script>
-        document.getElementById('formCriarCompeticao').addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const nome = document.getElementById('nome').value;
-            const tipo = document.getElementById('tipo').value;
-
-            // Guarda temporariamente no localStorage
-            localStorage.setItem('competicaoAtual', JSON.stringify({ nome, tipo }));
-
-            // Redireciona para o formato da competição (como antes)
-            window.location.href = '/FormatodaCompeticao';
-        });
-    </script>
+        <script>
+            document.getElementById('formCriarCompeticao').addEventListener('submit', function (e) {
+                e.preventDefault();
+                this.submit();
+            });
+        </script>
 
 
 </body>

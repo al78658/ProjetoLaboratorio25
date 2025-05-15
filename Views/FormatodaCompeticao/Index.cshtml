@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -212,17 +212,17 @@
         // Armazena os formatos selecionados
         const formatosSelecionados = {};
 
-        function updateFormat(formato, faseNumero) {
-            formatosSelecionados[faseNumero] = formato;
+        function updateFormat(formato, faseNum) {
+            formatosSelecionados[faseNum] = formato;
         }
 
-        function configurarFase(faseNumero) {
-            const formato = formatosSelecionados[faseNumero];
+        function configurarFase(faseNum) {
+            const formato = formatosSelecionados[faseNum];
             if (!formato) {
                 alert('Por favor, selecione um formato para a fase antes de configurar.');
                 return;
             }
-            window.location.href = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNumero}&formato=${formato}`;
+            window.location.href = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNum}&formato=${formato}`;
         }
 
         function updateTableRows() {

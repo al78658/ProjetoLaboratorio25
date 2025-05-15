@@ -1,13 +1,22 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using ProjetoLaboratorio25.Models;
+using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace ProjetoLaboratorio25.Controllers
 {
     public class CriteriosdePontuacaoController : Controller
     {
-        private static List<ConfiguracaoFase> _configuracoes = new List<ConfiguracaoFase>();
+        public static List<ConfiguracaoFase> _configuracoes = new List<ConfiguracaoFase>();
+        private readonly ApplicationDbContext _context;
+
+        public CriteriosdePontuacaoController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
         public IActionResult Index(int faseNumero, string formato)
