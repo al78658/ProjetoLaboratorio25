@@ -1,4 +1,4 @@
-﻿﻿@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -217,17 +217,10 @@
             </tbody>
         </table>
 
-        <form id="salvarCompeticaoForm" method="post" asp-controller="ListadeJogadores" asp-action="SalvarCompeticao">
-            <div id="jogadoresContainer">
-                <!-- Inputs para jogadores serão adicionados dinamicamente via JavaScript -->
-            </div>
-            
-            <div class="button-row">
-                <button type="button" class="action-button" id="alterarListaButton">Alterar Lista</button>
-                <button type="button" class="action-button" id="emparelharButton">Emparelhar</button>
-                <button type="submit" class="action-button" id="salvarButton">Salvar Competição</button>
-            </div>
-        </form>
+        <div class="button-row">
+            <button type="button" class="action-button" id="alterarListaButton">Alterar Lista</button>
+            <button type="button" class="action-button" id="emparelharButton">Emparelhar</button>
+        </div>
 
         <!-- Input oculto -->
         <input type="file" id="fileInput" accept=".xlsx" hidden />
@@ -257,8 +250,6 @@
                         const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                         tableBody.innerHTML = "";
-                        const jogadoresContainer = document.getElementById('jogadoresContainer');
-                        jogadoresContainer.innerHTML = "";
                         const nomes = [];
 
                         json.forEach(row => {
@@ -269,19 +260,12 @@
                         });
 
                         // Preenche a tabela com os nomes válidos
-                        nomes.forEach((nome, index) => {
+                        nomes.forEach(nome => {
                             const tr = document.createElement("tr");
                             const td = document.createElement("td");
                             td.textContent = nome;
                             tr.appendChild(td);
                             tableBody.appendChild(tr);
-                            
-                            // Adiciona input oculto para o formulário
-                            const input = document.createElement("input");
-                            input.type = "hidden";
-                            input.name = "jogadores";
-                            input.value = nome;
-                            jogadoresContainer.appendChild(input);
                         });
 
                         // Atualiza o input com o número total
@@ -302,28 +286,12 @@
                         return;
                     }
 
-                    const competicao = JSON.parse(localStorage.getItem('competicaoAtual'));
-                    if (competicao && competicao.nome) {
-                        localStorage.setItem(`jogadores_${competicao.nome}`, JSON.stringify(jogadores));
-                    }
-                    window.location.href = '/Emparelhamento';
-                });
-                
-                // Adicionar evento para o botão de salvar
-                document.getElementById('salvarButton').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    const jogadores = Array.from(document.querySelectorAll('.scrollable-body tr td'))
-                        .map(td => td.textContent.trim())
-                        .filter(nome => nome !== '');
-                        
-                    if (jogadores.length < 2) {
-                        alert('É necessário pelo menos 2 jogadores para criar uma competição.');
-                        return;
-                    }
-                    
-                    // Enviar o formulário
-                    document.getElementById('salvarCompeticaoForm').submit();
+            const competicao = JSON.parse(localStorage.getItem('competicaoAtual'));
+            if (competicao && competicao.nome) {
+                localStorage.setItem(`jogadores_${competicao.nome}`, JSON.stringify(jogadores));
+            }
+            window.location.href = '/Emparelhamento';
+
                 });
             });
         </script>
