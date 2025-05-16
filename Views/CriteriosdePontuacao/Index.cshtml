@@ -237,6 +237,7 @@
                         <span>@nomeFormato</span>
                     </div>
                 </div>
+                
 
             @{
                 var tipoCompeticao = (ViewBag.TipoCompeticao as string ?? "Individual").ToLower();
@@ -259,29 +260,27 @@
                 }
             }
 
-            <div class="form-section">
-                <label for="num-apurados">@labelApuramento</label>
-                <input type="number" name="numApurados" id="num-apurados" min="1" value="2" required />
-            </div>
 
-            @* Apenas opções específicas para Taça *@
             @if (formatoSelecionado == "eliminacao")
             {
-                    <div class="form-section sorteio-section">
-                        <label style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Configuração do Sorteio</label>
-                        <div class="sorteio-opcoes">
-                            <label class="radio-opcao">
-                                <input type="radio" name="tipoSorteio" value="todos" checked />
-                                <span>Definir todos os emparelhamentos no início</span>
-                            </label>
-                            <br/>
-                            <label class="radio-opcao">
-                                <input type="radio" name="tipoSorteio" value="ronda" />
-                                <span>Realizar sorteio antes de cada ronda</span>
-                            </label>
-                        </div>
+                <div class="form-section">
+                    <label for="num-apurados">@labelApuramento</label>
+                    <input type="number" name="numApurados" id="num-apurados" min="1" value="2" required />
+                </div>
+                <div class="form-section sorteio-section">
+                    <label style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Configuração do Sorteio</label>
+                    <div class="sorteio-opcoes">
+                        <label class="radio-opcao">
+                            <input type="radio" name="tipoSorteio" value="todos" checked />
+                            <span>Definir todos os emparelhamentos no início</span>
+                        </label>
+                        <br/>
+                        <label class="radio-opcao">
+                            <input type="radio" name="tipoSorteio" value="ronda" />
+                            <span>Realizar sorteio antes de cada ronda</span>
+                        </label>
                     </div>
-
+                </div>
             }
             </div>
 
@@ -315,7 +314,7 @@
                     </div>
                 </div>
             }
-            else if (formatoSelecionado != "eliminacao")
+            else if (formatoSelecionado != "eliminacao" && formatoSelecionado != "duplo-ko")
             {
                 <div class="form-row">
                     <div class="form-section">
