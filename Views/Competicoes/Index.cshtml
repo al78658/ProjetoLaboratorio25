@@ -161,32 +161,49 @@
         document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('competicaoList');
             
+            // Carregar competições do localStorage
+            let competicoesLocal = [];
+            try {
+                competicoesLocal = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
+            } catch (e) { competicoesLocal = []; }
+
+            // Carregar competições do Model (servidor)
+            let competicoesServidor = [];
             @if (Model != null && Model.Any())
             {
                 foreach (var competicao in Model)
                 {
                 <text>
-                let div = document.createElement('div');
-                div.className = 'competition';
-                div.onclick = function () {
-                    localStorage.setItem('competicaoSelecionada', '@competicao.Nome');
-                    window.location.href = '/Menu';
-                };
-                div.innerHTML = `
-                    <div class="thumb"></div>
-                    <p>@competicao.Nome</p>
-                `;
-                container.appendChild(div);
+                competicoesServidor.push({ nome: '@competicao.Nome' });
                 </text>
-
                 }
             }
-            else
-            {
-                <text>
+
+            // Unir e remover duplicados (por nome)
+            let todas = [...competicoesServidor];
+            competicoesLocal.forEach(loc => {
+                if (!todas.some(c => c.nome === loc.nome)) {
+                    todas.push(loc);
+                }
+            });
+
+            if (todas.length > 0) {
+                todas.forEach(competicao => {
+                    let div = document.createElement('div');
+                    div.className = 'competition';
+                    div.onclick = function () {
+                        localStorage.setItem('competicaoSelecionada', competicao.nome);
+                        window.location.href = '/Menu';
+                    };
+                    div.innerHTML = `
+                        <div class="thumb"></div>
+                        <p>${competicao.nome}</p>
+                    `;
+                    container.appendChild(div);
+                });
+            } else {
                 // Exibir mensagem de nenhuma competição
                 container.innerHTML = '<p style="grid-column: span 4; padding: 20px; font-size: 18px;">Nenhuma competição encontrada. Crie uma nova competição.</p>';
-                </text>
             }
         });
     </script>

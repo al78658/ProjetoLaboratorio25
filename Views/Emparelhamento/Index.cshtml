@@ -165,25 +165,20 @@
     <a href="/ListadeJogadores" class="back-button">&lt;Voltar</a>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+               document.addEventListener('DOMContentLoaded', function () {
             const pairsTableBody = document.getElementById('pairsTableBody');
             const saveButton = document.getElementById('saveButton');
             const titulo = document.getElementById('nomeCompeticao');
 
-            const competicao = JSON.parse(localStorage.getItem('competicaoAtual'));
+            // Obtem jogadores diretamente do localStorage (nova chave)
+            const jogadores = JSON.parse(localStorage.getItem('jogadoresParaEmparelhar')) || [];
 
-            if (!competicao || !competicao.nome) {
-                alert("Erro: nenhuma competição ativa encontrada.");
+            if (jogadores.length < 2) {
+                alert("Erro: Nenhuma lista de jogadores disponível.");
                 return;
             }
 
-            titulo.textContent = `Competição: ${competicao.nome}`;
-
-            const nomeChaveJogadores = `jogadores_${competicao.nome}`;
-            const nomeChaveAgendamentos = `agendamentos_${competicao.nome}`;
-
-            const jogadores = JSON.parse(localStorage.getItem(nomeChaveJogadores)) || [];
-            const agendamentos = JSON.parse(localStorage.getItem(nomeChaveAgendamentos)) || [];
+            titulo.textContent = `Emparelhamento`;
 
             const meio = Math.ceil(jogadores.length / 2);
             const ladoEsquerdo = jogadores.slice(0, meio);
@@ -193,22 +188,12 @@
                 const jogador1 = ladoEsquerdo[i] || '';
                 const jogador2 = ladoDireito[i] || '';
 
-                const agendamento = agendamentos.find(a =>
-                    (a.jogador1 === jogador1 && a.jogador2 === jogador2) ||
-                    (a.jogador1 === jogador2 && a.jogador2 === jogador1)
-                );
-
-                const dataValue = agendamento ? agendamento.data : '';
-                const horaValue = agendamento ? agendamento.hora : '';
-
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${jogador1}</td>
                     <td>
-                        <input type="date" class="data-input" value="${dataValue}"
-                            data-jogador1="${jogador1}" data-jogador2="${jogador2}">
-                        <input type="time" class="hora-input" value="${horaValue}"
-                            data-jogador1="${jogador1}" data-jogador2="${jogador2}">
+                        <input type="date" class="data-input" data-jogador1="${jogador1}" data-jogador2="${jogador2}">
+                        <input type="time" class="hora-input" data-jogador1="${jogador1}" data-jogador2="${jogador2}">
                     </td>
                     <td>${jogador2}</td>
                 `;
@@ -218,8 +203,7 @@
             saveButton.addEventListener('click', function () {
                 const dataInputs = document.querySelectorAll('.data-input');
                 const horaInputs = document.querySelectorAll('.hora-input');
-
-                const novosAgendamentos = [];
+                const agendamentos = [];
 
                 dataInputs.forEach((dataInput, index) => {
                     const horaInput = horaInputs[index];
@@ -229,23 +213,32 @@
                     const jogador2 = dataInput.dataset.jogador2;
 
                     if (data && hora) {
-                        novosAgendamentos.push({ jogador1, jogador2, data, hora });
+                        agendamentos.push({ jogador1, jogador2, data, hora });
                     }
                 });
 
-                // Salvar com base na competição ativa
-                localStorage.setItem(nomeChaveAgendamentos, JSON.stringify(novosAgendamentos));
-
-                // Registar competição se ainda não existir
-                const todas = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
-                if (!todas.some(c => c.nome === competicao.nome)) {
-                    todas.push(competicao);
-                    localStorage.setItem('todasCompeticoes', JSON.stringify(todas));
+                // Obter o nome da competição do localStorage
+                let nomeCompeticao = localStorage.getItem('nomeCompeticao');
+                if (!nomeCompeticao || nomeCompeticao.trim() === '') {
+                    nomeCompeticao = 'Competição_Sem_Nome';
                 }
+                const timestamp = new Date().toISOString();
 
-                // Limpar competicaoAtual (pronto a iniciar outra)
-                localStorage.removeItem('competicaoAtual');
+                // Guarda todos os dados
+                localStorage.setItem(`jogadores_${nomeCompeticao}`, JSON.stringify(jogadores));
+                localStorage.setItem(`agendamentos_${nomeCompeticao}`, JSON.stringify(agendamentos));
 
+                // Regista na lista geral de competições
+                const todas = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
+                todas.push({ nome: nomeCompeticao, dataCriacao: timestamp });
+                localStorage.setItem('todasCompeticoes', JSON.stringify(todas));
+
+                // Limpa o temporário
+                localStorage.removeItem('jogadoresParaEmparelhar');
+                localStorage.removeItem('nomeCompeticao');
+
+                // Vai para o menu da competição específica
+                localStorage.setItem('competicaoSelecionada', nomeCompeticao);
                 window.location.href = '/Menu';
             });
         });
