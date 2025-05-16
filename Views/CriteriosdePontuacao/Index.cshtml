@@ -296,17 +296,17 @@
                     { 
                         id: 'media-ave', 
                         label: 'Ponderação por média AVE (Average por entrada)',
-                        description: 'Usa a média de pontos por jogada/entrada como fator determinante de desempenho.'
+                        description: 'Usa a média de pontos por jogada/entrada como fator determinante de desempenho.' 
                     },
                     { 
                         id: 'ranking-media', 
                         label: 'Ranking por média AVE',
-                        description: 'Atribui pontuação adicional consoante a média alcançada: Exemplo: 1.º lugar = 5 pts | 2.º = 4 pts | 3.º = 3 pts...'
+                        description: 'Atribui pontuação adicional consoante a média alcançada: Exemplo: 1.º lugar = 5 pts | 2.º = 4 pts | 3.º = 3 pts...' 
                     },
                     { 
                         id: 'round-robin-ave', 
                         label: 'Pontuação estilo Round Robin com média como desempate (3-1-0)',
-                        description: 'Sistema tradicional de pontos com média usada apenas em caso de empate.'
+                        description: 'Sistema tradicional de pontos com média usada apenas em caso de empate.' 
                     }
                 ]
             },
@@ -364,7 +364,7 @@
                             <label>
                                 <input type=\"checkbox\" name=\"criterios\" value=\"${criterio.id}\" />
                                 <strong>${criterio.label}</strong>
-                                ${criterio.description ? `<br><span style=\"font-size: 0.9em; color: #666; margin-left: 24px;\">${criterio.description}</span>` : ''}
+                                ${criterio.description ? `<br><span style=\"font-size: 0.9em; color: #666; margin-left: 24px;\">${criterio.description}</span>` : ''} 
                             </label>
                         `).join('')}
                     </div>
@@ -373,7 +373,7 @@
                             <label>
                                 <input type=\"checkbox\" name=\"criterios\" value=\"${criterio.id}\" />
                                 <strong>${criterio.label}</strong>
-                                ${criterio.description ? `<br><span style=\"font-size: 0.9em; color: #666; margin-left: 24px;\">${criterio.description}</span>` : ''}
+                                ${criterio.description ? `<br><span style=\"font-size: 0.9em; color: #666; margin-left: 24px;\">${criterio.description}</span>` : ''} 
                             </label>
                         `).join('')}
                     </div>
@@ -388,6 +388,15 @@
                     vitoriaInput.value = config.defaultPoints.vitoria;
                     empateInput.value = config.defaultPoints.empate;
                     derrotaInput.value = config.defaultPoints.derrota;
+                }
+
+                // Preencher critérios já configurados
+                const criteriosSalvos = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(configuracao?.CriteriosDesempate ?? new List<string>()));
+                if (criteriosSalvos && Array.isArray(criteriosSalvos)) {
+                    criteriosSalvos.forEach(function(crit) {
+                        const checkbox = document.querySelector('input[type="checkbox"][name="criterios"][value="' + crit + '"]');
+                        if (checkbox) checkbox.checked = true;
+                    });
                 }
             }
         });

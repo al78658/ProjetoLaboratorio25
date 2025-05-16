@@ -186,7 +186,7 @@
 
         <div class="fase-selector">
             <label for="numFases">Número de Fases</label>
-            <input type="number" id="numFases" name="numFases" min="1" max="5" value="2" onchange="updateTableRows()" />
+            <input type="number" id="numFases" name="numFases" min="1" max="5" value="@ViewBag.NumFases ?? 2" onchange="updateTableRows()" />
         </div>
 
         <table id="fasesTable">
@@ -209,11 +209,21 @@
     <a href="/CriarCompeticao" class="back-button">&lt;Voltar</a>
 
     <script>
-        // Armazena os formatos selecionados
-        const formatosSelecionados = {};
+        // Recebe do Razor (TempData)
+        const competicaoId = '@ViewBag.CompeticaoId';
+        let formatosSelecionados = {};
+        try {
+            formatosSelecionados = @Html.Raw(ViewBag.FormatosSelecionados ?? "{}");
+        } catch (e) { formatosSelecionados = {}; }
 
         function updateFormat(formato, faseNum) {
             formatosSelecionados[faseNum] = formato;
+            // Salva no servidor via AJAX, agora com competicaoId
+            fetch(`/FormatodaCompeticao/SalvarFormatos?competicaoId=${competicaoId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formatosSelecionados)
+            });
         }
 
         function configurarFase(faseNum) {
@@ -222,11 +232,17 @@
                 alert('Por favor, selecione um formato para a fase antes de configurar.');
                 return;
             }
-            window.location.href = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNum}&formato=${formato}`;
+            window.location.href = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNum}&formato=${formato}&competicaoId=${competicaoId}`;
         }
 
         function updateTableRows() {
             const numFases = parseInt(document.getElementById('numFases').value);
+            // Salva o número de fases no servidor via AJAX
+            fetch(`/FormatodaCompeticao/SalvarNumFases?competicaoId=${competicaoId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(numFases)
+            });
             const tableBody = document.getElementById('fasesTableBody');
             tableBody.innerHTML = '';
 
@@ -236,8 +252,8 @@
                     <td>${i}</td>
                     <td>Fase ${i}</td>
                     <td>
-                        <select onchange="updateFormat(this.value, ${i})">
-                            <option selected disabled>Forma de Apuramento</option>
+                        <select onchange="updateFormat(this.value, ${i})" id="select-fase-${i}">
+                            <option disabled${!formatosSelecionados[i] ? ' selected' : ''}>Forma de Apuramento</option>
                             <option value="round-robin">Round Robin (Todos contra todos)</option>
                             <option value="ave">Sistema AVE</option>
                             <option value="eliminacao">Eliminatórias Diretas</option>
@@ -252,10 +268,23 @@
                 `;
                 tableBody.appendChild(row);
             }
+
+            // Após criar as linhas, definir o valor dos selects conforme formatosSelecionados
+            for (let i = 1; i <= numFases; i++) {
+                if (formatosSelecionados[i]) {
+                    const select = document.getElementById(`select-fase-${i}`);
+                    if (select) select.value = formatosSelecionados[i];
+                }
+            }
         }
 
         // Initialize table with default value
         document.addEventListener('DOMContentLoaded', function() {
+            // Se existir valor vindo do servidor, usa-o
+            const numFasesInput = document.getElementById('numFases');
+            if (@ViewBag.NumFases != null) {
+                numFasesInput.value = @ViewBag.NumFases;
+            }
             updateTableRows();
         });
     </script>

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 
 
@@ -23,10 +24,19 @@ namespace ProjetoLaboratorio25.Controllers
             ViewBag.TipoCompeticao = TempData["TipoCompeticao"];
             ViewBag.CompeticaoId = TempData["CompeticaoId"];
 
+            var competicaoId = TempData["CompeticaoId"]?.ToString();
+            ViewBag.FormatosSelecionados = competicaoId != null ? (TempData[$"FormatosSelecionados_{competicaoId}"] as string ?? "{}") : "{}";
+            ViewBag.NumFases = TempData[$"NumFases_{competicaoId}"] ?? 2;
+
             // Preserve TempData for the next request
             TempData.Keep("NomeCompeticao");
             TempData.Keep("TipoCompeticao");
             TempData.Keep("CompeticaoId");
+            if (competicaoId != null)
+            {
+                TempData.Keep($"FormatosSelecionados_{competicaoId}");
+                TempData.Keep($"NumFases_{competicaoId}");
+            }
 
             return View();
         }
@@ -72,6 +82,28 @@ namespace ProjetoLaboratorio25.Controllers
 
             // Redirecionar para a próxima fase
             return RedirectToAction("Index", "ListadeJogadores");
+        }
+
+        [HttpPost]
+        public IActionResult SalvarFormatos([FromBody] Dictionary<int, string> formatos, [FromQuery] string competicaoId)
+        {
+            if (!string.IsNullOrEmpty(competicaoId))
+            {
+                TempData[$"FormatosSelecionados_{competicaoId}"] = System.Text.Json.JsonSerializer.Serialize(formatos);
+                TempData.Keep($"FormatosSelecionados_{competicaoId}");
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult SalvarNumFases([FromQuery] string competicaoId, [FromBody] int numFases)
+        {
+            if (!string.IsNullOrEmpty(competicaoId))
+            {
+                TempData[$"NumFases_{competicaoId}"] = numFases;
+                TempData.Keep($"NumFases_{competicaoId}");
+            }
+            return Ok();
         }
     }
 }
