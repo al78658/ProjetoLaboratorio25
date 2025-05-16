@@ -185,6 +185,10 @@
             const jogadores = JSON.parse(localStorage.getItem(nomeChaveJogadores)) || [];
             const agendamentos = JSON.parse(localStorage.getItem(nomeChaveAgendamentos)) || [];
 
+            console.log('Competição atual:', competicao);
+            console.log('Jogadores:', jogadores);
+            console.log('Agendamentos:', agendamentos);
+
             const meio = Math.ceil(jogadores.length / 2);
             const ladoEsquerdo = jogadores.slice(0, meio);
             const ladoDireito = jogadores.slice(meio);

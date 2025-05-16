@@ -51,7 +51,6 @@ namespace ProjetoLaboratorio25.Controllers
                 {
                     CompeticaoId = competicaoId,
                     FaseNumero = i,
-                    NumJogosPorFase = numJogosPorFase,
                     Formato = "A definir",
                     PontosVitoria = competicao.PontosVitoria,
                     PontosEmpate = competicao.PontosEmpate,
