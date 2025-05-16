@@ -36,7 +36,6 @@
                 width: 160px;
             }
 
-        /* Novo: Container que centraliza verticalmente */
         .content-wrapper {
             display: flex;
             flex-direction: column;
@@ -55,7 +54,6 @@
             margin-top: 0;
         }
 
-        /* Estilos da lista de competições */
         .competition-wrapper {
             display: flex;
             justify-content: center;
@@ -66,7 +64,7 @@
 
         .competition-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4 colunas */
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             max-height: 400px;
             overflow-y: auto;
@@ -130,6 +128,22 @@
             .back-button:hover {
                 background-color: #dcdcdc;
             }
+
+        .action-button {
+            text-decoration: none;
+            padding: 14px 32px;
+            font-size: 18px;
+            border: 2px solid black;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+            margin-top: 30px;
+        }
+
+            .action-button:hover {
+                background-color: #dcdcdc;
+            }
     </style>
 </head>
 <body>
@@ -147,39 +161,42 @@
 
         <!-- Lista de Competições -->
         <div class="competition-container" id="competicaoList"></div>
-        
-        <div style="margin-top: 30px;">
-            <a href="/CriarCompeticao" class="action-button" style="text-decoration: none; padding: 14px 32px; font-size: 18px; border: 2px solid black; background: white; border-radius: 8px; cursor: pointer; box-shadow: 3px 3px 6px rgba(0,0,0,0.2);">
-                Criar Nova Competição
-            </a>
-        </div>
+
+        <!-- Botão visível apenas se estiver autenticado -->
+        @if (User.Identity.IsAuthenticated)
+        {
+            <div style="margin-top: 50px;">
+                <a href="/CriarCompeticao" class="action-button">Criar Nova Competição</a>
+            </div>
+        }
     </div>
 
     <!-- Botão Voltar -->
     <a href="/Home" class="back-button">&lt;Voltar</a>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('competicaoList');
-            
+
             // Carregar competições do localStorage
             let competicoesLocal = [];
             try {
                 competicoesLocal = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
             } catch (e) { competicoesLocal = []; }
 
-            // Carregar competições do Model (servidor)
+            // Carregar competições do servidor (Model)
             let competicoesServidor = [];
-            @if (Model != null && Model.Any())
+        @if (Model != null && Model.Any())
+        {
+            foreach (var competicao in Model)
             {
-                foreach (var competicao in Model)
-                {
                 <text>
-                competicoesServidor.push({ nome: '@competicao.Nome' });
+                            competicoesServidor.push({ nome: '@competicao.Nome' });
                 </text>
-                }
             }
+        }
 
-            // Unir e remover duplicados (por nome)
+            // Unir e remover duplicados por nome
             let todas = [...competicoesServidor];
             competicoesLocal.forEach(loc => {
                 if (!todas.some(c => c.nome === loc.nome)) {
@@ -202,7 +219,6 @@
                     container.appendChild(div);
                 });
             } else {
-                // Exibir mensagem de nenhuma competição
                 container.innerHTML = '<p style="grid-column: span 4; padding: 20px; font-size: 18px;">Nenhuma competição encontrada. Crie uma nova competição.</p>';
             }
         });

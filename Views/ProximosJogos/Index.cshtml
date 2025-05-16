@@ -159,7 +159,7 @@
 
             <!-- Tabela com scroll -->
             <div class="table-wrapper">
-                <table>
+                <table id="tabelaJogos">
                     <thead>
                         <tr>
                             <th>Partidas</th>
@@ -168,55 +168,91 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Repete os jogos para mostrar scroll -->
-                        @for (int i = 0; i < 15; i++)
-                        {
-                            @if (!User.Identity.IsAuthenticated)
-                            {
-                                <tr>
-                                    <td>Higgins e Andres vs Federer e Nadal</td>
-                                    <td>12 fev</td>
-                                    <td>19h30</td>
-                                </tr>
-                                <tr>
-                                    <td>Marco vs Alberto</td>
-                                    <td>10 fev</td>
-                                    <td>18h45</td>
-                                </tr>
-                                <tr>
-                                    <td>Andrea vs Caspirenovic</td>
-                                    <td>6 fev</td>
-                                    <td>17h15</td>
-                                </tr>
-                                <tr>
-                                    <td>Andrea vs Caspirenovic</td>
-                                    <td>6 fev</td>
-                                    <td>17h15</td>
-                                </tr>
-                                <tr>
-                                    <td>Andrea vs Caspirenovic</td>
-                                    <td>6 fev</td>
-                                    <td>17h15</td>
-                                </tr>
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td>Higgins e Andres vs Federer e Nadal</td>
-                                    <td>12 fev</td>
-                                    <td>19h30</td>
-                                </tr>
-                            }
-                        }
+                        <!-- Jogos serão renderizados por JS -->
                     </tbody>
                 </table>
             </div>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div style="text-align:center; margin-top:40px;">
+                    <button class="btn" type="button" id="btnGuardarTodos">Guardar</button>
+                </div>
+            }
+
         </div>
     </div>
 
     <!-- Botão Voltar absoluto -->
     <a href="/Menu" class="back-button">&lt;Voltar</a>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const nomeCompeticao = localStorage.getItem('competicaoSelecionada');
+        const tabela = document.getElementById('tabelaJogos').getElementsByTagName('tbody')[0];
+        let agendamentos = [];
+        if (nomeCompeticao) {
+            agendamentos = JSON.parse(localStorage.getItem('agendamentos_' + nomeCompeticao)) || [];
+        }
+
+        function renderJogos() {
+            tabela.innerHTML = '';
+            if (agendamentos.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="@((User.Identity.IsAuthenticated) ? 4 : 3)">Nenhum jogo agendado.</td>';
+                tabela.appendChild(row);
+                return;
+            }
+            agendamentos.forEach(function(jogo, idx) {
+                const row = document.createElement('tr');
+                var html = '';
+                html += '<td>' + (jogo.jogador1 ? jogo.jogador1 : '') + ' vs ' + (jogo.jogador2 ? jogo.jogador2 : '') + '</td>';
+                // Bloco de edição só para autenticados
+                        if (@(User.Identity.IsAuthenticated.ToString().ToLower())) {
+            html += '<td><input type="date" value="' + (jogo.data ? jogo.data : '') + '" class="data-input" data-idx="' + idx + '"></td>';
+            html += '<td><input type="time" value="' + (jogo.hora ? jogo.hora : '') + '" class="hora-input" data-idx="' + idx + '"></td>';
+        } else {
+            html += '<td>' + (jogo.data ? jogo.data : '') + '</td>';
+            html += '<td>' + (jogo.hora ? jogo.hora : '') + '</td>';
+        }
+
+                row.innerHTML = html;
+                tabela.appendChild(row);
+            });
+        }
+
+        window.guardarAlteracao = function(idx) {
+            const dataInput = document.querySelector('input.data-input[data-idx="' + idx + '"]');
+            const horaInput = document.querySelector('input.hora-input[data-idx="' + idx + '"]');
+            agendamentos[idx].data = dataInput.value;
+            agendamentos[idx].hora = horaInput.value;
+            if (nomeCompeticao) {
+                localStorage.setItem('agendamentos_' + nomeCompeticao, JSON.stringify(agendamentos));
+            }
+            renderJogos();
+        }
+
+        // Guardar todos os jogos de uma vez
+        var btnGuardarTodos = document.getElementById('btnGuardarTodos');
+        if (btnGuardarTodos) {
+            btnGuardarTodos.addEventListener('click', function() {
+                document.querySelectorAll('input.data-input').forEach(function(input) {
+                    var idx = input.getAttribute('data-idx');
+                    agendamentos[idx].data = input.value;
+                });
+                document.querySelectorAll('input.hora-input').forEach(function(input) {
+                    var idx = input.getAttribute('data-idx');
+                    agendamentos[idx].hora = input.value;
+                });
+                if (nomeCompeticao) {
+                    localStorage.setItem('agendamentos_' + nomeCompeticao, JSON.stringify(agendamentos));
+                }
+                renderJogos();
+            });
+        }
+
+        renderJogos();
+    });
+</script>
 
 </body>
 </html>

@@ -205,8 +205,8 @@
         <button class="next-button" onclick="window.location.href='@Url.Action("Index", "ListadeJogadores")'">Seguinte</button>
     </div>
 
-    <!-- Botão Voltar -->
-    <a href="/CriarCompeticao" class="back-button">&lt;Voltar</a>
+    <!-- Botão Voltar -->   
+    <a href="/CriarCompeticao" class="back-button" id="btnVoltar">&lt;Voltar</a>
 
     <script>
         // Armazena os formatos selecionados
@@ -257,6 +257,14 @@
         // Initialize table with default value
         document.addEventListener('DOMContentLoaded', function() {
             updateTableRows();
+        });
+
+        document.getElementById('btnVoltar').addEventListener('click', async function (e) {
+            // Elimina a competição criada se o utilizador sair antes de configurar
+            const competicaoId = '@(ViewBag.CompeticaoId ?? "")';
+            if (competicaoId) {
+                await fetch('/Competicoes/EliminarCompeticao?id=' + encodeURIComponent(competicaoId), { method: 'POST' });
+            }
         });
     </script>
 </body>

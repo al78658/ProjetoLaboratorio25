@@ -447,10 +447,7 @@
                         <strong>Notificações</strong>
                         <button id="closeNotification" class="close-btn">&times;</button>
                     </div>
-                    <ul class="notification-list">
-                        <li><strong>João Silva</strong> venceu o jogo contra <strong>Pedro Costa</strong>.</li>
-                        <li><strong>Maria Lopes</strong> subiu para o 2º lugar no ranking.</li>
-                        <li><strong>Nova competição</strong> agendada para 15 de maio.</li>
+                    <ul class="notification-list" id="notificacoesDinamicas">
                     </ul>
                 </div>
             </div>
@@ -492,6 +489,33 @@
             notificationBox.style.display = 'none';
             }
             });
+
+            // Notificações dinâmicas de vitórias
+            function carregarNotificacoesVitorias() {
+                const notificacoesDinamicas = document.getElementById('notificacoesDinamicas');
+                // Remove notificações dinâmicas antigas (mantém as fixas para exemplo)
+                const fixas = Array.from(notificacoesDinamicas.children).filter(li => li.innerHTML.includes('João Silva') || li.innerHTML.includes('Maria Lopes') || li.innerHTML.includes('Nova competição'));
+                notificacoesDinamicas.innerHTML = '';
+                fixas.forEach(f => notificacoesDinamicas.appendChild(f));
+                // Percorre todas as competições e datas no localStorage
+                for (let key in localStorage) {
+                    if (key.startsWith('resultados_')) {
+                        const partes = key.split('_');
+                        const nomeCompeticao = partes[1];
+                        const data = partes.slice(2).join('_');
+                        const resultados = JSON.parse(localStorage.getItem(key) || '[]');
+                        resultados.forEach(r => {
+                            if (r.vencedor && r.motivo) {
+                                // Data formatada para DD-MM-YYYY
+                                const dataFormatada = data.split('-').reverse().join('-');
+                                const noticia = `<li><div style='font-size:13px; color:#888; margin-bottom:2px;'>${dataFormatada}</div><div><strong>${r.jogador1} vs ${r.jogador2}</strong></div>${r.vencedor} venceu o jogo.<br><span style='font-size:13px; color:#666;'>Motivo: ${r.motivo}</span></li>`;
+                                notificacoesDinamicas.insertAdjacentHTML('afterbegin', noticia);
+                            }
+                        });
+                    }
+                }
+            }
+            carregarNotificacoesVitorias();
         </script>
     }
     else
@@ -516,10 +540,7 @@
                         <strong>Notificações</strong>
                         <button id="closeNotification" class="close-btn">&times;</button>
                     </div>
-                    <ul class="notification-list">
-                        <li><strong>João Silva</strong> venceu o jogo contra <strong>Pedro Costa</strong>.</li>
-                        <li><strong>Maria Lopes</strong> subiu para o 2º lugar no ranking.</li>
-                        <li><strong>Nova competição</strong> agendada para 15 de maio.</li>
+                    <ul class="notification-list" id="notificacoesDinamicas">
                     </ul>
                 </div>
             </div>
@@ -559,6 +580,33 @@
             notificationBox.style.display = 'none';
             }
             });
+
+            // Notificações dinâmicas de vitórias
+            function carregarNotificacoesVitorias() {
+                const notificacoesDinamicas = document.getElementById('notificacoesDinamicas');
+                // Remove notificações dinâmicas antigas (mantém as fixas para exemplo)
+                const fixas = Array.from(notificacoesDinamicas.children).filter(li => li.innerHTML.includes('João Silva') || li.innerHTML.includes('Maria Lopes') || li.innerHTML.includes('Nova competição'));
+                notificacoesDinamicas.innerHTML = '';
+                fixas.forEach(f => notificacoesDinamicas.appendChild(f));
+                // Percorre todas as competições e datas no localStorage
+                for (let key in localStorage) {
+                    if (key.startsWith('resultados_')) {
+                        const partes = key.split('_');
+                        const nomeCompeticao = partes[1];
+                        const data = partes.slice(2).join('_');
+                        const resultados = JSON.parse(localStorage.getItem(key) || '[]');
+                        resultados.forEach(r => {
+                            if (r.vencedor && r.motivo) {
+                                // Data formatada para DD-MM-YYYY
+                                const dataFormatada = data.split('-').reverse().join('-');
+                                const noticia = `<li><div style='font-size:13px; color:#888; margin-bottom:2px;'>${dataFormatada}</div><strong>${r.vencedor}</strong> venceu o jogo <strong>${r.jogador1} vs ${r.jogador2}</strong>.<br><span style='font-size:13px; color:#666;'>Motivo: ${r.motivo}</span></li>`;
+                                notificacoesDinamicas.insertAdjacentHTML('afterbegin', noticia);
+                            }
+                        });
+                    }
+                }
+            }
+            carregarNotificacoesVitorias();
         </script>
     }
 </body>

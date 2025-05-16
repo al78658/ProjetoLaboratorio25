@@ -59,5 +59,24 @@ namespace ProjetoLaboratorio25.Controllers
 
             return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        public JsonResult ExisteNome(string nome)
+        {
+            var existe = _context.Competicoes.Any(c => c.Nome.Trim().ToLower() == nome.Trim().ToLower());
+            return Json(existe);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EliminarCompeticao(int id)
+        {
+            var competicao = await _context.Competicoes.FindAsync(id);
+            if (competicao != null)
+            {
+                _context.Competicoes.Remove(competicao);
+                await _context.SaveChangesAsync();
+            }
+            return Ok();
+        }
     }
 }

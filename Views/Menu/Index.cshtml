@@ -365,8 +365,8 @@
                 rows.forEach((row, index) => { if (index > 0) row.remove(); });
 
                 const dataFiltrada = formatDate(date);
-
                 const jogosDoDia = agendamentos.filter(a => a.data === dataFiltrada);
+                const resultados = JSON.parse(localStorage.getItem(`resultados_${nomeCompeticao}_${dataFiltrada}`)) || [];
 
                 if (jogosDoDia.length === 0) {
                     const row = document.createElement('tr');
@@ -375,13 +375,24 @@
                     return;
                 }
 
-                jogosDoDia.forEach(a => {
+                jogosDoDia.forEach((a, idx) => {
+                    const resultado = resultados.find(r => r.jogador1 === a.jogador1 && r.jogador2 === a.jogador2) || {};
+                    let resultadoTexto = '-';
+                    if (resultado.vencedor && resultado.motivo) {
+                        resultadoTexto = `Vitória de ${resultado.vencedor}`;
+                    } else if (resultado.pontuacao) {
+                        resultadoTexto = resultado.pontuacao;
+                        if (resultado.vencedor) resultadoTexto += ` (${resultado.vencedor})`;
+                    } else if (resultado.vencedor) {
+                        resultadoTexto = resultado.vencedor;
+                    }
+                    const motivo = resultado.motivo || '';
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${a.jogador1} vs ${a.jogador2}</td>
                         <td>${a.hora}</td>
-                        <td>Por definir</td>
-                        <td></td>
+                        <td>${resultadoTexto}</td>
+                        <td>${motivo}</td>
                     `;
                     tabelaResultados.appendChild(row);
                 });
@@ -405,5 +416,20 @@
             renderTableForDate(currentDate);
         });
     </script>
+    <!-- Modal para motivo de vitória -->
+    <div id="motivoModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:32px; border-radius:12px; max-width:400px; margin:120px auto; position:relative;">
+            <h3>Motivo da Vitória</h3>
+            <input type="hidden" id="motivoInputIdx" />
+            <input type="hidden" id="motivoModalVencedor" />
+            <input type="hidden" id="motivoModalJ1" />
+            <input type="hidden" id="motivoModalJ2" />
+            <textarea id="motivoVitoria" style="width:100%; min-height:60px; margin-top:12px; font-size:16px; border-radius:8px; border:1px solid #333;" placeholder="Descreva o motivo..."></textarea>
+            <div style="margin-top:18px; text-align:right;">
+                <button onclick="confirmarMotivo()" class="btn">Confirmar</button>
+                <button onclick="cancelarMotivo()" class="btn" style="margin-left:10px;">Cancelar</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

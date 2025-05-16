@@ -153,9 +153,16 @@
             <h2>Criar Competição</h2>
 
             <form asp-controller="CriarCompeticao" asp-action="Criar" method="post" id="formCriarCompeticao">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div style="color: red; margin-bottom: 10px; font-size: 18px;">@error.ErrorMessage</div>
+                    }
+                }
                 <div class="form-group">
                     <label for="nome">Nome da Competição</label>
-                    <input type="text" id="nome" name="nome" required />
+                    <input type="text" id="nome" name="nome" required value="@(ViewData["nome"] ?? "")" autocomplete="off" />
                 </div>
 
                 <div class="form-group">
@@ -166,25 +173,39 @@
                     </select>
                 </div>
 
-                <button type="submit" class="submit-button">Próximo</button>
+                <button type="button" class="submit-button" id="btnProximo">Próximo</button>
             </form>
-
+            <script>
+                document.getElementById('btnProximo').addEventListener('click', async function (e) {
+                    const nome = document.getElementById('nome').value.trim();
+                    if (!nome) return;
+                    // Verificação AJAX se já existe competição
+                    const response = await fetch('/Competicoes/ExisteNome?nome=' + encodeURIComponent(nome));
+                    const existe = await response.json();
+                    if (existe) {
+                        // Mostra erro sem submeter
+                        let erroDiv = document.getElementById('erroNome');
+                        if (!erroDiv) {
+                            erroDiv = document.createElement('div');
+                            erroDiv.id = 'erroNome';
+                            erroDiv.style.color = 'red';
+                            erroDiv.style.marginBottom = '10px';
+                            erroDiv.style.fontSize = '18px';
+                            document.querySelector('.form-box form').insertBefore(erroDiv, document.querySelector('.form-group'));
+                        }
+                        erroDiv.textContent = 'Já existe uma competição com esse nome. Por favor escolha outro nome.';
+                        return;
+                    }
+                    // Se não existir, submete o form normalmente
+                    document.getElementById('formCriarCompeticao').submit();
+                });
+            </script>
 
         </div>
     </div>
 
     <!-- Botão Voltar -->   
         <a href="/Home" class="back-button">&lt;Voltar</a>
-
-        <script>
-            document.getElementById('formCriarCompeticao').addEventListener('submit', function (e) {
-                // Guardar o nome da competição no localStorage antes de submeter
-                var nome = document.getElementById('nome').value;
-                localStorage.setItem('nomeCompeticao', nome);
-                // Permitir o submit normal
-            });
-        </script>
-
 
 </body>
 </html>

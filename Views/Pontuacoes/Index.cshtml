@@ -170,95 +170,136 @@
 
     <!-- Conteúdo Centralizado -->
     <div class="content-wrapper">
-        <!-- Título -->
         <h2>Gestão de Resultados</h2>
-
-        <!-- Tabela -->
-        <table>
-            <tr>
-                <th>Partidas</th>
-                <th>Pontuação</th>
-                <th>Vitória</th>
-                <th>Motivo</th>
-                <th>Validação</th>
-            </tr>
-            <tr>
-                <td>Higgins vs Federer</td>
-                <td>2-11</td>
-                <td>Federer</td>
-                <td></td>
-                <td><button class="victory-button">Homologar</button></td>
-            </tr>
-            <tr>
-                <td>Marco vs Alberto</td>
-                <td>
-                    <div class="pontuacao-flex">
-                        <button class="arrow-button" onclick="incrementScore('score-marco-alberto', 1)">↑</button>
-                        <span id="score-marco-alberto">3-1</span>
-                        <button class="arrow-button" onclick="incrementScore('score-marco-alberto', 2)">↑</button>
-                    </div>
-                </td>
-
-                <td>
-                    <button class="victory-button">Dar Vitória</button>
-                    <button class="victory-button">Dar Vitória</button>
-                </td>
-                <td></td>
-                <td><button class="victory-button">Homologar</button></td>
-            </tr>
-            <tr>
-                <td>Andrea vs Caspirenov</td>
-                <td>indisponível</td>
-                <td></td>
-                <td></td>
-                <td><button class="victory-button">Homologar</button></td>
-            </tr>
-            <tr>
-                <td>Ronaldi vs Messino</td>
-                <td>-</td>
-                <td>Ronaldi</td>
-                <td>Falta de Comparência</td>
-                <td><button class="victory-button">Homologar</button></td>
-            </tr>
-        </table>
-
-        <!-- Comentário -->
-        <div class="comment-section">
-            <label for="comentario">Adicionar Comentário:</label>
-            <input type="text" id="comentario" name="comentario" class="comment-box" />
+        <div style="margin-bottom: 24px; text-align: right;">
+            <label for="dataSelecionada" style="font-size:18px; color:black;">Dia: </label>
+            <input type="date" id="dataSelecionada" />
         </div>
-
-        <!-- Botão Confirmar -->
-        <button class="confirm-button" onclick="window.location.href='/Menu'">
-            Registar
-        </button>
+        <table id="tabelaPontuacoes">
+            <thead>
+                <tr>
+                    <th>Partidas</th>
+                    <th>Pontuação</th>
+                    <th>Vitória</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Jogos renderizados por JS -->
+            </tbody>
+        </table>
+        <button class="confirm-button" id="btnRegistar">Registar</button>
     </div>
-
-    <!-- Botão Voltar -->
     <a href="/Menu" class="back-button">&lt;Voltar</a>
     <script>
-        function incrementScore(scoreId, playerNumber) {
-            const scoreElement = document.getElementById(scoreId);
-            if (!scoreElement) return;
-
-                     // Obtém o texto atual da pontuação, por exemplo, "3-1"
-            const currentScore = scoreElement.textContent.trim();
-
-            // Divide a pontuação em dois números
-            const scores = currentScore.split('-').map(Number);
-
-            // Verifica se a pontuação é válida
-            if (scores.length !== 2 || scores.some(isNaN)) return;
-
-            // Incrementa o número do jogador correspondente
-            if (scores[playerNumber - 1] <= 10) {
-                scores[playerNumber - 1] += 1;
+    document.addEventListener('DOMContentLoaded', function () {
+        const nomeCompeticao = localStorage.getItem('competicaoSelecionada');
+        const tabela = document.getElementById('tabelaPontuacoes').getElementsByTagName('tbody')[0];
+        const dataInput = document.getElementById('dataSelecionada');
+        const btnRegistar = document.getElementById('btnRegistar');
+        let agendamentos = [];
+        let resultados = [];
+        // Recebe a data selecionada do menu, se existir
+        const dataSelecionadaMenu = localStorage.getItem('dataSelecionadaMenu');
+        // Inicializa data selecionada para hoje ou para a vinda do menu
+        const hoje = new Date().toISOString().split('T')[0];
+        dataInput.value = dataSelecionadaMenu || hoje;
+        function carregarAgendamentos() {
+            if (nomeCompeticao) {
+                agendamentos = JSON.parse(localStorage.getItem('agendamentos_' + nomeCompeticao)) || [];
+            } else {
+                agendamentos = [];
             }
-
-
-            // Atualiza o texto da pontuação
-            scoreElement.textContent = `${scores[0]}-${scores[1]}`;
         }
+        function carregarResultados() {
+            if (nomeCompeticao && dataInput.value) {
+                resultados = JSON.parse(localStorage.getItem('resultados_' + nomeCompeticao + '_' + dataInput.value)) || [];
+            } else {
+                resultados = [];
+            }
+        }
+        function renderJogos() {
+            tabela.innerHTML = '';
+            const dataSelecionada = dataInput.value;
+            const jogosDoDia = agendamentos.filter(j => j.data === dataSelecionada);
+            if (jogosDoDia.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="4">Nenhum jogo agendado para este dia.</td>';
+                tabela.appendChild(row);
+                return;
+            }
+            jogosDoDia.forEach((jogo, idx) => {
+                const resultado = resultados.find(r => r.jogador1 === jogo.jogador1 && r.jogador2 === jogo.jogador2) || {};
+                const pontuacao = resultado.pontuacao || '0-0';
+                const vencedor = resultado.vencedor || '';
+                const motivo = resultado.motivo || '';
+                const v1Active = vencedor === jogo.jogador1 ? 'background:#b6e7b6;' : '';
+                const v2Active = vencedor === jogo.jogador2 ? 'background:#b6e7b6;' : '';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${jogo.jogador1} vs ${jogo.jogador2}</td>
+                    <td>
+                        <div class="pontuacao-flex">
+                            <button class="arrow-button" onclick="incrementScore(${idx},1)">↑</button>
+                            <span id="score-${idx}">${pontuacao}</span>
+                            <button class="arrow-button" onclick="incrementScore(${idx},2)">↑</button>
+                        </div>
+                    </td>
+                    <td>
+                        <button class="victory-button" style="${v1Active}" onclick="darVitoria(${idx},'${jogo.jogador1}')">Dar Vitória ${jogo.jogador1}</button>
+                        <button class="victory-button" style="${v2Active}" onclick="darVitoria(${idx},'${jogo.jogador2}')">Dar Vitória ${jogo.jogador2}</button>
+                    </td>
+                    <td><input type="text" class="motivo-input" data-idx="${idx}" value="${motivo}" placeholder="Motivo (obrigatório se vitória)" style="width:140px;" /></td>
+                `;
+                tabela.appendChild(row);
+            });
+        }
+        window.incrementScore = function(idx, player) {
+            const scoreSpan = document.getElementById('score-' + idx);
+            let scores = scoreSpan.textContent.split('-').map(Number);
+            if (scores.length !== 2) scores = [0,0];
+            if (scores[player-1] < 99) scores[player-1]++;
+            scoreSpan.textContent = scores.join('-');
+        }
+        window.darVitoria = function(idx, vencedor) {
+            resultados[idx] = resultados[idx] || {};
+            resultados[idx].vencedor = vencedor;
+            renderJogos();
+        }
+        dataInput.addEventListener('change', function () {
+            carregarResultados();
+            renderJogos();
+        });
+        btnRegistar.addEventListener('click', function () {
+            const dataSelecionada = dataInput.value;
+            const jogosDoDia = agendamentos.filter(j => j.data === dataSelecionada);
+            let erro = false;
+            const novosResultados = jogosDoDia.map((jogo, idx) => {
+                const score = document.getElementById('score-' + idx).textContent;
+                const vencedor = (resultados[idx] && resultados[idx].vencedor) || '';
+                const motivo = document.querySelector(`.motivo-input[data-idx='${idx}']`).value.trim();
+                if (vencedor && motivo.length < 2) {
+                    alert('Para registar vitória é obrigatório um motivo para o jogo: ' + jogo.jogador1 + ' vs ' + jogo.jogador2);
+                    erro = true;
+                }
+                return {
+                    jogador1: jogo.jogador1,
+                    jogador2: jogo.jogador2,
+                    pontuacao: score,
+                    vencedor,
+                    motivo
+                };
+            });
+            if (erro) return;
+            if (nomeCompeticao && dataSelecionada) {
+                localStorage.setItem('resultados_' + nomeCompeticao + '_' + dataSelecionada, JSON.stringify(novosResultados));
+            }
+            window.location.href = '/Menu';
+        });
+        carregarAgendamentos();
+        carregarResultados();
+        renderJogos();
+    });
     </script>
 
 </body>
