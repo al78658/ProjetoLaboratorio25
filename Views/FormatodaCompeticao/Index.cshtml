@@ -194,7 +194,7 @@
                 <tr>
                     <th>#</th>
                     <th>Nome da Fase</th>
-                    <th>Tipo da Fase</th>
+                    <th>Formato da Fase</th>
                     <th>Configuração</th>
                 </tr>
             </thead>
@@ -253,10 +253,10 @@
                     <td>Fase ${i}</td>
                     <td>
                         <select onchange="updateFormat(this.value, ${i})" id="select-fase-${i}">
-                            <option disabled${!formatosSelecionados[i] ? ' selected' : ''}>Forma de Apuramento</option>
+                            <option disabled${!formatosSelecionados[i] ? ' selected' : ''}>Formato</option>
                             <option value="round-robin">Round Robin (Todos contra todos)</option>
                             <option value="ave">Sistema AVE</option>
-                            <option value="eliminacao">Eliminatórias Diretas</option>
+                            <option value="eliminacao">Taça</option>
                             <option value="campeonato">Campeonato (Liga)</option>
                             <option value="duplo-ko">Duplo KO</option>
                         </select>

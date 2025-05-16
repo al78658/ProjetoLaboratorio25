@@ -215,22 +215,24 @@
             <input type="hidden" name="formato" value="@ViewBag.FormatoSelecionado" />
 
             @{
-                var formatos = new Dictionary<string, string>
+
+            var formatos = new Dictionary<string, string>
             {
-            { "round-robin", "Round Robin (Todos contra todos)" },
-            { "ave", "Sistema AVE" },
-            { "eliminacao", "Eliminatórias Diretas" },
-            { "campeonato", "Campeonato (Liga)" },
-            { "duplo-ko", "Duplo KO" }
+                { "round-robin", "Round Robin (Todos contra todos)" },
+                { "ave", "Sistema AVE" },
+                { "eliminacao", "Taça" },
+                { "campeonato", "Campeonato (Liga)" },
+                { "duplo-ko", "Duplo KO" }
             };
 
                 var formatoSelecionado = ViewBag.FormatoSelecionado as string;
                 var nomeFormato = formatos.ContainsKey(formatoSelecionado) ? formatos[formatoSelecionado] : formatoSelecionado;
             }
 
+
             <div class="form-row">
                 <div class="form-section">
-                    <label for="formato">Forma de Apuramento:</label>
+                    <label for="formato">Formato:</label>
                     <div class="formato-display">
                         <span>@nomeFormato</span>
                     </div>
@@ -239,7 +241,11 @@
             @{
                 var tipoCompeticao = (ViewBag.TipoCompeticao as string ?? "Individual").ToLower();
                 string labelApuramento;
-                if (tipoCompeticao == "individual")
+                if (formatoSelecionado == "eliminacao")
+                {
+                    labelApuramento = tipoCompeticao == "equipas" ? "Quantas equipas se apuram para a próxima fase?" : "Quantos jogadores se apuram para a próxima fase?";
+                }
+                else if (tipoCompeticao == "individual")
                 {
                     labelApuramento = "Quantos jogadores se apuram?";
                 }
@@ -252,29 +258,80 @@
                     labelApuramento = "Quantos se apuram?";
                 }
             }
+
             <div class="form-section">
                 <label for="num-apurados">@labelApuramento</label>
                 <input type="number" name="numApurados" id="num-apurados" min="1" value="2" required />
             </div>
 
+            @* Apenas opções específicas para Taça *@
+            @if (formatoSelecionado == "eliminacao")
+            {
+                    <div class="form-section sorteio-section">
+                        <label style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">Configuração do Sorteio</label>
+                        <div class="sorteio-opcoes">
+                            <label class="radio-opcao">
+                                <input type="radio" name="tipoSorteio" value="todos" checked />
+                                <span>Definir todos os emparelhamentos no início</span>
+                            </label>
+                            <br/>
+                            <label class="radio-opcao">
+                                <input type="radio" name="tipoSorteio" value="ronda" />
+                                <span>Realizar sorteio antes de cada ronda</span>
+                            </label>
+                        </div>
+                    </div>
+
+            }
             </div>
 
-            <div class="form-row">
-                <div class="form-section">
-                    <label for="vitoria">Pontos por Vitória:</label>
-                    <input type="number" id="vitoria" name="vitoria" min="0" value="@(configuracao?.PontosVitoria ?? 0)" required />
-                </div>
 
-                <div class="form-section">
-                    <label for="empate">Pontos por Empate:</label>
-                    <input type="number" id="empate" name="empate" min="0" value="@(configuracao?.PontosEmpate ?? 0)" required />
+            @if (formatoSelecionado == "campeonato" || formatoSelecionado == "round-robin")
+            {
+                <div class="form-row">
+                    <div class="form-section"> 
+                        <label for="vitoria">Pontos por Vitória:</label>
+                        <input type="number" id="vitoria" name="vitoria" min="0" value="@(configuracao?.PontosVitoria ?? 0)" required />
+                    </div>
+                    <div class="form-section">
+                        <label for="empate">Pontos por Empate:</label>
+                        <input type="number" id="empate" name="empate" min="0" value="@(configuracao?.PontosEmpate ?? 0)" required />
+                    </div>
+                    <div class="form-section">
+                        <label for="derrota">Pontos por Derrota:</label>
+                        <input type="number" id="derrota" name="derrota" min="0" value="@(configuracao?.PontosDerrota ?? 0)" required />
+                    </div>
+                    <div class="form-section">
+                        <label for="faltaComparencia">Pontos por Falta de Comparência:</label>
+                        <input type="number" id="faltaComparencia" name="faltaComparencia" min="0" value="@(configuracao?.PontosFaltaComparencia ?? 0)" required />
+                    </div>
+                    <div class="form-section">
+                        <label for="desclassificacao">Pontos por Desclassificação:</label>
+                        <input type="number" id="desclassificacao" name="desclassificacao" min="0" value="@(configuracao?.PontosDesclassificacao ?? 0)" required />
+                    </div>
+                    <div class="form-section">
+                        <label for="pontosExtra">Pontos Extra:</label>
+                        <input type="number" id="pontosExtra" name="pontosExtra" min="0" value="@(configuracao?.PontosExtra ?? 0)" required />
+                    </div>
                 </div>
-
-                <div class="form-section">
-                    <label for="derrota">Pontos por Derrota:</label>
-                    <input type="number" id="derrota" name="derrota" min="0" value="@(configuracao?.PontosDerrota ?? 0)" required />
+            }
+            else if (formatoSelecionado != "eliminacao")
+            {
+                <div class="form-row">
+                    <div class="form-section">
+                        <label for="vitoria">Pontos por Vitória:</label>
+                        <input type="number" id="vitoria" name="vitoria" min="0" value="@(configuracao?.PontosVitoria ?? 0)" required />
+                    </div>
+                    <div class="form-section">
+                        <label for="empate">Pontos por Empate:</label>
+                        <input type="number" id="empate" name="empate" min="0" value="@(configuracao?.PontosEmpate ?? 0)" required />
+                    </div>
+                    <div class="form-section">
+                        <label for="derrota">Pontos por Derrota:</label>
+                        <input type="number" id="derrota" name="derrota" min="0" value="@(configuracao?.PontosDerrota ?? 0)" required />
+                    </div>
                 </div>
-            </div>
+            }
 
             <div class="form-row">
                 <div class="form-section" style="flex: 2;">
@@ -328,16 +385,9 @@
                 ]
             },
             'eliminacao': {
-                description: 'Jogador que perde é eliminado, sem segunda oportunidade.',
-                defaultPoints: { vitoria: 1, empate: 0, derrota: 0 },
-                criterios: [
-                    { id: 'fase-1', label: '1ª ronda (1 ponto)' },
-                    { id: 'fase-2', label: 'Oitavos (2 pontos)' },
-                    { id: 'fase-3', label: 'Quartos (3 pontos)' },
-                    { id: 'fase-4', label: 'Meias (4 pontos)' },
-                    { id: 'fase-5', label: 'Finalista (5 pontos)' },
-                    { id: 'fase-6', label: 'Vencedor (6 pontos)' }
-                ]
+                description: 'Este sistema também é conhecido como sistema de Taça. Os atletas/equipas emparelham 2 a 2. O vencedor segue em frente e o perdedor fica eliminado. Não há pontuação. Quem se apura, continua em prova em igualdade com todos os demais.\n\nNa primeira ronda podem estar presentes só algumas equipas/jogadores, enquanto outras ficam isentas (fase preliminar). Após o primeiro sorteio, pode optar por definir todos os emparelhamentos até à última ronda, ou realizar sorteios independentes antes de cada ronda.',
+                defaultPoints: { vitoria: 0, empate: 0, derrota: 0 },
+                criterios: [] // Não há critérios de desempate para Taça
             },
             'campeonato': {
                 description: 'Competição prolongada por vários encontros ao longo de uma época.',
