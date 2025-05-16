@@ -32,9 +32,31 @@ namespace ProjetoLaboratorio25.Controllers
                 };
             }
 
+            // Recupera o tipo de competição do TempData, se existir
+            string tipoCompeticao = null;
+            if (TempData.ContainsKey("TipoCompeticao"))
+            {
+                tipoCompeticao = TempData["TipoCompeticao"] as string;
+                TempData.Keep("TipoCompeticao");
+            }
+            else if (Request.Query.ContainsKey("competicaoId"))
+            {
+                // Tenta buscar do banco de dados se vier o competicaoId
+                if (int.TryParse(Request.Query["competicaoId"], out int compId))
+                {
+                    var comp = _context.Competicoes.FirstOrDefault(c => c.Id == compId);
+                    if (comp != null)
+                    {
+                        tipoCompeticao = comp.TipoCompeticao;
+                        TempData["TipoCompeticao"] = tipoCompeticao;
+                        TempData.Keep("TipoCompeticao");
+                    }
+                }
+            }
             ViewBag.FaseNumero = faseNumero;
             ViewBag.Configuracao = configuracao;
             ViewBag.FormatoSelecionado = formato;
+            ViewBag.TipoCompeticao = tipoCompeticao ?? "Individual";
             return View();
         }
 
@@ -75,7 +97,7 @@ namespace ProjetoLaboratorio25.Controllers
                 _configuracoes.Add(configuracao);
             }
 
-            TempData["Mensagem"] = "Configuração salva com sucesso!";
+            TempData["Mensagem"] = "Configuração guardada com sucesso!";
             return RedirectToAction("Index", "FormatodaCompeticao");
         }
 

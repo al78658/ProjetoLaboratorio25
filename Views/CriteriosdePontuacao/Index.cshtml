@@ -236,10 +236,27 @@
                     </div>
                 </div>
 
-                <div class="form-section">
-                    <label for="num-participantes">Nº Participantes:</label>
-                    <input type="number" name="numParticipantes" id="num-participantes" min="2" value="2" required />
-                </div>
+            @{
+                var tipoCompeticao = (ViewBag.TipoCompeticao as string ?? "Individual").ToLower();
+                string labelApuramento;
+                if (tipoCompeticao == "individual")
+                {
+                    labelApuramento = "Quantos jogadores se apuram?";
+                }
+                else if (tipoCompeticao == "equipas")
+                {
+                    labelApuramento = "Quantas equipas se apuram?";
+                }
+                else
+                {
+                    labelApuramento = "Quantos se apuram?";
+                }
+            }
+            <div class="form-section">
+                <label for="num-apurados">@labelApuramento</label>
+                <input type="number" name="numApurados" id="num-apurados" min="1" value="2" required />
+            </div>
+
             </div>
 
             <div class="form-row">
