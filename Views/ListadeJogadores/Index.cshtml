@@ -150,54 +150,16 @@
             .back-button:hover {
                 background-color: #dcdcdc;
             }
-
-        media (max-width: 768px) {
-            h2
-
-        {
-            font-size: 24px;
-        }
-
-        .input-row {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .button-row {
-            flex-direction: column;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .action-button {
-            width: 100%;
-            text-align: center;
-        }
-
-        .scrollable-body td {
-            font-size: 14px;
-        }
-
-        .player-table th {
-            font-size: 14px;
-        }
-
-        }
     </style>
-
-    <!-- SheetJS para ler Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-
-    <!-- Logotipo -->
     <div class="top-left-logo">
         <a href="/Home">
             <img src="img/logotipo.png" alt="Logotipo" />
         </a>
     </div>
 
-    <!-- Conteúdo -->
     <div class="main-container">
         <h2>Lista dos Jogadores</h2>
 
@@ -212,9 +174,7 @@
                     <th>Nome</th>
                 </tr>
             </thead>
-            <tbody class="scrollable-body">
-                <!-- Começa vazia -->
-            </tbody>
+            <tbody class="scrollable-body"></tbody>
         </table>
 
         <div class="button-row">
@@ -222,7 +182,6 @@
             <button type="button" class="action-button" id="emparelharButton">Emparelhar</button>
         </div>
 
-        <!-- Input oculto -->
         <input type="file" id="fileInput" accept=".xlsx" hidden />
 
         <script>
@@ -233,9 +192,7 @@
                 const tableBody = document.querySelector('.scrollable-body');
                 const numJogadoresInput = document.getElementById('numJogadores');
 
-                alterarListaButton.addEventListener('click', function () {
-                    fileInput.click();
-                });
+                alterarListaButton.addEventListener('click', () => fileInput.click());
 
                 fileInput.addEventListener('change', function (event) {
                     const file = event.target.files[0];
@@ -245,59 +202,50 @@
                     reader.onload = function (e) {
                         const data = new Uint8Array(e.target.result);
                         const workbook = XLSX.read(data, { type: 'array' });
-                        const sheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[sheetName];
-                        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-                        tableBody.innerHTML = "";
+                        tableBody.innerHTML = '';
                         const nomes = [];
 
-                        json.forEach(row => {
+                        rows.forEach(row => {
                             const nome = row[0]?.toString().trim();
-                            if (nome) {
-                                nomes.push(nome);
-                            }
+                            if (nome) nomes.push(nome);
                         });
 
-                        // Preenche a tabela com os nomes válidos
                         nomes.forEach(nome => {
-                            const tr = document.createElement("tr");
-                            const td = document.createElement("td");
-                            td.textContent = nome;
-                            tr.appendChild(td);
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td>${nome}</td>`;
                             tableBody.appendChild(tr);
                         });
 
-                        // Atualiza o input com o número total
                         numJogadoresInput.value = nomes.length;
-
                     };
-
                     reader.readAsArrayBuffer(file);
                 });
 
                 emparelharButton.addEventListener('click', function () {
-                    const jogadores = Array.from(document.querySelectorAll('.scrollable-body tr td'))
+                    const jogadores = Array.from(document.querySelectorAll('.scrollable-body td'))
                         .map(td => td.textContent.trim())
                         .filter(nome => nome !== '');
+
+                    if (jogadores.length < 2) {
+                        alert('Insere pelo menos 2 jogadores.');
+                        return;
+                    }
 
                     if (jogadores.length % 2 !== 0) {
                         alert('O número de jogadores deve ser par para emparelhamento.');
                         return;
                     }
 
-            const competicao = JSON.parse(localStorage.getItem('competicaoAtual'));
-            if (competicao && competicao.nome) {
-                localStorage.setItem(`jogadores_${competicao.nome}`, JSON.stringify(jogadores));
-            }
-            window.location.href = '/Emparelhamento';
-
+                    localStorage.setItem('jogadoresParaEmparelhar', JSON.stringify(jogadores));
+                    window.location.href = '/Emparelhamento';
                 });
             });
         </script>
     </div>
 
-    <!-- Botão Voltar -->
     <a href="/FormatodaCompeticao" class="back-button">&lt;Voltar</a>
 </body>
 </html>

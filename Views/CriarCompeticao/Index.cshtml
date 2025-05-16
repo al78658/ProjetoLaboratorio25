@@ -152,7 +152,7 @@
         <div class="form-box">
             <h2>Criar Competição</h2>
 
-            <form asp-controller="CriarCompeticao" asp-action="Criar" method="post">
+            <form asp-controller="CriarCompeticao" asp-action="Criar" method="post" id="formCriarCompeticao">
                 <div class="form-group">
                     <label for="nome">Nome da Competição</label>
                     <input type="text" id="nome" name="nome" required />
@@ -178,8 +178,10 @@
 
         <script>
             document.getElementById('formCriarCompeticao').addEventListener('submit', function (e) {
-                e.preventDefault();
-                this.submit();
+                // Guardar o nome da competição no localStorage antes de submeter
+                var nome = document.getElementById('nome').value;
+                localStorage.setItem('nomeCompeticao', nome);
+                // Permitir o submit normal
             });
         </script>
 
