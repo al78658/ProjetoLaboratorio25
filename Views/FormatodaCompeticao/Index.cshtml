@@ -202,7 +202,7 @@
             </tbody>
         </table>
 
-        <button class="next-button" onclick="window.location.href='@Url.Action("Index", "ListadeJogadores")'">Seguinte</button>
+        <button class="next-button" id="nextButton">Seguinte</button>
     </div>
 
     <!-- Botão Voltar -->
@@ -278,7 +278,7 @@
             }
         }
 
-        // Initialize table with default value
+        // Initialize table with default value e handler do botão Seguinte
         document.addEventListener('DOMContentLoaded', function() {
             // Se existir valor vindo do servidor, usa-o
             const numFasesInput = document.getElementById('numFases');
@@ -286,6 +286,25 @@
                 numFasesInput.value = @ViewBag.NumFases;
             }
             updateTableRows();
+
+            // Handler do botão Seguinte
+            const nextButton = document.getElementById('nextButton');
+            nextButton.addEventListener('click', function (e) {
+                const numFases = parseInt(document.getElementById('numFases').value);
+                let fasesConfiguradas = 0;
+                for (let i = 1; i <= numFases; i++) {
+                    if (formatosSelecionados[i]) fasesConfiguradas++;
+                }
+                if (fasesConfiguradas < numFases) {
+                    const continuar = confirm(`Só configurou ${fasesConfiguradas} de ${numFases} fases. Deseja continuar apenas com as fases configuradas? (OK para continuar, Cancelar para configurar as restantes)`);
+                    if (!continuar) {
+                        // Fica na página para configurar as restantes
+                        return;
+                    }
+                }
+                // Avança para a próxima página
+                window.location.href = '@Url.Action("Index", "ListadeJogadores")';
+            });
         });
     </script>
 </body>
