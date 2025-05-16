@@ -197,6 +197,7 @@
                         return;
                     }
                     // Se não existir, submete o form normalmente
+                    localStorage.setItem('nomeCompeticao', nome); // <-- Adicionado
                     document.getElementById('formCriarCompeticao').submit();
                 });
             </script>

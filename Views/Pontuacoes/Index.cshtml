@@ -172,8 +172,7 @@
     <div class="content-wrapper">
         <h2>Gestão de Resultados</h2>
         <div style="margin-bottom: 24px; text-align: right;">
-            <label for="dataSelecionada" style="font-size:18px; color:black;">Dia: </label>
-            <input type="date" id="dataSelecionada" />
+            <!-- Campo de data removido -->
         </div>
         <table id="tabelaPontuacoes">
             <thead>
@@ -191,116 +190,139 @@
         <button class="confirm-button" id="btnRegistar">Registar</button>
     </div>
     <a href="/Menu" class="back-button">&lt;Voltar</a>
+    <!-- ...todo o código até à função renderJogos permanece igual -->
+
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const nomeCompeticao = localStorage.getItem('competicaoSelecionada');
-        const tabela = document.getElementById('tabelaPontuacoes').getElementsByTagName('tbody')[0];
-        const dataInput = document.getElementById('dataSelecionada');
-        const btnRegistar = document.getElementById('btnRegistar');
-        let agendamentos = [];
-        let resultados = [];
-        // Recebe a data selecionada do menu, se existir
-        const dataSelecionadaMenu = localStorage.getItem('dataSelecionadaMenu');
-        // Inicializa data selecionada para hoje ou para a vinda do menu
-        const hoje = new Date().toISOString().split('T')[0];
-        dataInput.value = dataSelecionadaMenu || hoje;
-        function carregarAgendamentos() {
-            if (nomeCompeticao) {
-                agendamentos = JSON.parse(localStorage.getItem('agendamentos_' + nomeCompeticao)) || [];
-            } else {
-                agendamentos = [];
+        document.addEventListener('DOMContentLoaded', function () {
+            const nomeCompeticao = localStorage.getItem('competicaoSelecionada');
+            const tabela = document.getElementById('tabelaPontuacoes').getElementsByTagName('tbody')[0];
+            const btnRegistar = document.getElementById('btnRegistar');
+            let agendamentos = [];
+            let resultados = [];
+
+            let dataSelecionada = localStorage.getItem('dataSelecionadaMenu');
+            if (!dataSelecionada) {
+                dataSelecionada = new Date().toISOString().split('T')[0];
             }
-        }
-        function carregarResultados() {
-            if (nomeCompeticao && dataInput.value) {
-                resultados = JSON.parse(localStorage.getItem('resultados_' + nomeCompeticao + '_' + dataInput.value)) || [];
-            } else {
-                resultados = [];
+            localStorage.removeItem('dataSelecionadaMenu');
+
+            function carregarAgendamentos() {
+                if (nomeCompeticao) {
+                    agendamentos = JSON.parse(localStorage.getItem('agendamentos_' + nomeCompeticao)) || [];
+                } else {
+                    agendamentos = [];
+                }
             }
-        }
-        function renderJogos() {
-            tabela.innerHTML = '';
-            const dataSelecionada = dataInput.value;
+
+            function carregarResultados() {
+                if (nomeCompeticao && dataSelecionada) {
+                    resultados = JSON.parse(localStorage.getItem('resultados_' + nomeCompeticao + '_' + dataSelecionada)) || [];
+                } else {
+                    resultados = [];
+                }
+            }
+
+            function renderJogos() {
+                tabela.innerHTML = '';
+                const jogosDoDia = agendamentos.filter(j => j.data === dataSelecionada);
+                if (jogosDoDia.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="4">Nenhum jogo agendado para este dia.</td>';
+                    tabela.appendChild(row);
+                    return;
+                }
+
+                jogosDoDia.forEach((jogo, idx) => {
+                    const resultado = resultados[idx] || {};
+                    const pontuacao = resultado.pontuacao || '0-0';
+                    const vencedor = resultado.vencedor || '';
+                    const motivo = resultado.motivo || '';
+
+                    const v1Active = vencedor === jogo.jogador1 ? 'background:#b6b6b6;color:#111;' : '';
+                    const v2Active = vencedor === jogo.jogador2 ? 'background:#b6b6b6;color:#111;' : '';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${jogo.jogador1} vs ${jogo.jogador2}</td>
+                        <td>
+                            <div class="pontuacao-flex">
+                                <button class="arrow-button" onclick="incrementScore(${idx},1)">↑</button>
+                                <span id="score-${idx}">${pontuacao}</span>
+                                <button class="arrow-button" onclick="incrementScore(${idx},2)">↑</button>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="victory-button" style="${v1Active}" onclick="darVitoria(${idx},'${jogo.jogador1}')">Dar Vitória ${jogo.jogador1}</button>
+                            <button class="victory-button" style="${v2Active}" onclick="darVitoria(${idx},'${jogo.jogador2}')">Dar Vitória ${jogo.jogador2}</button>
+                        </td>
+                        <td><input type="text" class="motivo-input" data-idx="${idx}" value="${motivo}" placeholder="Motivo (obrigatório se vitória)" style="width:140px;" /></td>
+                    `;
+                    tabela.appendChild(row);
+                });
+            }
+
+            window.incrementScore = function(idx, player) {
+                const scoreSpan = document.getElementById('score-' + idx);
+                let scores = scoreSpan.textContent.split('-').map(Number);
+                if (scores.length !== 2) scores = [0, 0];
+                if (scores[player - 1] < 99) scores[player - 1]++;
+                scoreSpan.textContent = scores.join('-');
+            }
+
+                   window.darVitoria = function(idx, vencedor) {
+            // Atualiza todos os motivos e pontuações atuais antes de redesenhar
             const jogosDoDia = agendamentos.filter(j => j.data === dataSelecionada);
-            if (jogosDoDia.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = '<td colspan="4">Nenhum jogo agendado para este dia.</td>';
-                tabela.appendChild(row);
-                return;
-            }
-            jogosDoDia.forEach((jogo, idx) => {
-                const resultado = resultados.find(r => r.jogador1 === jogo.jogador1 && r.jogador2 === jogo.jogador2) || {};
-                const pontuacao = resultado.pontuacao || '0-0';
-                const vencedor = resultado.vencedor || '';
-                const motivo = resultado.motivo || '';
-                const v1Active = vencedor === jogo.jogador1 ? 'background:#b6e7b6;' : '';
-                const v2Active = vencedor === jogo.jogador2 ? 'background:#b6e7b6;' : '';
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${jogo.jogador1} vs ${jogo.jogador2}</td>
-                    <td>
-                        <div class="pontuacao-flex">
-                            <button class="arrow-button" onclick="incrementScore(${idx},1)">↑</button>
-                            <span id="score-${idx}">${pontuacao}</span>
-                            <button class="arrow-button" onclick="incrementScore(${idx},2)">↑</button>
-                        </div>
-                    </td>
-                    <td>
-                        <button class="victory-button" style="${v1Active}" onclick="darVitoria(${idx},'${jogo.jogador1}')">Dar Vitória ${jogo.jogador1}</button>
-                        <button class="victory-button" style="${v2Active}" onclick="darVitoria(${idx},'${jogo.jogador2}')">Dar Vitória ${jogo.jogador2}</button>
-                    </td>
-                    <td><input type="text" class="motivo-input" data-idx="${idx}" value="${motivo}" placeholder="Motivo (obrigatório se vitória)" style="width:140px;" /></td>
-                `;
-                tabela.appendChild(row);
+            jogosDoDia.forEach((jogo, i) => {
+                const scoreSpan = document.getElementById('score-' + i);
+                const motivoInput = document.querySelector(`.motivo-input[data-idx='${i}']`);
+                resultados[i] = resultados[i] || {};
+                if (scoreSpan) resultados[i].pontuacao = scoreSpan.textContent;
+                if (motivoInput) resultados[i].motivo = motivoInput.value.trim();
             });
-        }
-        window.incrementScore = function(idx, player) {
-            const scoreSpan = document.getElementById('score-' + idx);
-            let scores = scoreSpan.textContent.split('-').map(Number);
-            if (scores.length !== 2) scores = [0,0];
-            if (scores[player-1] < 99) scores[player-1]++;
-            scoreSpan.textContent = scores.join('-');
-        }
-        window.darVitoria = function(idx, vencedor) {
-            resultados[idx] = resultados[idx] || {};
+
             resultados[idx].vencedor = vencedor;
-            renderJogos();
+
+            renderJogos(); // redesenha sem perder dados temporários
         }
-        dataInput.addEventListener('change', function () {
+
+
+            btnRegistar.addEventListener('click', function () {
+                const jogosDoDia = agendamentos.filter(j => j.data === dataSelecionada);
+                let erro = false;
+                const novosResultados = jogosDoDia.map((jogo, idx) => {
+                    const score = document.getElementById('score-' + idx).textContent;
+                    const vencedor = (resultados[idx] && resultados[idx].vencedor) || '';
+                    const motivo = document.querySelector(`.motivo-input[data-idx='${idx}']`).value.trim();
+
+                    if (vencedor && motivo.length < 2) {
+                        alert('Para registar vitória é obrigatório um motivo para o jogo: ' + jogo.jogador1 + ' vs ' + jogo.jogador2);
+                        erro = true;
+                    }
+
+                    return {
+                        jogador1: jogo.jogador1,
+                        jogador2: jogo.jogador2,
+                        pontuacao: score,
+                        vencedor,
+                        motivo
+                    };
+                });
+
+                if (erro) return;
+
+                if (nomeCompeticao && dataSelecionada) {
+                    localStorage.setItem('resultados_' + nomeCompeticao + '_' + dataSelecionada, JSON.stringify(novosResultados));
+                }
+
+                window.location.href = '/Menu';
+            });
+
+            carregarAgendamentos();
             carregarResultados();
             renderJogos();
         });
-        btnRegistar.addEventListener('click', function () {
-            const dataSelecionada = dataInput.value;
-            const jogosDoDia = agendamentos.filter(j => j.data === dataSelecionada);
-            let erro = false;
-            const novosResultados = jogosDoDia.map((jogo, idx) => {
-                const score = document.getElementById('score-' + idx).textContent;
-                const vencedor = (resultados[idx] && resultados[idx].vencedor) || '';
-                const motivo = document.querySelector(`.motivo-input[data-idx='${idx}']`).value.trim();
-                if (vencedor && motivo.length < 2) {
-                    alert('Para registar vitória é obrigatório um motivo para o jogo: ' + jogo.jogador1 + ' vs ' + jogo.jogador2);
-                    erro = true;
-                }
-                return {
-                    jogador1: jogo.jogador1,
-                    jogador2: jogo.jogador2,
-                    pontuacao: score,
-                    vencedor,
-                    motivo
-                };
-            });
-            if (erro) return;
-            if (nomeCompeticao && dataSelecionada) {
-                localStorage.setItem('resultados_' + nomeCompeticao + '_' + dataSelecionada, JSON.stringify(novosResultados));
-            }
-            window.location.href = '/Menu';
-        });
-        carregarAgendamentos();
-        carregarResultados();
-        renderJogos();
-    });
     </script>
+
 
 </body>
 </html>

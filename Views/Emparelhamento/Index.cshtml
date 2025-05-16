@@ -219,8 +219,9 @@
 
                 // Obter o nome da competição do localStorage
                 let nomeCompeticao = localStorage.getItem('nomeCompeticao');
-                if (!nomeCompeticao || nomeCompeticao.trim() === '') {
-                    nomeCompeticao = 'Competição_Sem_Nome';
+                if (!nomeCompeticao || nomeCompeticao.trim() === '' || nomeCompeticao === 'Competição_Sem_Nome') {
+                    alert('Erro: Selecione ou crie uma competição antes de emparelhar!');
+                    return;
                 }
                 const timestamp = new Date().toISOString();
 

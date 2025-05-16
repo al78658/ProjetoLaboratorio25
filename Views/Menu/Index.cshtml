@@ -278,7 +278,7 @@
                 <div>
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <button type="button" class="login-button" onclick="window.location.href='/Pontuacoes'">
+                        <button type="button" class="login-button" onclick="guardarDataEIrParaPontuacoes()">
                             Alterar Resultados
                         </button>
                     }
@@ -415,6 +415,19 @@
             updateDateDisplay();
             renderTableForDate(currentDate);
         });
+
+        function guardarDataEIrParaPontuacoes() {
+            var data = document.getElementById('selectedDateDisplay').textContent;
+            // Converter data para formato yyyy-mm-dd
+            if (data) {
+                const partes = data.split('/'); // dd/mm/yyyy
+                if (partes.length === 3) {
+                    const dataFormatada = `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
+                    localStorage.setItem('dataSelecionadaMenu', dataFormatada);
+                }
+            }
+            window.location.href = '/Pontuacoes';
+        }
     </script>
     <!-- Modal para motivo de vitória -->
     <div id="motivoModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">
