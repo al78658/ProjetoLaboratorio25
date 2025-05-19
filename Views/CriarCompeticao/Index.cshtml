@@ -147,6 +147,9 @@
         </a>
     </div>
 
+    <!-- Navegação de Criação de Competição -->
+    @await Html.PartialAsync("_CriacaoCompeticaoNav", "Definir Competição")
+
     <!-- Conteúdo -->
     <div class="form-container">
         <div class="form-box">
@@ -177,10 +180,37 @@
         <a href="/Home" class="back-button">&lt;Voltar</a>
 
         <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Limpar dados de competições anteriores quando a página de criação for carregada
+                // Isso garante que cada nova competição comece com dados limpos
+                localStorage.removeItem('jogadoresList');
+                localStorage.removeItem('jogadoresParaEmparelhar');
+                localStorage.removeItem('formatosSelecionados');
+                localStorage.removeItem('numFases');
+                
+                // Manter apenas o ID da competição se estiver editando uma existente
+                if (!('@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId'))) {
+                    localStorage.removeItem('nomeCompeticao');
+                    localStorage.removeItem('tipoCompeticao');
+                    localStorage.removeItem('competicaoId');
+                }
+            });
+            
             document.getElementById('formCriarCompeticao').addEventListener('submit', function (e) {
-                // Guardar o nome da competição no localStorage antes de submeter
+                // Guardar o nome da competição e tipo no localStorage antes de submeter
                 var nome = document.getElementById('nome').value;
+                var tipo = document.getElementById('tipo').value;
+                
                 localStorage.setItem('nomeCompeticao', nome);
+                localStorage.setItem('tipoCompeticao', tipo);
+                
+                // Se já temos um ID de competição do servidor, armazená-lo também
+                @if (ViewBag.CompeticaoId != null) {
+                    <text>
+                    localStorage.setItem('competicaoId', '@ViewBag.CompeticaoId');
+                    </text>
+                }
+                
                 // Permitir o submit normal
             });
         </script>

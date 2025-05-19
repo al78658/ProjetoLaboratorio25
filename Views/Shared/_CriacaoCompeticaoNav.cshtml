@@ -1,0 +1,176 @@
+@model string
+
+@{
+    var etapas = new List<(string Nome, string Controller, string Action, string Icone)>
+    {
+        ("Definir Competição", "CriarCompeticao", "Index", "📝"),
+        ("Formato da Competição", "FormatodaCompeticao", "Index", "🏆"),
+        ("Lista de Jogadores", "ListadeJogadores", "Index", "👥"),
+        ("Emparelhamento", "Emparelhamento", "Index", "🔄")
+    };
+
+    var etapaAtual = Model;
+}
+
+<div class="criacao-nav">
+    <div class="criacao-nav-title">Etapas de Criação</div>
+    <div class="criacao-nav-steps">
+        @foreach (var etapa in etapas)
+        {
+            var isActive = etapa.Nome == etapaAtual;
+            <a href="/@etapa.Controller" class="criacao-nav-step @(isActive ? "active" : "")" 
+               data-controller="@etapa.Controller" data-action="@etapa.Action">
+                <span class="criacao-nav-icon">@etapa.Icone</span>
+                <span class="criacao-nav-text">@etapa.Nome</span>
+            </a>
+        }
+    </div>
+</div>
+
+<style>
+    .criacao-nav {
+        position: fixed;
+        top: 120px;
+        right: 20px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        padding: 15px;
+        z-index: 1000;
+        width: 220px;
+    }
+
+    .criacao-nav-title {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        text-align: center;
+        color: #333;
+    }
+
+    .criacao-nav-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .criacao-nav-step {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #333;
+        transition: background-color 0.2s;
+    }
+
+    .criacao-nav-step:hover {
+        background-color: #f0f0f0;
+    }
+
+    .criacao-nav-step.active {
+        background-color: #e0e0e0;
+        font-weight: bold;
+    }
+
+    .criacao-nav-icon {
+        margin-right: 10px;
+        font-size: 18px;
+    }
+
+    .criacao-nav-text {
+        font-size: 14px;
+    }
+
+    @@media (max-width: 768px) {
+        .criacao-nav {
+            position: static;
+            width: 90%;
+            margin: 10px auto;
+            margin-bottom: 20px;
+        }
+        
+        .criacao-nav-steps {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .criacao-nav-step {
+            flex-direction: column;
+            text-align: center;
+            padding: 8px;
+        }
+        
+        .criacao-nav-icon {
+            margin-right: 0;
+            margin-bottom: 5px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar se há uma competição em andamento
+        const competicaoId = '@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId');
+        const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+        
+        // Determinar qual etapa está ativa com base na URL atual
+        const currentPath = window.location.pathname.toLowerCase();
+        const etapas = [
+            { path: '/criarcompeticao', index: 0 },
+            { path: '/formatodacompeticao', index: 1 },
+            { path: '/listadejogadores', index: 2 },
+            { path: '/emparelhamento', index: 3 }
+        ];
+        
+        const currentEtapaIndex = etapas.findIndex(e => currentPath.includes(e.path));
+        
+        // Verificar o progresso e habilitar/desabilitar links conforme necessário
+        const links = document.querySelectorAll('.criacao-nav-step');
+        
+        // Verificar se estamos na primeira etapa (CriarCompeticao)
+        const isFirstStep = currentPath.includes('/criarcompeticao');
+        
+        if (!nomeCompeticao && !isFirstStep) {
+            // Se não houver nome de competição e não estamos na primeira etapa,
+            // redirecionar para a primeira etapa
+            window.location.href = '/CriarCompeticao';
+            return;
+        }
+        
+        if (!nomeCompeticao) {
+            // Se não houver competição em andamento, desabilitar todos os links exceto o primeiro
+            links.forEach((link, index) => {
+                if (index > 0) {
+                    link.classList.add('disabled');
+                    link.style.opacity = '0.5';
+                    link.style.cursor = 'not-allowed';
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        alert('Você precisa definir uma competição primeiro.');
+                    });
+                }
+            });
+        } else {
+            // Se houver competição em andamento, habilitar links até a etapa atual + 1
+            links.forEach((link, index) => {
+                if (index > currentEtapaIndex + 1) {
+                    link.classList.add('disabled');
+                    link.style.opacity = '0.7';
+                    link.style.cursor = 'not-allowed';
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        alert('Complete a etapa atual antes de avançar.');
+                    });
+                }
+            });
+        }
+        
+        // Adicionar informação sobre a competição atual
+        if (nomeCompeticao) {
+            const navTitle = document.querySelector('.criacao-nav-title');
+            navTitle.innerHTML = `Etapas de Criação<br><small style="font-weight:normal;font-size:12px;">${nomeCompeticao}</small>`;
+        }
+    });
+</script>

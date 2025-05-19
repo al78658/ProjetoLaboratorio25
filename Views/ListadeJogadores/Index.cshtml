@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -160,6 +160,9 @@
         </a>
     </div>
 
+    <!-- Navegação de Criação de Competição -->
+    @await Html.PartialAsync("_CriacaoCompeticaoNav", "Lista de Jogadores")
+
     <div class="main-container">
         <h2>Lista dos Jogadores</h2>
 
@@ -191,6 +194,32 @@
                 const emparelharButton = document.getElementById('emparelharButton');
                 const tableBody = document.querySelector('.scrollable-body');
                 const numJogadoresInput = document.getElementById('numJogadores');
+                
+                // Verificar se estamos em um processo de criação de competição
+                const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+                
+                // Só carrega jogadores salvos se estivermos no mesmo processo de criação
+                if (nomeCompeticao) {
+                    const savedJogadores = localStorage.getItem('jogadoresList');
+                    if (savedJogadores) {
+                        const jogadores = JSON.parse(savedJogadores);
+                        
+                        // Preencher a tabela com os jogadores salvos
+                        jogadores.forEach(nome => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td>${nome}</td>`;
+                            tableBody.appendChild(tr);
+                        });
+                        
+                        numJogadoresInput.value = jogadores.length;
+                    } else {
+                        // Se não há jogadores salvos, inicializa com valor zero
+                        numJogadoresInput.value = 0;
+                    }
+                } else {
+                    // Se não estamos em um processo de criação, inicializa com valor zero
+                    numJogadoresInput.value = 0;
+                }
 
                 alterarListaButton.addEventListener('click', () => fileInput.click());
 
@@ -220,6 +249,9 @@
                         });
 
                         numJogadoresInput.value = nomes.length;
+                        
+                        // Salvar a lista de jogadores no localStorage
+                        localStorage.setItem('jogadoresList', JSON.stringify(nomes));
                     };
                     reader.readAsArrayBuffer(file);
                 });

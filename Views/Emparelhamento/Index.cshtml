@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -142,6 +142,9 @@
         </a>
     </div>
 
+    <!-- Navegação de Criação de Competição -->
+    @await Html.PartialAsync("_CriacaoCompeticaoNav", "Emparelhamento")
+
     <h1>Emparelhamento</h1>
     <h2 id="nomeCompeticao"></h2>
 
@@ -170,15 +173,33 @@
             const saveButton = document.getElementById('saveButton');
             const titulo = document.getElementById('nomeCompeticao');
 
-            // Obtem jogadores diretamente do localStorage (nova chave)
-            const jogadores = JSON.parse(localStorage.getItem('jogadoresParaEmparelhar')) || [];
+            // Verificar se estamos em um processo de criação de competição
+            const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+            
+            // Obtem jogadores do localStorage - apenas se estivermos no mesmo processo de criação
+            let jogadores = [];
+            
+            if (nomeCompeticao) {
+                // Primeiro tenta jogadoresParaEmparelhar (enviados da página anterior)
+                jogadores = JSON.parse(localStorage.getItem('jogadoresParaEmparelhar')) || [];
+                
+                // Se não tiver jogadores do emparelhamento, tenta usar a lista de jogadores
+                if (jogadores.length === 0) {
+                    jogadores = JSON.parse(localStorage.getItem('jogadoresList')) || [];
+                }
+            }
 
             if (jogadores.length < 2) {
                 alert("Erro: Nenhuma lista de jogadores disponível.");
                 return;
             }
 
-            titulo.textContent = `Emparelhamento`;
+            // Mostrar o nome da competição no título
+            if (nomeCompeticao) {
+                titulo.textContent = `Competição: ${nomeCompeticao}`;
+            } else {
+                titulo.textContent = `Emparelhamento`;
+            }
 
             const meio = Math.ceil(jogadores.length / 2);
             const ladoEsquerdo = jogadores.slice(0, meio);

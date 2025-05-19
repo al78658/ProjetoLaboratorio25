@@ -180,6 +180,9 @@
         </a>
     </div>
 
+    <!-- Navegação de Criação de Competição -->
+    @await Html.PartialAsync("_CriacaoCompeticaoNav", "Formato da Competição")
+
     <!-- Conteúdo -->
     <div class="main-container">
         <h2>Formato da Competição</h2>
@@ -209,21 +212,31 @@
     <a href="/CriarCompeticao" class="back-button">&lt;Voltar</a>
 
     <script>
-        // Recebe do Razor (TempData)
-        const competicaoId = '@ViewBag.CompeticaoId';
+        // Recebe do Razor (TempData) ou do localStorage
+        const competicaoId = '@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId');
         let formatosSelecionados = {};
         try {
             formatosSelecionados = @Html.Raw(ViewBag.FormatosSelecionados ?? "{}");
-        } catch (e) { formatosSelecionados = {}; }
+        } catch (e) { 
+            // Tenta recuperar do localStorage se disponível
+            const savedFormatos = localStorage.getItem('formatosSelecionados');
+            formatosSelecionados = savedFormatos ? JSON.parse(savedFormatos) : {};
+        }
 
         function updateFormat(formato, faseNum) {
             formatosSelecionados[faseNum] = formato;
+            
+            // Salva no localStorage para persistência entre páginas
+            localStorage.setItem('formatosSelecionados', JSON.stringify(formatosSelecionados));
+            
             // Salva no servidor via AJAX, agora com competicaoId
-            fetch(`/FormatodaCompeticao/SalvarFormatos?competicaoId=${competicaoId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formatosSelecionados)
-            });
+            if (competicaoId) {
+                fetch(`/FormatodaCompeticao/SalvarFormatos?competicaoId=${competicaoId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formatosSelecionados)
+                });
+            }
         }
 
         function configurarFase(faseNum) {
@@ -237,12 +250,18 @@
 
         function updateTableRows() {
             const numFases = parseInt(document.getElementById('numFases').value);
-            // Salva o número de fases no servidor via AJAX
-            fetch(`/FormatodaCompeticao/SalvarNumFases?competicaoId=${competicaoId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(numFases)
-            });
+            
+            // Salva o número de fases no localStorage
+            localStorage.setItem('numFases', numFases);
+            
+            // Salva o número de fases no servidor via AJAX se houver competicaoId
+            if (competicaoId) {
+                fetch(`/FormatodaCompeticao/SalvarNumFases?competicaoId=${competicaoId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(numFases)
+                });
+            }
             const tableBody = document.getElementById('fasesTableBody');
             tableBody.innerHTML = '';
 
@@ -280,10 +299,15 @@
 
         // Initialize table with default value e handler do botão Seguinte
         document.addEventListener('DOMContentLoaded', function() {
-            // Se existir valor vindo do servidor, usa-o
+            // Se existir valor vindo do servidor, usa-o, senão tenta do localStorage
             const numFasesInput = document.getElementById('numFases');
             if (@ViewBag.NumFases != null) {
                 numFasesInput.value = @ViewBag.NumFases;
+            } else {
+                const savedNumFases = localStorage.getItem('numFases');
+                if (savedNumFases) {
+                    numFasesInput.value = savedNumFases;
+                }
             }
             updateTableRows();
 
