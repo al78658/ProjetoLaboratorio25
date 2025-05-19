@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -166,16 +166,15 @@
 
         <!-- Coluna Esquerda -->
         <div class="left-panel">
-            <div class="player-name">João Ribeiro</div>
+            <div class="player-name" id="nomeJogador">Carregando...</div>
             <div class="section">
                 <h2>Informação Pessoal</h2>
-                <table class="info-table">
-                    <tr><td class="bold">Nome</td><td>Tiago Pinto</td></tr>
-                    <tr><td class="bold">Idade</td><td>19</td></tr>
-                    <tr><td class="bold">Data de Nascimento</td><td>1995-06-15</td></tr>
-                    <tr><td class="bold">Categoria</td><td>Profissional</td></tr>
-                    <tr><td class="bold">Equipa</td><td>Benfica</td></tr>
-                    <tr><td class="bold">Ranking</td><td>2 🏆</td></tr>
+                <table class="info-table" id="infoTable">
+                    <tr><td class="bold">Nome</td><td id="infoNome">-</td></tr>
+                    <tr><td class="bold">Código</td><td id="infoCodigo">-</td></tr>
+                    <tr><td class="bold">Data de Nascimento</td><td id="infoDataNascimento">-</td></tr>
+                    <tr><td class="bold">Categoria</td><td id="infoCategoria">-</td></tr>
+                    <tr><td class="bold">Clube</td><td id="infoClube">-</td></tr>
                 </table>
             </div>
         </div>
@@ -183,21 +182,24 @@
         <!-- Coluna Direita -->
         <div class="right-panel">
             <div class="section">
-                <h2>Resultados Recentes</h2>
-                <p>22/03/2025: Vitória contra José</p>
-                <p>18/03/2025: Derrota contra Ana</p>
+                <h2>Jogos Agendados (Individuais e da Equipa)</h2>
+                <div id="jogosAgendados">
+                    <p>Nenhum jogo agendado.</p>
+                </div>
             </div>
 
             <div class="section">
-                <h2>Estatísticas Recentes</h2>
-                <p>Vitórias: 8 / Derrotas: 4</p>
-                <p>Taxa de Vitória: 66%</p>
+                <h2>Informações Adicionais</h2>
+                <p>Jogador importado do Excel.</p>
+                <p>Os dados completos estão disponíveis no sistema.</p>
+                <p id="infoEquipa" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
 
             <div class="section">
-                <h2>Histórico de Participações</h2>
-                <p>Competição Nacional 2024: 1º lugar</p>
-                <p>Torneio Regional 2023: 2º lugar</p>
+                <h2>Competições</h2>
+                <div id="competicoes">
+                    <p>Nenhuma competição registrada.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -213,5 +215,125 @@
         <a href="/" class="back-button">&lt;Voltar</a>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obter jogador do localStorage
+            const jogadorStr = localStorage.getItem('jogadorSelecionado');
+            if (!jogadorStr) {
+                // Se não houver jogador selecionado, exibir mensagem
+                document.getElementById('nomeJogador').textContent = 'Jogador não encontrado';
+                return;
+            }
+            
+            const jogador = JSON.parse(jogadorStr);
+            
+            // Preencher informações do jogador
+            document.getElementById('nomeJogador').textContent = jogador.nome;
+            document.getElementById('infoNome').textContent = jogador.nome;
+            document.getElementById('infoCodigo').textContent = jogador.codigo;
+            document.getElementById('infoDataNascimento').textContent = jogador.dataNascimento;
+            document.getElementById('infoCategoria').textContent = jogador.categoria;
+            document.getElementById('infoClube').textContent = jogador.clube;
+            
+            // Destacar informação do clube
+            if (jogador.clube && jogador.clube.trim() !== '') {
+                document.getElementById('infoEquipa').textContent = `Membro da equipa: ${jogador.clube}`;
+            } else {
+                document.getElementById('infoEquipa').textContent = 'Jogador sem equipa associada';
+            }
+            
+            // Buscar jogos agendados
+            const jogosAgendadosDiv = document.getElementById('jogosAgendados');
+            const competicoesDiv = document.getElementById('competicoes');
+            
+            // Verificar todas as competições
+            const todasCompeticoes = JSON.parse(localStorage.getItem('todasCompeticoes') || '[]');
+            if (todasCompeticoes.length === 0) {
+                return;
+            }
+            
+            let jogosEncontrados = false;
+            let competicoesEncontradas = false;
+            
+            todasCompeticoes.forEach(comp => {
+                const nomeCompeticao = comp.nome;
+                
+                // Verificar se o jogador está nesta competição
+                const jogadoresComp = JSON.parse(localStorage.getItem(`jogadores_${nomeCompeticao}`) || '[]');
+                const jogadorNaCompeticao = jogadoresComp.some(j => 
+                    (typeof j === 'object' && j.nome === jogador.nome) || 
+                    (typeof j === 'string' && j === jogador.nome)
+                );
+                
+                if (jogadorNaCompeticao) {
+                    competicoesEncontradas = true;
+                    
+                    // Adicionar à lista de competições
+                    if (competicoesDiv.innerHTML === '<p>Nenhuma competição registrada.</p>') {
+                        competicoesDiv.innerHTML = '';
+                    }
+                    
+                    competicoesDiv.innerHTML += `<p>Participante da competição: ${nomeCompeticao}</p>`;
+                    
+                    // Verificar jogos agendados
+                    const agendamentos = JSON.parse(localStorage.getItem(`agendamentos_${nomeCompeticao}`) || '[]');
+                    
+                    agendamentos.forEach(ag => {
+                        // Verificar se é um emparelhamento de clubes ou jogadores individuais
+                        if (ag.isClube) {
+                            // É um emparelhamento de clubes
+                            const clube1Nome = ag.jogador1.nome;
+                            const clube2Nome = ag.jogador2.nome;
+                            
+                            // Verificar se o clube do jogador está envolvido no jogo
+                            if (jogador.clube === clube1Nome || jogador.clube === clube2Nome) {
+                                jogosEncontrados = true;
+                                
+                                if (jogosAgendadosDiv.innerHTML === '<p>Nenhum jogo agendado.</p>') {
+                                    jogosAgendadosDiv.innerHTML = '';
+                                }
+                                
+                                jogosAgendadosDiv.innerHTML += `
+                                    <p>
+                                        <strong>${clube1Nome}</strong> vs <strong>${clube2Nome}</strong><br>
+                                        <small>Data: ${ag.data} às ${ag.hora}</small>
+                                        <small>(Jogo do seu clube)</small>
+                                    </p>
+                                `;
+                            }
+                        } else {
+                            // É um emparelhamento de jogadores individuais
+                            const jogador1Nome = typeof ag.jogador1 === 'object' ? ag.jogador1.nome : ag.jogador1;
+                            const jogador2Nome = typeof ag.jogador2 === 'object' ? ag.jogador2.nome : ag.jogador2;
+                            
+                            if (jogador1Nome === jogador.nome || jogador2Nome === jogador.nome) {
+                                jogosEncontrados = true;
+                                
+                                if (jogosAgendadosDiv.innerHTML === '<p>Nenhum jogo agendado.</p>') {
+                                    jogosAgendadosDiv.innerHTML = '';
+                                }
+                                
+                                jogosAgendadosDiv.innerHTML += `
+                                    <p>
+                                        <strong>${jogador1Nome}</strong> vs <strong>${jogador2Nome}</strong><br>
+                                        <small>Data: ${ag.data} às ${ag.hora}</small>
+                                        <small>(Jogo individual)</small>
+                                    </p>
+                                `;
+                            }
+                        }
+                    });
+                }
+            });
+            
+            if (!jogosEncontrados) {
+                jogosAgendadosDiv.innerHTML = '<p>Nenhum jogo agendado.</p>';
+            }
+            
+            if (!competicoesEncontradas) {
+                competicoesDiv.innerHTML = '<p>Nenhuma competição registrada.</p>';
+            }
+        });
+    </script>
 </body>
 </html>

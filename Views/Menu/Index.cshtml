@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -388,8 +388,21 @@
                     }
                     const motivo = resultado.motivo || '';
                     const row = document.createElement('tr');
+                    // Verificar se é um emparelhamento de clubes ou jogadores
+                    let jogador1Nome, jogador2Nome;
+                    
+                    if (a.isClube) {
+                        // É um emparelhamento de clubes
+                        jogador1Nome = a.jogador1.nome;
+                        jogador2Nome = a.jogador2.nome;
+                    } else {
+                        // É um emparelhamento de jogadores individual
+                        jogador1Nome = typeof a.jogador1 === 'object' ? a.jogador1.nome : a.jogador1;
+                        jogador2Nome = typeof a.jogador2 === 'object' ? a.jogador2.nome : a.jogador2;
+                    }
+                    
                     row.innerHTML = `
-                        <td>${a.jogador1} vs ${a.jogador2}</td>
+                        <td>${jogador1Nome} vs ${jogador2Nome}</td>
                         <td>${a.hora}</td>
                         <td>${resultadoTexto}</td>
                         <td>${motivo}</td>

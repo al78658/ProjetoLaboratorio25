@@ -13,6 +13,8 @@ namespace ProjetoLaboratorio25.Data
         public DbSet<Utilizador> Utilizadores { get; set; }
         public DbSet<Competicao> Competicoes { get; set; }
         public DbSet<ConfiguracaoFase> ConfiguracoesFase { get; set; }
+        public DbSet<Jogador> Jogadores { get; set; }
+        public DbSet<JogoEmparelhado> JogosEmparelhados { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,6 +54,46 @@ namespace ProjetoLaboratorio25.Data
                 .WithMany(c => c.ConfiguracoesFase)
                 .HasForeignKey(cf => cf.CompeticaoId)
                 .OnDelete(DeleteBehavior.Cascade);
+                
+            // Configure Jogador
+            modelBuilder.Entity<Jogador>()
+                .HasKey(j => j.Id);
+                
+            modelBuilder.Entity<Jogador>()
+                .Property(j => j.Nome)
+                .IsRequired();
+                
+            modelBuilder.Entity<Jogador>()
+                .Property(j => j.Codigo)
+                .IsRequired();
+                
+            modelBuilder.Entity<Jogador>()
+                .Property(j => j.DataNascimento)
+                .IsRequired();
+                
+            modelBuilder.Entity<Jogador>()
+                .Property(j => j.Categoria)
+                .IsRequired();
+                
+            modelBuilder.Entity<Jogador>()
+                .Property(j => j.Clube)
+                .IsRequired();
+                
+            // Configure JogoEmparelhado
+            modelBuilder.Entity<JogoEmparelhado>()
+                .HasKey(je => je.Id);
+                
+            modelBuilder.Entity<JogoEmparelhado>()
+                .HasOne(je => je.Jogador1)
+                .WithMany()
+                .HasForeignKey(je => je.Jogador1Id)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<JogoEmparelhado>()
+                .HasOne(je => je.Jogador2)
+                .WithMany()
+                .HasForeignKey(je => je.Jogador2Id)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 } 

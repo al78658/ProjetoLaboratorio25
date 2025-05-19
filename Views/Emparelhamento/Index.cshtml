@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -149,9 +149,9 @@
         <table>
             <thead>
                 <tr>
-                    <th>Jogador 1</th>
+                    <th>Equipa 1</th>
                     <th>Data e Horário</th>
-                    <th>Jogador 2</th>
+                    <th>Equipa 2</th>
                 </tr>
             </thead>
             <tbody id="pairsTableBody"></tbody>
@@ -165,12 +165,12 @@
     <a href="/ListadeJogadores" class="back-button">&lt;Voltar</a>
 
     <script>
-               document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
             const pairsTableBody = document.getElementById('pairsTableBody');
             const saveButton = document.getElementById('saveButton');
             const titulo = document.getElementById('nomeCompeticao');
 
-            // Obtem jogadores diretamente do localStorage (nova chave)
+            // Obtem jogadores do localStorage
             const jogadores = JSON.parse(localStorage.getItem('jogadoresParaEmparelhar')) || [];
 
             if (jogadores.length < 2) {
@@ -180,22 +180,59 @@
 
             titulo.textContent = `Emparelhamento`;
 
-            const meio = Math.ceil(jogadores.length / 2);
-            const ladoEsquerdo = jogadores.slice(0, meio);
-            const ladoDireito = jogadores.slice(meio);
+            // Agrupar jogadores por clube
+            const clubes = {};
+            jogadores.forEach(jogador => {
+                const clube = typeof jogador === 'object' ? jogador.clube : '';
+                if (!clube) return;
+                
+                if (!clubes[clube]) {
+                    clubes[clube] = [];
+                }
+                clubes[clube].push(jogador);
+            });
+
+            // Converter objeto de clubes em array
+            const clubesArray = Object.keys(clubes).map(clube => ({
+                nome: clube,
+                jogadores: clubes[clube]
+            }));
+
+            // Dividir clubes em dois lados
+            const meio = Math.ceil(clubesArray.length / 2);
+            const clubesEsquerdo = clubesArray.slice(0, meio);
+            const clubesDireito = clubesArray.slice(meio);
+
+            // Criar arrays de jogadores representando os clubes
+            const ladoEsquerdo = clubesEsquerdo.map(clube => ({
+                nome: clube.nome,
+                jogadores: clube.jogadores,
+                isClube: true
+            }));
+            
+            const ladoDireito = clubesDireito.map(clube => ({
+                nome: clube.nome,
+                jogadores: clube.jogadores,
+                isClube: true
+            }));
 
             for (let i = 0; i < Math.max(ladoEsquerdo.length, ladoDireito.length); i++) {
-                const jogador1 = ladoEsquerdo[i] || '';
-                const jogador2 = ladoDireito[i] || '';
+                const clube1 = ladoEsquerdo[i] || '';
+                const clube2 = ladoDireito[i] || '';
 
                 const row = document.createElement('tr');
+                
+                // Obter o nome do clube
+                const nome1 = clube1 ? clube1.nome : '';
+                const nome2 = clube2 ? clube2.nome : '';
+                
                 row.innerHTML = `
-                    <td>${jogador1}</td>
+                    <td>${nome1}</td>
                     <td>
-                        <input type="date" class="data-input" data-jogador1="${jogador1}" data-jogador2="${jogador2}">
-                        <input type="time" class="hora-input" data-jogador1="${jogador1}" data-jogador2="${jogador2}">
+                        <input type="date" class="data-input" data-index1="${i}" data-index2="${i}">
+                        <input type="time" class="hora-input" data-index1="${i}" data-index2="${i}">
                     </td>
-                    <td>${jogador2}</td>
+                    <td>${nome2}</td>
                 `;
                 pairsTableBody.appendChild(row);
             }
@@ -209,20 +246,29 @@
                     const horaInput = horaInputs[index];
                     const data = dataInput.value;
                     const hora = horaInput.value;
-                    const jogador1 = dataInput.dataset.jogador1;
-                    const jogador2 = dataInput.dataset.jogador2;
+                    const index1 = parseInt(dataInput.dataset.index1);
+                    const index2 = parseInt(dataInput.dataset.index2);
+                    
+                    const clube1 = ladoEsquerdo[index1];
+                    const clube2 = ladoDireito[index2];
 
-                    if (data && hora) {
-                        agendamentos.push({ jogador1, jogador2, data, hora });
+                    if (data && hora && clube1 && clube2) {
+                        agendamentos.push({ 
+                            jogador1: clube1, 
+                            jogador2: clube2, 
+                            data, 
+                            hora,
+                            isClube: true
+                        });
                     }
                 });
 
-                // Obter o nome da competição do localStorage
+                // Obter o nome da competição do localStorage ou criar um nome padrão
                 let nomeCompeticao = localStorage.getItem('nomeCompeticao');
-                if (!nomeCompeticao || nomeCompeticao.trim() === '' || nomeCompeticao === 'Competição_Sem_Nome') {
-                    alert('Erro: Selecione ou crie uma competição antes de emparelhar!');
-                    return;
+                if (!nomeCompeticao || nomeCompeticao.trim() === '') {
+                    nomeCompeticao = 'Competicao_' + new Date().toISOString().slice(0, 10);
                 }
+                
                 const timestamp = new Date().toISOString();
 
                 // Guarda todos os dados
@@ -236,10 +282,10 @@
 
                 // Limpa o temporário
                 localStorage.removeItem('jogadoresParaEmparelhar');
-                localStorage.removeItem('nomeCompeticao');
 
                 // Vai para o menu da competição específica
                 localStorage.setItem('competicaoSelecionada', nomeCompeticao);
+                alert('Emparelhamentos salvos com sucesso!');
                 window.location.href = '/Menu';
             });
         });

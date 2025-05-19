@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -144,7 +144,7 @@
     <!-- Conteúdo principal -->
     <div class="main-container">
         <div class="box">
-            <h2>Jogos Agendados</h2>
+            <h2>Jogos Agendados (Equipas e Individuais)</h2>
 
             <!-- Botão no topo à direita -->
             @*             <div class="button-top-right">
@@ -162,7 +162,7 @@
                 <table id="tabelaJogos">
                     <thead>
                         <tr>
-                            <th>Partidas</th>
+                            <th>Partidas (Equipas/Jogadores)</th>
                             <th>Data</th>
                             <th>Horário</th>
                         </tr>
@@ -205,7 +205,20 @@
             agendamentos.forEach(function(jogo, idx) {
                 const row = document.createElement('tr');
                 var html = '';
-                html += '<td>' + (jogo.jogador1 ? jogo.jogador1 : '') + ' vs ' + (jogo.jogador2 ? jogo.jogador2 : '') + '</td>';
+                // Verificar se é um emparelhamento de clubes ou jogadores
+                let jogador1Nome, jogador2Nome;
+                
+                if (jogo.isClube) {
+                    // É um emparelhamento de clubes
+                    jogador1Nome = jogo.jogador1.nome;
+                    jogador2Nome = jogo.jogador2.nome;
+                    html += '<td><strong>Equipa:</strong> ' + (jogador1Nome || '') + ' vs ' + (jogador2Nome || '') + '</td>';
+                } else {
+                    // É um emparelhamento de jogadores individual
+                    jogador1Nome = typeof jogo.jogador1 === 'object' ? jogo.jogador1.nome : jogo.jogador1;
+                    jogador2Nome = typeof jogo.jogador2 === 'object' ? jogo.jogador2.nome : jogo.jogador2;
+                    html += '<td>' + (jogador1Nome || '') + ' vs ' + (jogador2Nome || '') + '</td>';
+                }
                 // Bloco de edição só para autenticados
                         if (@(User.Identity.IsAuthenticated.ToString().ToLower())) {
             html += '<td><input type="date" value="' + (jogo.data ? jogo.data : '') + '" class="data-input" data-idx="' + idx + '"></td>';
@@ -225,6 +238,10 @@
             const horaInput = document.querySelector('input.hora-input[data-idx="' + idx + '"]');
             agendamentos[idx].data = dataInput.value;
             agendamentos[idx].hora = horaInput.value;
+            // Garantir que a propriedade isClube seja preservada
+            if (agendamentos[idx].isClube === undefined) {
+                agendamentos[idx].isClube = false;
+            }
             if (nomeCompeticao) {
                 localStorage.setItem('agendamentos_' + nomeCompeticao, JSON.stringify(agendamentos));
             }
@@ -238,6 +255,10 @@
                 document.querySelectorAll('input.data-input').forEach(function(input) {
                     var idx = input.getAttribute('data-idx');
                     agendamentos[idx].data = input.value;
+                    // Garantir que a propriedade isClube seja preservada
+                    if (agendamentos[idx].isClube === undefined) {
+                        agendamentos[idx].isClube = false;
+                    }
                 });
                 document.querySelectorAll('input.hora-input').forEach(function(input) {
                     var idx = input.getAttribute('data-idx');

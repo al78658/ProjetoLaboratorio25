@@ -2,6 +2,8 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using ProjetoLaboratorio25.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ProjetoLaboratorio25.Controllers
 {
@@ -29,16 +31,24 @@ namespace ProjetoLaboratorio25.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+        
         public async Task<IActionResult> Logout()
         {
-            // Limpar todos os cookies de autenticaÁ„o
+            // Limpar todos os cookies de autentica√ß√£o
             await HttpContext.SignOutAsync("CookieAuth");
 
-            // Limpar a sess„o
+            // Limpar a sess√£o
             HttpContext.Session.Clear();
 
-            // Redirecionar para a p·gina Home
+            // Redirecionar para a p√°gina Home
             return RedirectToAction("Index", "Home");
+        }
+        
+        [HttpGet]
+        public IActionResult PesquisarJogadores(string termo)
+        {
+            // Esta funcionalidade agora √© tratada pelo JavaScript no cliente
+            return Json(new List<object>());
         }
     }
 }

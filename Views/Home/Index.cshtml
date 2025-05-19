@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -474,10 +474,19 @@
             <div class="top-bar">
                 <div class="search-box">
                     <span style="font-size: 18px; margin-right: 10px;">🔍</span>
-                    <input type="text" placeholder="Pesquise um jogador ou equipa">
+                    <input type="text" id="searchInput" placeholder="Pesquise um jogador ou equipa">
                 </div>
-                <a href="/Dados" class="button">Pesquisar</a>
+                <button id="searchButton" class="button">Pesquisar</button>
                 <a href="/Home/Logout" class="button">Logout</a>
+                
+                <!-- Resultados da pesquisa -->
+                <div id="searchResults" style="display: none; position: absolute; top: 60px; right: 120px; width: 320px; background-color: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000;">
+                    <div style="padding: 12px 16px; border-bottom: 1px solid #eee; background-color: #f9f9f9; display: flex; justify-content: space-between; align-items: center;">
+                        <strong>Resultados da Pesquisa</strong>
+                        <button id="closeSearchResults" style="background: none; border: none; font-size: 18px; cursor: pointer;">×</button>
+                    </div>
+                    <ul id="searchResultsList" style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;"></ul>
+                </div>
                 <!-- Botão do sino -->
                 <button id="notificationButton" class="icon" title="Ver notificações">🔔</button>
 
@@ -552,7 +561,10 @@
                             if (r.vencedor && r.motivo) {
                                 // Data formatada para DD-MM-YYYY
                                 const dataFormatada = data.split('-').reverse().join('-');
-                                const noticia = `<li><div style='font-size:13px; color:#888; margin-bottom:2px;'>${dataFormatada}</div><div><strong>${r.jogador1} vs ${r.jogador2}</strong></div>${r.vencedor} venceu o jogo.<br><span style='font-size:13px; color:#666;'>Motivo: ${r.motivo}</span></li>`;
+                                const jogador1Nome = typeof r.jogador1 === 'object' ? r.jogador1.nome : r.jogador1;
+                                const jogador2Nome = typeof r.jogador2 === 'object' ? r.jogador2.nome : r.jogador2;
+                                const vencedorNome = typeof r.vencedor === 'object' ? r.vencedor.nome : r.vencedor;
+                                const noticia = `<li><div style='font-size:13px; color:#888; margin-bottom:2px;'>${dataFormatada}</div><div><strong>${jogador1Nome} vs ${jogador2Nome}</strong></div>${vencedorNome} venceu o jogo.<br><span style='font-size:13px; color:#666;'>Motivo: ${r.motivo}</span></li>`;
                                 notificacoesDinamicas.insertAdjacentHTML('afterbegin', noticia);
                             }
                         });
@@ -647,7 +659,10 @@
                             if (r.vencedor && r.motivo) {
                                 // Data formatada para DD-MM-YYYY
                                 const dataFormatada = data.split('-').reverse().join('-');
-                                const noticia = `<li><div style='font-size:13px; color:#888; margin-bottom:2px;'>${dataFormatada}</div><strong>${r.vencedor}</strong> venceu o jogo <strong>${r.jogador1} vs ${r.jogador2}</strong>.<br><span style='font-size:13px; color:#666;'>Motivo: ${r.motivo}</span></li>`;
+                                const jogador1Nome = typeof r.jogador1 === 'object' ? r.jogador1.nome : r.jogador1;
+                                const jogador2Nome = typeof r.jogador2 === 'object' ? r.jogador2.nome : r.jogador2;
+                                const vencedorNome = typeof r.vencedor === 'object' ? r.vencedor.nome : r.vencedor;
+                                const noticia = `<li><div style='font-size:13px; color:#888; margin-bottom:2px;'>${dataFormatada}</div><strong>${vencedorNome}</strong> venceu o jogo <strong>${jogador1Nome} vs ${jogador2Nome}</strong>.<br><span style='font-size:13px; color:#666;'>Motivo: ${r.motivo}</span></li>`;
                                 notificacoesDinamicas.insertAdjacentHTML('afterbegin', noticia);
                             }
                         });
@@ -656,7 +671,158 @@
             }
             carregarNotificacoesVitorias();
         </script>
+        
+
     }
+    
+    <!-- Script para pesquisa de jogadores -->
+    <script>
+        // Função para inicializar a pesquisa
+        function inicializarPesquisa() {
+            console.log("Inicializando pesquisa...");
+            
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const searchResults = document.getElementById('searchResults');
+            const searchResultsList = document.getElementById('searchResultsList');
+            const closeSearchResults = document.getElementById('closeSearchResults');
+            
+            console.log("Elementos:", {
+                searchInput: !!searchInput,
+                searchButton: !!searchButton,
+                searchResults: !!searchResults,
+                searchResultsList: !!searchResultsList,
+                closeSearchResults: !!closeSearchResults
+            });
+            
+            if (!searchInput || !searchButton || !searchResults || !searchResultsList || !closeSearchResults) {
+                console.error("Elementos de pesquisa não encontrados");
+                return; // Elementos não encontrados
+            }
+            
+            // Fechar resultados da pesquisa
+            closeSearchResults.addEventListener('click', function() {
+                searchResults.style.display = 'none';
+            });
+            
+            // Pesquisar jogadores
+            searchButton.addEventListener('click', function() {
+                console.log("Botão de pesquisa clicado");
+                const termo = searchInput.value.trim();
+                if (!termo) {
+                    console.log("Termo de pesquisa vazio");
+                    return;
+                }
+                
+                console.log("Pesquisando por:", termo);
+                
+                // Obter jogadores do localStorage - verificar várias chaves possíveis
+                let jogadoresStr = localStorage.getItem('jogadoresImportados');
+                
+                // Se não encontrar na primeira chave, tenta outras chaves comuns
+                if (!jogadoresStr) {
+                    console.log("Tentando encontrar jogadores em outras chaves...");
+                    const possiveisChaves = [
+                        'jogadores',
+                        'jogadoresParaEmparelhar',
+                        'jogadoresLista',
+                        'Jogadores'
+                    ];
+                    
+                    for (const chave of possiveisChaves) {
+                        const dados = localStorage.getItem(chave);
+                        if (dados) {
+                            console.log(`Jogadores encontrados na chave: ${chave}`);
+                            jogadoresStr = dados;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!jogadoresStr) {
+                    console.log("Nenhum jogador encontrado em nenhuma chave do localStorage");
+                    searchResultsList.innerHTML = '<li style="padding: 12px 16px;">Nenhum jogador encontrado.</li>';
+                    searchResults.style.display = 'block';
+                    return;
+                }
+                
+                try {
+                    const jogadores = JSON.parse(jogadoresStr);
+                    console.log("Jogadores encontrados:", jogadores.length);
+                    
+                    // Verificar se os jogadores têm a estrutura esperada
+                    let jogadoresProcessados = jogadores;
+                    if (jogadores.length > 0 && !jogadores[0].nome) {
+                        console.log("Formato de jogador inesperado:", jogadores[0]);
+                        // Tentar adaptar o formato se necessário
+                        if (typeof jogadores[0] === 'string') {
+                            // Se for uma lista de strings, criar objetos
+                            jogadoresProcessados = jogadores.map(j => ({ nome: j, codigo: '', clube: '' }));
+                            console.log("Jogadores reformatados:", jogadoresProcessados.length);
+                        }
+                    }
+                    
+                    // Filtrar jogadores
+                    const resultados = jogadoresProcessados.filter(j => {
+                        const nomeMatch = j.nome && j.nome.toLowerCase().includes(termo.toLowerCase());
+                        const codigoMatch = j.codigo && j.codigo.toLowerCase().includes(termo.toLowerCase());
+                        const clubeMatch = j.clube && j.clube.toLowerCase().includes(termo.toLowerCase());
+                        return nomeMatch || codigoMatch || clubeMatch;
+                    });
+                    
+                    console.log("Resultados encontrados:", resultados.length);
+                    
+                    // Exibir resultados
+                    if (resultados.length === 0) {
+                        searchResultsList.innerHTML = '<li style="padding: 12px 16px;">Nenhum jogador encontrado.</li>';
+                    } else {
+                        searchResultsList.innerHTML = '';
+                        resultados.forEach(jogador => {
+                            const li = document.createElement('li');
+                            li.style.padding = '12px 16px';
+                            li.style.borderBottom = '1px solid #eee';
+                            li.style.cursor = 'pointer';
+                            
+                            li.innerHTML = `
+                                <strong>${jogador.nome || 'Sem nome'}</strong> ${jogador.codigo ? `(${jogador.codigo})` : ''}<br>
+                                <small>${jogador.categoria || ''} ${jogador.clube ? `- ${jogador.clube}` : ''}</small>
+                            `;
+                            
+                            li.addEventListener('click', function() {
+                                // Armazenar jogador selecionado e redirecionar para a página de detalhes
+                                localStorage.setItem('jogadorSelecionado', JSON.stringify(jogador));
+                                window.location.href = '/Dados';
+                            });
+                            
+                            searchResultsList.appendChild(li);
+                        });
+                    }
+                    
+                    searchResults.style.display = 'block';
+                } catch (error) {
+                    console.error("Erro ao processar jogadores:", error);
+                    searchResultsList.innerHTML = '<li style="padding: 12px 16px;">Erro ao processar jogadores.</li>';
+                    searchResults.style.display = 'block';
+                }
+            });
+            
+            // Pesquisar ao pressionar Enter
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchButton.click();
+                }
+            });
+            
+            console.log("Pesquisa inicializada com sucesso");
+        }
+        
+        // Inicializar a pesquisa quando o documento estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', inicializarPesquisa);
+        } else {
+            inicializarPesquisa();
+        }
+    </script>
 </body>
 </html>
 

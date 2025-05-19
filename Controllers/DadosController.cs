@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿﻿using Microsoft.AspNetCore.Mvc;
 
 namespace ProjetoLaboratorio25.Controllers
 {
@@ -6,6 +6,12 @@ namespace ProjetoLaboratorio25.Controllers
     {
         public IActionResult Index()
         {
+            return View();
+        }
+        
+        public IActionResult Detalhes(string id)
+        {
+            ViewBag.JogadorId = id;
             return View();
         }
     }

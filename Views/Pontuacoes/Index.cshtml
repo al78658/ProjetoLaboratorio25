@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     Layout = null;
 }
 
@@ -238,12 +238,25 @@
                     const vencedor = resultado.vencedor || '';
                     const motivo = resultado.motivo || '';
 
-                    const v1Active = vencedor === jogo.jogador1 ? 'background:#b6b6b6;color:#111;' : '';
-                    const v2Active = vencedor === jogo.jogador2 ? 'background:#b6b6b6;color:#111;' : '';
+                    // Verificar se é um emparelhamento de clubes ou jogadores
+                    let jogador1Nome, jogador2Nome;
+                    
+                    if (jogo.isClube) {
+                        // É um emparelhamento de clubes
+                        jogador1Nome = jogo.jogador1.nome;
+                        jogador2Nome = jogo.jogador2.nome;
+                    } else {
+                        // É um emparelhamento de jogadores individual
+                        jogador1Nome = typeof jogo.jogador1 === 'object' ? jogo.jogador1.nome : jogo.jogador1;
+                        jogador2Nome = typeof jogo.jogador2 === 'object' ? jogo.jogador2.nome : jogo.jogador2;
+                    }
+                    
+                    const v1Active = vencedor === jogador1Nome ? 'background:#b6b6b6;color:#111;' : '';
+                    const v2Active = vencedor === jogador2Nome ? 'background:#b6b6b6;color:#111;' : '';
 
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${jogo.jogador1} vs ${jogo.jogador2}</td>
+                        <td>${jogador1Nome} vs ${jogador2Nome}</td>
                         <td>
                             <div class="pontuacao-flex">
                                 <button class="arrow-button" onclick="incrementScore(${idx},1)">↑</button>
@@ -252,8 +265,8 @@
                             </div>
                         </td>
                         <td>
-                            <button class="victory-button" style="${v1Active}" onclick="darVitoria(${idx},'${jogo.jogador1}')">Dar Vitória ${jogo.jogador1}</button>
-                            <button class="victory-button" style="${v2Active}" onclick="darVitoria(${idx},'${jogo.jogador2}')">Dar Vitória ${jogo.jogador2}</button>
+                            <button class="victory-button" style="${v1Active}" onclick="darVitoria(${idx},'${jogador1Nome}')">Dar Vitória ${jogador1Nome}</button>
+                            <button class="victory-button" style="${v2Active}" onclick="darVitoria(${idx},'${jogador2Nome}')">Dar Vitória ${jogador2Nome}</button>
                         </td>
                         <td><input type="text" class="motivo-input" data-idx="${idx}" value="${motivo}" placeholder="Motivo (obrigatório se vitória)" style="width:140px;" /></td>
                     `;
@@ -294,8 +307,21 @@
                     const vencedor = (resultados[idx] && resultados[idx].vencedor) || '';
                     const motivo = document.querySelector(`.motivo-input[data-idx='${idx}']`).value.trim();
 
+                    // Verificar se é um emparelhamento de clubes ou jogadores
+                    let jogador1Nome, jogador2Nome;
+                    
+                    if (jogo.isClube) {
+                        // É um emparelhamento de clubes
+                        jogador1Nome = jogo.jogador1.nome;
+                        jogador2Nome = jogo.jogador2.nome;
+                    } else {
+                        // É um emparelhamento de jogadores individual
+                        jogador1Nome = typeof jogo.jogador1 === 'object' ? jogo.jogador1.nome : jogo.jogador1;
+                        jogador2Nome = typeof jogo.jogador2 === 'object' ? jogo.jogador2.nome : jogo.jogador2;
+                    }
+                    
                     if (vencedor && motivo.length < 2) {
-                        alert('Para registar vitória é obrigatório um motivo para o jogo: ' + jogo.jogador1 + ' vs ' + jogo.jogador2);
+                        alert('Para registar vitória é obrigatório um motivo para o jogo: ' + jogador1Nome + ' vs ' + jogador2Nome);
                         erro = true;
                     }
 
@@ -304,7 +330,8 @@
                         jogador2: jogo.jogador2,
                         pontuacao: score,
                         vencedor,
-                        motivo
+                        motivo,
+                        isClube: jogo.isClube
                     };
                 });
 

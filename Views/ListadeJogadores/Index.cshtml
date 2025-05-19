@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -172,9 +172,15 @@
             <thead>
                 <tr>
                     <th>Nome</th>
+                    <th>Código</th>
+                    <th>Data Nascimento</th>
+                    <th>Categoria</th>
+                    <th>Clube</th>
                 </tr>
             </thead>
-            <tbody class="scrollable-body"></tbody>
+            <tbody class="scrollable-body">
+                <!-- Os jogadores serão carregados dinamicamente via JavaScript -->
+            </tbody>
         </table>
 
         <div class="button-row">
@@ -191,6 +197,43 @@
                 const emparelharButton = document.getElementById('emparelharButton');
                 const tableBody = document.querySelector('.scrollable-body');
                 const numJogadoresInput = document.getElementById('numJogadores');
+                
+                // Array para armazenar os jogadores
+                let jogadoresArray = [];
+
+                // Atualizar o contador de jogadores
+                function atualizarContadorJogadores() {
+                    numJogadoresInput.value = jogadoresArray.length;
+                }
+
+                // Renderizar a tabela de jogadores
+                function renderizarTabelaJogadores() {
+                    tableBody.innerHTML = '';
+                    
+                    jogadoresArray.forEach((jogador, index) => {
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-index', index);
+                        
+                        tr.innerHTML = `
+                            <td>${jogador.nome}</td>
+                            <td>${jogador.codigo}</td>
+                            <td>${jogador.dataNascimento}</td>
+                            <td>${jogador.categoria}</td>
+                            <td>${jogador.clube}</td>
+                        `;
+                        
+                        tableBody.appendChild(tr);
+                    });
+                    
+                    atualizarContadorJogadores();
+                }
+
+                // Verificar se há jogadores no localStorage
+                const jogadoresSalvos = localStorage.getItem('jogadoresImportados');
+                if (jogadoresSalvos) {
+                    jogadoresArray = JSON.parse(jogadoresSalvos);
+                    renderizarTabelaJogadores();
+                }
 
                 alterarListaButton.addEventListener('click', () => fileInput.click());
 
@@ -205,41 +248,65 @@
                         const sheet = workbook.Sheets[workbook.SheetNames[0]];
                         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-                        tableBody.innerHTML = '';
-                        const nomes = [];
-
+                        // Processar os dados do Excel
+                        jogadoresArray = [];
+                        
+                        // Formato esperado no Excel: Nome Codigo DataNascimento Categoria Clube
                         rows.forEach(row => {
-                            const nome = row[0]?.toString().trim();
-                            if (nome) nomes.push(nome);
+                            if (row && row.length > 0) {
+                                const linha = row.join(' ');
+                                const partes = linha.split(' ');
+                               
+                                if (partes.length >= 5) {
+                                     // Encontrar o código (formato: XX000)
+                                    let codigoIndex = -1;
+                                    for (let i = 0; i < partes.length; i++) {
+                                        if (/^[A-Z]{2}\d{3}$/.test(partes[i])) {
+                                            codigoIndex = i;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if (codigoIndex > 0) {
+                                        const nome = partes.slice(0, codigoIndex).join(' ');
+                                        const codigo = partes[codigoIndex];
+                                        const dataNascimento = partes[codigoIndex + 1];
+                                        const categoria = partes[codigoIndex + 2];
+                                        const clube = partes.slice(codigoIndex + 3).join(' ');
+                                        
+                                        jogadoresArray.push({
+                                            nome: nome,
+                                            codigo: codigo,
+                                            dataNascimento: dataNascimento,
+                                            categoria: categoria,
+                                            clube: clube
+                                        });
+                                    }
+                                }
+                            }
                         });
-
-                        nomes.forEach(nome => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `<td>${nome}</td>`;
-                            tableBody.appendChild(tr);
-                        });
-
-                        numJogadoresInput.value = nomes.length;
+                        
+                        // Salvar no localStorage
+                        localStorage.setItem('jogadoresImportados', JSON.stringify(jogadoresArray));
+                        
+                        // Atualizar a tabela
+                        renderizarTabelaJogadores();
                     };
                     reader.readAsArrayBuffer(file);
                 });
 
                 emparelharButton.addEventListener('click', function () {
-                    const jogadores = Array.from(document.querySelectorAll('.scrollable-body td'))
-                        .map(td => td.textContent.trim())
-                        .filter(nome => nome !== '');
-
-                    if (jogadores.length < 2) {
+                    if (jogadoresArray.length < 2) {
                         alert('Insere pelo menos 2 jogadores.');
                         return;
                     }
 
-                    if (jogadores.length % 2 !== 0) {
+                    if (jogadoresArray.length % 2 !== 0) {
                         alert('O número de jogadores deve ser par para emparelhamento.');
                         return;
                     }
 
-                    localStorage.setItem('jogadoresParaEmparelhar', JSON.stringify(jogadores));
+                    localStorage.setItem('jogadoresParaEmparelhar', JSON.stringify(jogadoresArray));
                     window.location.href = '/Emparelhamento';
                 });
             });
