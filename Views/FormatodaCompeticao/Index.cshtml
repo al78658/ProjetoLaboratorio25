@@ -290,10 +290,15 @@
             // Handler do botão Seguinte
             const nextButton = document.getElementById('nextButton');
             nextButton.addEventListener('click', function (e) {
-                const numFases = parseInt(document.getElementById('numFases').value);
+                let numFases = parseInt(document.getElementById('numFases').value);
+                // Descobre as fases configuradas
                 let fasesConfiguradas = 0;
+                let fasesComFormato = [];
                 for (let i = 1; i <= numFases; i++) {
-                    if (formatosSelecionados[i]) fasesConfiguradas++;
+                    if (formatosSelecionados[i]) {
+                        fasesConfiguradas++;
+                        fasesComFormato.push({ fase: i, formato: formatosSelecionados[i] });
+                    }
                 }
                 if (fasesConfiguradas < numFases) {
                     const continuar = confirm(`Só configurou ${fasesConfiguradas} de ${numFases} fases. Deseja continuar apenas com as fases configuradas? (OK para continuar, Cancelar para configurar as restantes)`);
@@ -301,6 +306,31 @@
                         // Fica na página para configurar as restantes
                         return;
                     }
+                    // Remove fases não configuradas e renumera as fases
+                    formatosSelecionados = {};
+                    for (let j = 0; j < fasesComFormato.length; j++) {
+                        formatosSelecionados[j + 1] = fasesComFormato[j].formato;
+                    }
+                    // Atualiza o número de fases para o número de fases configuradas
+                    numFasesInput.value = fasesComFormato.length;
+
+                    // Atualiza no servidor (número de fases e formatos)
+                    Promise.all([
+                        fetch(`/FormatodaCompeticao/SalvarNumFases?competicaoId=${competicaoId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(fasesComFormato.length)
+                        }),
+                        fetch(`/FormatodaCompeticao/SalvarFormatos?competicaoId=${competicaoId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(formatosSelecionados)
+                        })
+                    ]).then(() => {
+                        updateTableRows();
+                        // Não avança ainda, espera o usuário clicar novamente
+                    });
+                    return;
                 }
                 // Avança para a próxima página
                 window.location.href = '@Url.Action("Index", "ListadeJogadores")';
