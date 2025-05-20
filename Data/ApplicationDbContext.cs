@@ -46,6 +46,14 @@ namespace ProjetoLaboratorio25.Data
             modelBuilder.Entity<ConfiguracaoFase>()
                 .HasKey(cf => cf.Id);
 
+            // Configure CriteriosDesempate como JSON
+            modelBuilder.Entity<ConfiguracaoFase>()
+                .Property(cf => cf.CriteriosDesempate)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, new System.Text.Json.JsonSerializerOptions()),
+                    v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, new System.Text.Json.JsonSerializerOptions()) ?? new List<string>()
+                );
+
             // Configure the relationship between Competicao and ConfiguracaoFase
             modelBuilder.Entity<ConfiguracaoFase>()
                 .HasOne(cf => cf.Competicao)
