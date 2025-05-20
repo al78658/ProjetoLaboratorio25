@@ -1,0 +1,394 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração - Gerenciamento de Dados</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            position: relative;
+            padding: 20px;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+
+        .top-left-logo img {
+            width: 160px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 120px auto 40px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 22px;
+            margin: 25px 0 15px;
+            color: #444;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+        }
+
+        .card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #4a6da7;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3a5a8f;
+        }
+
+        .btn-danger {
+            background-color: #d9534f;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c9302c;
+        }
+
+        .btn-warning {
+            background-color: #f0ad4e;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #ec971f;
+        }
+
+        .data-list {
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: white;
+        }
+
+        .data-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-item:last-child {
+            border-bottom: none;
+        }
+
+        .back-button {
+            position: absolute;
+            right: 30px;
+            bottom: 30px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+        .back-button:hover {
+            background-color: #dcdcdc;
+        }
+    </style>
+</head>
+<body>
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <a href="/home">
+            <img src="/img/logotipo.png" alt="Logotipo" />
+        </a>
+    </div>
+
+    <div class="container">
+        <h1>Administração - Gerenciamento de Dados</h1>
+
+        <div class="card">
+            <h3>Informações de Armazenamento</h3>
+            <p>Os dados da aplicação são armazenados no localStorage do navegador. Isso significa que:</p>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Os dados são mantidos mesmo após fechar o navegador</li>
+                <li>Os dados são específicos para este navegador e dispositivo</li>
+                <li>Limpar o cache do navegador pode remover estes dados</li>
+            </ul>
+        </div>
+
+        <h2>Competições</h2>
+        <div class="card">
+            <h3>Gerenciar Competições</h3>
+            <div id="competicoesList" class="data-list">
+                <div class="data-item">Carregando competições...</div>
+            </div>
+            <div class="button-row">
+                <button class="btn-danger" id="limparCompeticoes">Limpar Todas as Competições</button>
+            </div>
+        </div>
+
+        <h2>Jogadores</h2>
+        <div class="card">
+            <h3>Gerenciar Jogadores</h3>
+            <div id="jogadoresList" class="data-list">
+                <div class="data-item">Carregando jogadores...</div>
+            </div>
+            <div class="button-row">
+                <button class="btn-danger" id="limparJogadores">Limpar Todos os Jogadores</button>
+            </div>
+        </div>
+
+        <h2>Agendamentos</h2>
+        <div class="card">
+            <h3>Gerenciar Agendamentos</h3>
+            <div id="agendamentosList" class="data-list">
+                <div class="data-item">Carregando agendamentos...</div>
+            </div>
+            <div class="button-row">
+                <button class="btn-danger" id="limparAgendamentos">Limpar Todos os Agendamentos</button>
+            </div>
+        </div>
+
+        <h2>Todos os Dados</h2>
+        <div class="card">
+            <h3>Gerenciar Todos os Dados</h3>
+            <p>Esta opção irá limpar <strong>todos os dados</strong> armazenados no localStorage, incluindo competições, jogadores, agendamentos e outras configurações.</p>
+            <div class="button-row">
+                <button class="btn-danger" id="limparTudo">Limpar Todos os Dados</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Voltar -->
+    <a href="/Home" class="back-button">&lt;Voltar</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Elementos DOM
+            const competicoesList = document.getElementById('competicoesList');
+            const jogadoresList = document.getElementById('jogadoresList');
+            const agendamentosList = document.getElementById('agendamentosList');
+            
+            // Botões
+            const limparCompeticoesBtn = document.getElementById('limparCompeticoes');
+            const limparJogadoresBtn = document.getElementById('limparJogadores');
+            const limparAgendamentosBtn = document.getElementById('limparAgendamentos');
+            const limparTudoBtn = document.getElementById('limparTudo');
+            
+            // Carregar e exibir competições
+            function carregarCompeticoes() {
+                let competicoes = [];
+                try {
+                    competicoes = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
+                } catch (e) { competicoes = []; }
+                
+                if (competicoes.length === 0) {
+                    competicoesList.innerHTML = '<div class="data-item">Nenhuma competição encontrada.</div>';
+                } else {
+                    competicoesList.innerHTML = '';
+                    competicoes.forEach(comp => {
+                        const div = document.createElement('div');
+                        div.className = 'data-item';
+                        div.textContent = comp.nome;
+                        competicoesList.appendChild(div);
+                    });
+                }
+            }
+            
+            // Carregar e exibir jogadores
+            function carregarJogadores() {
+                let jogadores = [];
+                try {
+                    jogadores = JSON.parse(localStorage.getItem('jogadoresImportados')) || [];
+                } catch (e) { jogadores = []; }
+                
+                if (jogadores.length === 0) {
+                    jogadoresList.innerHTML = '<div class="data-item">Nenhum jogador encontrado.</div>';
+                } else {
+                    jogadoresList.innerHTML = '';
+                    jogadores.forEach(jogador => {
+                        const div = document.createElement('div');
+                        div.className = 'data-item';
+                        div.textContent = `${jogador.nome} (${jogador.codigo || '-'}) - ${jogador.clube || 'Sem clube'}`;
+                        jogadoresList.appendChild(div);
+                    });
+                }
+            }
+            
+            // Carregar e exibir agendamentos
+            function carregarAgendamentos() {
+                // Obter todas as competições primeiro
+                let competicoes = [];
+                try {
+                    competicoes = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
+                } catch (e) { competicoes = []; }
+                
+                let todosAgendamentos = [];
+                
+                // Para cada competição, buscar seus agendamentos
+                competicoes.forEach(comp => {
+                    try {
+                        const agendamentos = JSON.parse(localStorage.getItem(`agendamentos_${comp.nome}`)) || [];
+                        agendamentos.forEach(ag => {
+                            todosAgendamentos.push({
+                                competicao: comp.nome,
+                                ...ag
+                            });
+                        });
+                    } catch (e) { /* Ignorar erros */ }
+                });
+                
+                if (todosAgendamentos.length === 0) {
+                    agendamentosList.innerHTML = '<div class="data-item">Nenhum agendamento encontrado.</div>';
+                } else {
+                    agendamentosList.innerHTML = '';
+                    todosAgendamentos.forEach(ag => {
+                        const div = document.createElement('div');
+                        div.className = 'data-item';
+                        
+                        let jogador1Nome, jogador2Nome;
+                        
+                        if (ag.isClube) {
+                            jogador1Nome = ag.jogador1.nome;
+                            jogador2Nome = ag.jogador2.nome;
+                            div.textContent = `${jogador1Nome} vs ${jogador2Nome} (Equipes) - ${ag.data} às ${ag.hora} - ${ag.competicao}`;
+                        } else {
+                            jogador1Nome = typeof ag.jogador1 === 'object' ? ag.jogador1.nome : ag.jogador1;
+                            jogador2Nome = typeof ag.jogador2 === 'object' ? ag.jogador2.nome : ag.jogador2;
+                            div.textContent = `${jogador1Nome} vs ${jogador2Nome} - ${ag.data} às ${ag.hora} - ${ag.competicao}`;
+                        }
+                        
+                        agendamentosList.appendChild(div);
+                    });
+                }
+            }
+            
+            // Carregar todos os dados inicialmente
+            carregarCompeticoes();
+            carregarJogadores();
+            carregarAgendamentos();
+            
+            // Evento para limpar competições
+            limparCompeticoesBtn.addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja limpar todas as competições? Esta ação não pode ser desfeita.')) {
+                    // Obter todas as competições primeiro
+                    let competicoes = [];
+                    try {
+                        competicoes = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
+                    } catch (e) { competicoes = []; }
+                    
+                    // Para cada competição, remover seus dados relacionados
+                    competicoes.forEach(comp => {
+                        localStorage.removeItem(`jogadores_${comp.nome}`);
+                        localStorage.removeItem(`agendamentos_${comp.nome}`);
+                        localStorage.removeItem(`pontuacoes_${comp.nome}`);
+                    });
+                    
+                    // Remover a lista de competições
+                    localStorage.removeItem('todasCompeticoes');
+                    localStorage.removeItem('competicaoSelecionada');
+                    
+                    alert('Todas as competições foram removidas com sucesso.');
+                    carregarCompeticoes();
+                    carregarAgendamentos();
+                }
+            });
+            
+            // Evento para limpar jogadores
+            limparJogadoresBtn.addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja limpar todos os jogadores? Esta ação não pode ser desfeita.')) {
+                    localStorage.removeItem('jogadoresImportados');
+                    localStorage.removeItem('jogadoresParaEmparelhar');
+                    localStorage.removeItem('jogadorSelecionado');
+                    localStorage.removeItem('equipaSelecionada');
+                    
+                    alert('Todos os jogadores foram removidos com sucesso.');
+                    carregarJogadores();
+                }
+            });
+            
+            // Evento para limpar agendamentos
+            limparAgendamentosBtn.addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja limpar todos os agendamentos? Esta ação não pode ser desfeita.')) {
+                    // Obter todas as competições primeiro
+                    let competicoes = [];
+                    try {
+                        competicoes = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
+                    } catch (e) { competicoes = []; }
+                    
+                    // Para cada competição, remover seus agendamentos
+                    competicoes.forEach(comp => {
+                        localStorage.removeItem(`agendamentos_${comp.nome}`);
+                    });
+                    
+                    alert('Todos os agendamentos foram removidos com sucesso.');
+                    carregarAgendamentos();
+                }
+            });
+            
+            // Evento para limpar todos os dados
+            limparTudoBtn.addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja limpar TODOS os dados? Esta ação não pode ser desfeita e removerá todas as competições, jogadores, agendamentos e configurações.')) {
+                    localStorage.clear();
+                    alert('Todos os dados foram limpos com sucesso. A página será recarregada.');
+                    window.location.reload();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

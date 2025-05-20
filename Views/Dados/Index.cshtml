@@ -1,4 +1,4 @@
-﻿﻿﻿@{
+﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -78,6 +78,27 @@
         .section h2 {
         font-size: 22px;
         margin-bottom: 10px;
+        }
+        
+        .section h3 {
+        font-size: 18px;
+        color: #333;
+        margin-top: 5px;
+        }
+        
+        .jogo-item {
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px dotted #ccc;
+        }
+        
+        .jogo-item:last-child {
+        border-bottom: none;
+        }
+        
+        .data-hora {
+        font-weight: bold;
+        color: #444;
         }
 
         .info-table {
@@ -182,7 +203,7 @@
         <!-- Coluna Direita -->
         <div class="right-panel">
             <div class="section">
-                <h2>Jogos Agendados (Individuais e da Equipa)</h2>
+                <h2>Jogos Agendados por Data</h2>
                 <div id="jogosAgendados">
                     <p>Nenhum jogo agendado.</p>
                 </div>
@@ -198,7 +219,7 @@
             <div class="section">
                 <h2>Competições</h2>
                 <div id="competicoes">
-                    <p>Nenhuma competição registrada.</p>
+                    <p id="semCompeticoes">Nenhuma competição registada.</p>
                 </div>
             </div>
         </div>
@@ -217,29 +238,86 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Obter jogador do localStorage
+            // Obter jogador ou equipe do localStorage
             const jogadorStr = localStorage.getItem('jogadorSelecionado');
-            if (!jogadorStr) {
-                // Se não houver jogador selecionado, exibir mensagem
-                document.getElementById('nomeJogador').textContent = 'Jogador não encontrado';
+            const equipaStr = localStorage.getItem('equipaSelecionada');
+            
+            // Verificar se temos um jogador ou uma equipe
+            if (!jogadorStr && !equipaStr) {
+                // Se não houver jogador ou equipe selecionada, exibir mensagem
+                document.getElementById('nomeJogador').textContent = 'Jogador/Equipa não encontrado';
                 return;
             }
             
-            const jogador = JSON.parse(jogadorStr);
+            // Determinar se estamos lidando com um jogador ou uma equipe
+            const isEquipa = !!equipaStr;
+            const jogador = isEquipa ? JSON.parse(equipaStr) : JSON.parse(jogadorStr);
             
-            // Preencher informações do jogador
-            document.getElementById('nomeJogador').textContent = jogador.nome;
-            document.getElementById('infoNome').textContent = jogador.nome;
-            document.getElementById('infoCodigo').textContent = jogador.codigo;
-            document.getElementById('infoDataNascimento').textContent = jogador.dataNascimento;
-            document.getElementById('infoCategoria').textContent = jogador.categoria;
-            document.getElementById('infoClube').textContent = jogador.clube;
-            
-            // Destacar informação do clube
-            if (jogador.clube && jogador.clube.trim() !== '') {
-                document.getElementById('infoEquipa').textContent = `Membro da equipa: ${jogador.clube}`;
+            // Verificar se estamos exibindo um jogador ou uma equipe
+            if (isEquipa) {
+                // Exibir informações da equipe
+                document.getElementById('nomeJogador').textContent = `Equipa: ${jogador.nome}`;
+                document.getElementById('infoNome').textContent = jogador.nome;
+                document.getElementById('infoCodigo').textContent = '-';
+                document.getElementById('infoDataNascimento').textContent = '-';
+                document.getElementById('infoCategoria').textContent = '-';
+                document.getElementById('infoClube').textContent = jogador.nome;
+                
+                // Destacar informação da equipe
+                document.getElementById('infoEquipa').textContent = `${jogador.jogadores.length} jogadores nesta equipa`;
+                
+                // Atualizar a tabela para mostrar os jogadores da equipe
+                const infoTable = document.getElementById('infoTable');
+                infoTable.innerHTML = `
+                    <tr><td class="bold">Nome da Equipa</td><td>${jogador.nome}</td></tr>
+                    <tr><td class="bold">Número de Jogadores</td><td>${jogador.jogadores.length}</td></tr>
+                `;
+                
+                // Adicionar lista de jogadores
+                const jogadoresSection = document.createElement('div');
+                jogadoresSection.className = 'section';
+                jogadoresSection.innerHTML = `
+                    <h2>Jogadores da Equipa</h2>
+                    <div id="listaJogadores"></div>
+                `;
+                
+                // Inserir antes da seção de jogos agendados
+                const rightPanel = document.querySelector('.right-panel');
+                const jogosAgendadosSection = document.querySelector('.right-panel .section');
+                rightPanel.insertBefore(jogadoresSection, jogosAgendadosSection);
+                
+                // Preencher a lista de jogadores
+                const listaJogadoresDiv = document.getElementById('listaJogadores');
+                jogador.jogadores.forEach(j => {
+                    const jogadorItem = document.createElement('div');
+                    jogadorItem.className = 'jogo-item';
+                    jogadorItem.innerHTML = `
+                        <strong>${j.nome}</strong> (${j.codigo || '-'})<br>
+                        <small>Categoria: ${j.categoria || '-'}</small>
+                    `;
+                    jogadorItem.style.cursor = 'pointer';
+                    jogadorItem.addEventListener('click', function() {
+                        localStorage.setItem('jogadorSelecionado', JSON.stringify(j));
+                        localStorage.removeItem('equipaSelecionada');
+                        window.location.href = '/Dados';
+                    });
+                    listaJogadoresDiv.appendChild(jogadorItem);
+                });
             } else {
-                document.getElementById('infoEquipa').textContent = 'Jogador sem equipa associada';
+                // Exibir informações do jogador individual
+                document.getElementById('nomeJogador').textContent = jogador.nome;
+                document.getElementById('infoNome').textContent = jogador.nome;
+                document.getElementById('infoCodigo').textContent = jogador.codigo;
+                document.getElementById('infoDataNascimento').textContent = jogador.dataNascimento;
+                document.getElementById('infoCategoria').textContent = jogador.categoria;
+                document.getElementById('infoClube').textContent = jogador.clube;
+                
+                // Destacar informação do clube
+                if (jogador.clube && jogador.clube.trim() !== '') {
+                    document.getElementById('infoEquipa').textContent = `Membro da equipa: ${jogador.clube}`;
+                } else {
+                    document.getElementById('infoEquipa').textContent = 'Jogador sem equipa associada';
+                }
             }
             
             // Buscar jogos agendados
@@ -255,21 +333,44 @@
             let jogosEncontrados = false;
             let competicoesEncontradas = false;
             
+            // Arrays para armazenar os jogos individuais e de equipe
+            const jogosIndividuais = [];
+            const jogosEquipe = [];
+            
             todasCompeticoes.forEach(comp => {
                 const nomeCompeticao = comp.nome;
                 
-                // Verificar se o jogador está nesta competição
+                // Verificar se o jogador ou a equipe está nesta competição
                 const jogadoresComp = JSON.parse(localStorage.getItem(`jogadores_${nomeCompeticao}`) || '[]');
-                const jogadorNaCompeticao = jogadoresComp.some(j => 
-                    (typeof j === 'object' && j.nome === jogador.nome) || 
-                    (typeof j === 'string' && j === jogador.nome)
-                );
                 
-                if (jogadorNaCompeticao) {
+                let jogadorOuEquipeNaCompeticao = false;
+                
+                if (isEquipa) {
+                    // Verificar se algum jogador da equipe está na competição
+                    jogadorOuEquipeNaCompeticao = jogador.jogadores.some(jogadorEquipe => 
+                        jogadoresComp.some(j => 
+                            (typeof j === 'object' && j.nome === jogadorEquipe.nome) || 
+                            (typeof j === 'string' && j === jogadorEquipe.nome)
+                        )
+                    );
+                } else {
+                    // Verificar se o jogador individual está na competição
+                    jogadorOuEquipeNaCompeticao = jogadoresComp.some(j => 
+                        (typeof j === 'object' && j.nome === jogador.nome) || 
+                        (typeof j === 'string' && j === jogador.nome)
+                    );
+                }
+                
+                if (jogadorOuEquipeNaCompeticao) {
                     competicoesEncontradas = true;
                     
-                    // Adicionar à lista de competições
-                    if (competicoesDiv.innerHTML === '<p>Nenhuma competição registrada.</p>') {
+                    // Se esta é a primeira competição encontrada, limpar a mensagem "Nenhuma competição"
+                    if (document.getElementById('semCompeticoes')) {
+                        document.getElementById('semCompeticoes').style.display = 'none';
+                    }
+                    
+                    // Se o conteúdo ainda não foi alterado, limpar
+                    if (competicoesDiv.innerHTML.includes('Nenhuma competição registada')) {
                         competicoesDiv.innerHTML = '';
                     }
                     
@@ -285,23 +386,25 @@
                             const clube1Nome = ag.jogador1.nome;
                             const clube2Nome = ag.jogador2.nome;
                             
-                            // Verificar se o clube do jogador está envolvido no jogo
-                            if (jogador.clube === clube1Nome || jogador.clube === clube2Nome) {
+                            // Verificar se o clube está envolvido no jogo
+                            const clubeEnvolvido = isEquipa 
+                                ? (jogador.nome === clube1Nome || jogador.nome === clube2Nome)
+                                : (jogador.clube === clube1Nome || jogador.clube === clube2Nome);
+                                
+                            if (clubeEnvolvido) {
                                 jogosEncontrados = true;
                                 
-                                if (jogosAgendadosDiv.innerHTML === '<p>Nenhum jogo agendado.</p>') {
-                                    jogosAgendadosDiv.innerHTML = '';
-                                }
-                                
-                                jogosAgendadosDiv.innerHTML += `
-                                    <p>
-                                        <strong>${clube1Nome}</strong> vs <strong>${clube2Nome}</strong><br>
-                                        <small>Data: ${ag.data} às ${ag.hora}</small>
-                                        <small>(Jogo do seu clube)</small>
-                                    </p>
-                                `;
+                                // Adicionar ao array de jogos de equipe
+                                jogosEquipe.push({
+                                    nome1: clube1Nome,
+                                    nome2: clube2Nome,
+                                    data: ag.data,
+                                    hora: ag.hora,
+                                    tipo: 'equipe',
+                                    competicao: nomeCompeticao
+                                });
                             }
-                        } else {
+                        } else if (!isEquipa) { // Só buscar jogos individuais se não estivermos visualizando uma equipe
                             // É um emparelhamento de jogadores individuais
                             const jogador1Nome = typeof ag.jogador1 === 'object' ? ag.jogador1.nome : ag.jogador1;
                             const jogador2Nome = typeof ag.jogador2 === 'object' ? ag.jogador2.nome : ag.jogador2;
@@ -309,24 +412,87 @@
                             if (jogador1Nome === jogador.nome || jogador2Nome === jogador.nome) {
                                 jogosEncontrados = true;
                                 
-                                if (jogosAgendadosDiv.innerHTML === '<p>Nenhum jogo agendado.</p>') {
-                                    jogosAgendadosDiv.innerHTML = '';
-                                }
-                                
-                                jogosAgendadosDiv.innerHTML += `
-                                    <p>
-                                        <strong>${jogador1Nome}</strong> vs <strong>${jogador2Nome}</strong><br>
-                                        <small>Data: ${ag.data} às ${ag.hora}</small>
-                                        <small>(Jogo individual)</small>
-                                    </p>
-                                `;
+                                // Adicionar ao array de jogos individuais
+                                jogosIndividuais.push({
+                                    nome1: jogador1Nome,
+                                    nome2: jogador2Nome,
+                                    data: ag.data,
+                                    hora: ag.hora,
+                                    tipo: 'individual',
+                                    competicao: nomeCompeticao
+                                });
                             }
                         }
                     });
                 }
             });
             
-            if (!jogosEncontrados) {
+            // Função para formatar a data
+            const formatarData = (dataStr) => {
+                if (!dataStr) return '';
+                
+                try {
+                    const [ano, mes, dia] = dataStr.split('-');
+                    return `${dia}/${mes}/${ano}`;
+                } catch (e) {
+                    return dataStr;
+                }
+            };
+            
+            // Ordenar todos os jogos por data e hora
+            const ordenarPorData = (a, b) => {
+                // Primeiro comparar por data
+                if (a.data < b.data) return -1;
+                if (a.data > b.data) return 1;
+                
+                // Se as datas forem iguais, comparar por hora
+                if (a.hora < b.hora) return -1;
+                if (a.hora > b.hora) return 1;
+                
+                return 0;
+            };
+            
+            jogosIndividuais.sort(ordenarPorData);
+            jogosEquipe.sort(ordenarPorData);
+            
+            // Exibir os jogos na página
+            if (jogosIndividuais.length > 0 || jogosEquipe.length > 0) {
+                jogosAgendadosDiv.innerHTML = '';
+                
+                // Primeiro exibir os jogos individuais
+                if (jogosIndividuais.length > 0) {
+                    jogosAgendadosDiv.innerHTML += '<h3 style="margin-bottom: 10px;">Jogos Individuais</h3>';
+                    
+                    jogosIndividuais.forEach(jogo => {
+                        jogosAgendadosDiv.innerHTML += `
+                            <div class="jogo-item">
+                                <strong>${jogo.nome1}</strong> vs <strong>${jogo.nome2}</strong><br>
+                                <small class="data-hora">Data: ${formatarData(jogo.data)} às ${jogo.hora}</small>
+                                <small>(Jogo individual)</small>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // Depois exibir os jogos de equipe
+                if (jogosEquipe.length > 0) {
+                    if (jogosIndividuais.length > 0) {
+                        jogosAgendadosDiv.innerHTML += '<hr style="margin: 15px 0;">';
+                    }
+                    
+                    jogosAgendadosDiv.innerHTML += '<h3 style="margin-bottom: 10px;">Jogos de Equipa</h3>';
+                    
+                    jogosEquipe.forEach(jogo => {
+                        jogosAgendadosDiv.innerHTML += `
+                            <div class="jogo-item">
+                                <strong>${jogo.nome1}</strong> vs <strong>${jogo.nome2}</strong><br>
+                                <small class="data-hora">Data: ${formatarData(jogo.data)} às ${jogo.hora}</small>
+                                <small>(Jogo do seu clube)</small>
+                            </div>
+                        `;
+                    });
+                }
+            } else {
                 jogosAgendadosDiv.innerHTML = '<p>Nenhum jogo agendado.</p>';
             }
             

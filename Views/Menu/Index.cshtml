@@ -1,4 +1,4 @@
-﻿﻿﻿@{
+﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -366,7 +366,14 @@
 
                 const dataFiltrada = formatDate(date);
                 const jogosDoDia = agendamentos.filter(a => a.data === dataFiltrada);
-                const resultados = JSON.parse(localStorage.getItem(`resultados_${nomeCompeticao}_${dataFiltrada}`)) || [];
+                // Carregar resultados do localStorage
+                let resultados = JSON.parse(localStorage.getItem(`resultados_${nomeCompeticao}_${dataFiltrada}`)) || [];
+                
+                // Verificar se os resultados estão no formato correto
+                if (resultados && !Array.isArray(resultados)) {
+                    console.warn("Formato de resultados inválido, convertendo para array");
+                    resultados = [];
+                }
 
                 if (jogosDoDia.length === 0) {
                     const row = document.createElement('tr');
@@ -376,17 +383,49 @@
                 }
 
                 jogosDoDia.forEach((a, idx) => {
-                    const resultado = resultados.find(r => r.jogador1 === a.jogador1 && r.jogador2 === a.jogador2) || {};
+                    // Buscar resultado correspondente
+                    const resultado = resultados.find(r => {
+                        // Comparar jogadores considerando objetos ou strings
+                        let j1Match = false;
+                        let j2Match = false;
+                        
+                        if (typeof r.jogador1 === 'object' && typeof a.jogador1 === 'object') {
+                            j1Match = r.jogador1.nome === a.jogador1.nome;
+                        } else if (typeof r.jogador1 === 'string' && typeof a.jogador1 === 'string') {
+                            j1Match = r.jogador1 === a.jogador1;
+                        } else if (typeof r.jogador1 === 'object' && typeof a.jogador1 === 'string') {
+                            j1Match = r.jogador1.nome === a.jogador1;
+                        } else if (typeof r.jogador1 === 'string' && typeof a.jogador1 === 'object') {
+                            j1Match = r.jogador1 === a.jogador1.nome;
+                        }
+                        
+                        if (typeof r.jogador2 === 'object' && typeof a.jogador2 === 'object') {
+                            j2Match = r.jogador2.nome === a.jogador2.nome;
+                        } else if (typeof r.jogador2 === 'string' && typeof a.jogador2 === 'string') {
+                            j2Match = r.jogador2 === a.jogador2;
+                        } else if (typeof r.jogador2 === 'object' && typeof a.jogador2 === 'string') {
+                            j2Match = r.jogador2.nome === a.jogador2;
+                        } else if (typeof r.jogador2 === 'string' && typeof a.jogador2 === 'object') {
+                            j2Match = r.jogador2 === a.jogador2.nome;
+                        }
+                        
+                        return j1Match && j2Match;
+                    }) || {};
+                    
+                    // Formatar o texto do resultado
                     let resultadoTexto = '-';
-                    if (resultado.vencedor && resultado.motivo) {
-                        resultadoTexto = `Vitória de ${resultado.vencedor}`;
-                    } else if (resultado.pontuacao) {
+                    if (resultado.pontuacao && resultado.pontuacao !== '0-0') {
                         resultadoTexto = resultado.pontuacao;
-                        if (resultado.vencedor) resultadoTexto += ` (${resultado.vencedor})`;
+                        if (resultado.vencedor) {
+                            resultadoTexto += ` (${resultado.vencedor})`;
+                        }
                     } else if (resultado.vencedor) {
-                        resultadoTexto = resultado.vencedor;
+                        resultadoTexto = `Vitória de ${resultado.vencedor}`;
                     }
+                    
+                    // Obter o motivo se existir
                     const motivo = resultado.motivo || '';
+                    
                     const row = document.createElement('tr');
                     // Verificar se é um emparelhamento de clubes ou jogadores
                     let jogador1Nome, jogador2Nome;
@@ -433,9 +472,33 @@
             var data = document.getElementById('selectedDateDisplay').textContent;
             // Converter data para formato yyyy-mm-dd
             if (data) {
-                const partes = data.split('/'); // dd/mm/yyyy
-                if (partes.length === 3) {
+                // Verificar o formato da data (pode variar dependendo do locale)
+                let partes;
+                if (data.includes('/')) {
+                    partes = data.split('/'); // dd/mm/yyyy
+                } else if (data.includes(' de ')) {
+                    // Formato português: "dd de mmm de yyyy"
+                    const meses = {
+                        'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04', 
+                        'mai': '05', 'jun': '06', 'jul': '07', 'ago': '08', 
+                        'set': '09', 'out': '10', 'nov': '11', 'dez': '12'
+                    };
+                    const partesComplexas = data.split(' de ');
+                    if (partesComplexas.length === 3) {
+                        const dia = partesComplexas[0].trim();
+                        const mes = partesComplexas[1].trim().toLowerCase().substring(0, 3);
+                        const ano = partesComplexas[2].trim();
+                        partes = [dia, meses[mes] || '01', ano];
+                    }
+                }
+                
+                if (partes && partes.length === 3) {
                     const dataFormatada = `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
+                    localStorage.setItem('dataSelecionadaMenu', dataFormatada);
+                } else {
+                    // Fallback para a data atual se não conseguir converter
+                    const hoje = new Date();
+                    const dataFormatada = hoje.toISOString().split('T')[0];
                     localStorage.setItem('dataSelecionadaMenu', dataFormatada);
                 }
             }

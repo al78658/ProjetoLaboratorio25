@@ -158,6 +158,18 @@
     <!-- Conteúdo central vertical -->
     <div class="content-wrapper">
         <h2>Competições a decorrer</h2>
+        
+        <!-- Barra de pesquisa -->
+        <div style="margin-bottom: 20px; display: flex; justify-content: center; width: 80%;">
+            <div style="display: flex; align-items: center; width: 100%; max-width: 500px;">
+                <input type="text" id="searchInput" placeholder="Pesquisar competição por nome..." 
+                       style="flex: 1; padding: 10px; border: 2px solid #ccc; border-radius: 8px 0 0 8px; font-size: 16px; outline: none;">
+                <button id="searchButton" 
+                        style="padding: 10px 15px; background: white; border: 2px solid #ccc; border-left: none; border-radius: 0 8px 8px 0; cursor: pointer;">
+                    🔍
+                </button>
+            </div>
+        </div>
 
         <!-- Lista de Competições -->
         <div class="competition-container" id="competicaoList"></div>
@@ -177,7 +189,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('competicaoList');
-
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            
             // Carregar competições do localStorage
             let competicoesLocal = [];
             try {
@@ -203,24 +217,83 @@
                     todas.push(loc);
                 }
             });
-
-            if (todas.length > 0) {
-                todas.forEach(competicao => {
-                    let div = document.createElement('div');
-                    div.className = 'competition';
-                    div.onclick = function () {
-                        localStorage.setItem('competicaoSelecionada', competicao.nome);
-                        window.location.href = '/Menu';
-                    };
-                    div.innerHTML = `
-                        <div class="thumb"></div>
-                        <p>${competicao.nome}</p>
-                    `;
-                    container.appendChild(div);
-                });
-            } else {
-                container.innerHTML = '<p style="grid-column: span 4; padding: 20px; font-size: 18px;">Nenhuma competição encontrada. Crie uma nova competição.</p>';
+            
+            // Função para renderizar as competições
+            function renderizarCompeticoes(listaCompeticoes) {
+                container.innerHTML = '';
+                
+                if (listaCompeticoes.length > 0) {
+                    listaCompeticoes.forEach(competicao => {
+                        let div = document.createElement('div');
+                        div.className = 'competition';
+                        div.onclick = function () {
+                            localStorage.setItem('competicaoSelecionada', competicao.nome);
+                            window.location.href = '/Menu';
+                        };
+                        div.innerHTML = `
+                            <div class="thumb"></div>
+                            <p>${competicao.nome}</p>
+                        `;
+                        container.appendChild(div);
+                    });
+                } else {
+                    container.innerHTML = '<p style="grid-column: span 4; padding: 20px; font-size: 18px;">Nenhuma competição encontrada. Crie uma nova competição.</p>';
+                }
             }
+            
+            // Função para pesquisar competições
+            function pesquisarCompeticoes() {
+                const termoPesquisa = searchInput.value.trim().toLowerCase();
+                
+                if (termoPesquisa === '') {
+                    // Se o campo de pesquisa estiver vazio, mostrar todas as competições
+                    renderizarCompeticoes(todas);
+                } else {
+                    // Filtrar competições pelo nome
+                    const competicoesFiltradas = todas.filter(comp => 
+                        comp.nome.toLowerCase().includes(termoPesquisa)
+                    );
+                    renderizarCompeticoes(competicoesFiltradas);
+                }
+            }
+            
+            // Adicionar evento de clique ao botão de pesquisa
+            searchButton.addEventListener('click', pesquisarCompeticoes);
+            
+            // Adicionar evento de tecla Enter ao campo de pesquisa
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    pesquisarCompeticoes();
+                }
+            });
+            
+            // Renderizar todas as competições inicialmente
+            renderizarCompeticoes(todas);
+            
+            // Adicionar botão para limpar todos os dados do localStorage
+            const limparDadosButton = document.createElement('button');
+            limparDadosButton.textContent = 'Limpar Todos os Dados';
+            limparDadosButton.style.position = 'absolute';
+            limparDadosButton.style.left = '30px';
+            limparDadosButton.style.bottom = '30px';
+            limparDadosButton.style.padding = '10px 20px';
+            limparDadosButton.style.fontSize = '16px';
+            limparDadosButton.style.border = '2px solid #c00';
+            limparDadosButton.style.background = 'white';
+            limparDadosButton.style.borderRadius = '8px';
+            limparDadosButton.style.cursor = 'pointer';
+            limparDadosButton.style.color = '#c00';
+            
+            limparDadosButton.addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja limpar TODOS os dados de competições, jogadores e agendamentos? Esta ação não pode ser desfeita.')) {
+                    // Limpar todo o localStorage
+                    localStorage.clear();
+                    alert('Todos os dados foram limpos com sucesso. A página será recarregada.');
+                    window.location.reload();
+                }
+            });
+            
+            document.body.appendChild(limparDadosButton);
         });
     </script>
 </body>

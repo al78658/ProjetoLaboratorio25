@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿@{
+﻿﻿﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -477,6 +477,7 @@
                     <input type="text" id="searchInput" placeholder="Pesquise um jogador ou equipa">
                 </div>
                 <button id="searchButton" class="button">Pesquisar</button>
+                <a href="/Admin" class="button" style="margin-right: 10px;">Administração</a>
                 <a href="/Home/Logout" class="button">Logout</a>
                 
                 <!-- Resultados da pesquisa -->
@@ -741,7 +742,7 @@
                 
                 if (!jogadoresStr) {
                     console.log("Nenhum jogador encontrado em nenhuma chave do localStorage");
-                    searchResultsList.innerHTML = '<li style="padding: 12px 16px;">Nenhum jogador encontrado.</li>';
+                    searchResultsList.innerHTML = '<li style="padding: 12px 16px;">Nenhum jogador/clube encontrado.</li>';
                     searchResults.style.display = 'block';
                     return;
                 }
@@ -762,7 +763,7 @@
                         }
                     }
                     
-                    // Filtrar jogadores
+                    // Filtrar jogadores e clubes
                     const resultados = jogadoresProcessados.filter(j => {
                         const nomeMatch = j.nome && j.nome.toLowerCase().includes(termo.toLowerCase());
                         const codigoMatch = j.codigo && j.codigo.toLowerCase().includes(termo.toLowerCase());
@@ -770,32 +771,96 @@
                         return nomeMatch || codigoMatch || clubeMatch;
                     });
                     
+                    // Extrair clubes únicos para pesquisa de equipes
+                    const clubesUnicos = [];
+                    const clubesJaAdicionados = {};
+                    
+                    jogadoresProcessados.forEach(j => {
+                        if (j.clube && j.clube.trim() !== '' && !clubesJaAdicionados[j.clube]) {
+                            if (j.clube.toLowerCase().includes(termo.toLowerCase())) {
+                                clubesUnicos.push({
+                                    nome: j.clube,
+                                    isClube: true,
+                                    jogadores: jogadoresProcessados.filter(jogador => jogador.clube === j.clube)
+                                });
+                                clubesJaAdicionados[j.clube] = true;
+                            }
+                        }
+                    });
+                    
                     console.log("Resultados encontrados:", resultados.length);
                     
-                    // Exibir resultados
-                    if (resultados.length === 0) {
-                        searchResultsList.innerHTML = '<li style="padding: 12px 16px;">Nenhum jogador encontrado.</li>';
+                    // Exibir resultados (jogadores e clubes)
+                    const todosResultados = [...resultados, ...clubesUnicos];
+                    
+                    if (todosResultados.length === 0) {
+                        searchResultsList.innerHTML = '<li style="padding: 12px 16px;">Nenhum jogador ou equipa encontrado.</li>';
                     } else {
                         searchResultsList.innerHTML = '';
-                        resultados.forEach(jogador => {
-                            const li = document.createElement('li');
-                            li.style.padding = '12px 16px';
-                            li.style.borderBottom = '1px solid #eee';
-                            li.style.cursor = 'pointer';
+                        
+                        // Primeiro exibir jogadores
+                        if (resultados.length > 0) {
+                            const headerJogadores = document.createElement('li');
+                            headerJogadores.style.padding = '8px 16px';
+                            headerJogadores.style.backgroundColor = '#f0f0f0';
+                            headerJogadores.style.fontWeight = 'bold';
+                            headerJogadores.textContent = 'Jogadores';
+                            searchResultsList.appendChild(headerJogadores);
                             
-                            li.innerHTML = `
-                                <strong>${jogador.nome || 'Sem nome'}</strong> ${jogador.codigo ? `(${jogador.codigo})` : ''}<br>
-                                <small>${jogador.categoria || ''} ${jogador.clube ? `- ${jogador.clube}` : ''}</small>
-                            `;
-                            
-                            li.addEventListener('click', function() {
-                                // Armazenar jogador selecionado e redirecionar para a página de detalhes
-                                localStorage.setItem('jogadorSelecionado', JSON.stringify(jogador));
-                                window.location.href = '/Dados';
+                            resultados.forEach(jogador => {
+                                const li = document.createElement('li');
+                                li.style.padding = '12px 16px';
+                                li.style.borderBottom = '1px solid #eee';
+                                li.style.cursor = 'pointer';
+                                
+                                li.innerHTML = `
+                                    <strong>${jogador.nome || 'Sem nome'}</strong> ${jogador.codigo ? `(${jogador.codigo})` : ''}<br>
+                                    <small>${jogador.categoria || ''} ${jogador.clube ? `- ${jogador.clube}` : ''}</small>
+                                `;
+                                
+                                li.addEventListener('click', function() {
+                                    // Limpar qualquer seleção anterior
+                                    localStorage.removeItem('equipaSelecionada');
+                                    // Armazenar jogador selecionado e redirecionar para a página de detalhes
+                                    localStorage.setItem('jogadorSelecionado', JSON.stringify(jogador));
+                                    window.location.href = '/Dados';
+                                });
+                                
+                                searchResultsList.appendChild(li);
                             });
+                        }
+                        
+                        // Depois exibir clubes
+                        if (clubesUnicos.length > 0) {
+                            const headerClubes = document.createElement('li');
+                            headerClubes.style.padding = '8px 16px';
+                            headerClubes.style.backgroundColor = '#f0f0f0';
+                            headerClubes.style.fontWeight = 'bold';
+                            headerClubes.textContent = 'Equipas';
+                            searchResultsList.appendChild(headerClubes);
                             
-                            searchResultsList.appendChild(li);
-                        });
+                            clubesUnicos.forEach(clube => {
+                                const li = document.createElement('li');
+                                li.style.padding = '12px 16px';
+                                li.style.borderBottom = '1px solid #eee';
+                                li.style.cursor = 'pointer';
+                                
+                                li.innerHTML = `
+                                    <strong>Equipa: ${clube.nome}</strong><br>
+                                    <small>${clube.jogadores.length} jogadores</small>
+                                `;
+                                
+                                li.addEventListener('click', function() {
+                                    // Limpar qualquer seleção anterior
+                                    localStorage.removeItem('jogadorSelecionado');
+                                    // Armazenar equipe selecionada e redirecionar para a página de detalhes
+                                    localStorage.setItem('equipaSelecionada', JSON.stringify(clube));
+                                    window.location.href = '/Dados';
+                                });
+                                
+                                searchResultsList.appendChild(li);
+                            });
+                        }
                     }
                     
                     searchResults.style.display = 'block';

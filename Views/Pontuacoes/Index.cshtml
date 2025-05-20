@@ -1,4 +1,4 @@
-﻿﻿@{
+﻿﻿﻿@{
     Layout = null;
 }
 
@@ -325,13 +325,16 @@
                         erro = true;
                     }
 
+                    // Preservar a estrutura original dos jogadores
                     return {
                         jogador1: jogo.jogador1,
                         jogador2: jogo.jogador2,
                         pontuacao: score,
                         vencedor,
                         motivo,
-                        isClube: jogo.isClube
+                        isClube: jogo.isClube,
+                        data: jogo.data,
+                        hora: jogo.hora
                     };
                 });
 
