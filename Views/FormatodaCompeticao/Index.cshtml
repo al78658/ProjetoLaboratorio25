@@ -180,13 +180,16 @@
         </a>
     </div>
 
+    <!-- Navegação de Criação de Competição -->
+    @await Html.PartialAsync("_CriacaoCompeticaoNav", "Formato da Competição")
+
     <!-- Conteúdo -->
     <div class="main-container">
         <h2>Formato da Competição</h2>
 
         <div class="fase-selector">
             <label for="numFases">Número de Fases</label>
-            <input type="number" id="numFases" name="numFases" min="1" max="5" value="2" onchange="updateTableRows()" />
+            <input type="number" id="numFases" name="numFases" min="1" max="5" value="@ViewBag.NumFases ?? 2" onchange="updateTableRows()" />
         </div>
 
         <table id="fasesTable">
@@ -194,7 +197,7 @@
                 <tr>
                     <th>#</th>
                     <th>Nome da Fase</th>
-                    <th>Tipo da Fase</th>
+                    <th>Formato da Fase</th>
                     <th>Configuração</th>
                 </tr>
             </thead>
@@ -202,18 +205,38 @@
             </tbody>
         </table>
 
-        <button class="next-button" onclick="window.location.href='@Url.Action("Index", "ListadeJogadores")'">Seguinte</button>
+        <button class="next-button" id="nextButton">Seguinte</button>
     </div>
 
     <!-- Botão Voltar -->   
     <a href="/CriarCompeticao" class="back-button" id="btnVoltar">&lt;Voltar</a>
 
     <script>
-        // Armazena os formatos selecionados
-        const formatosSelecionados = {};
+        // Recebe do Razor (TempData) ou do localStorage
+        const competicaoId = '@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId');
+        let formatosSelecionados = {};
+        try {
+            formatosSelecionados = @Html.Raw(ViewBag.FormatosSelecionados ?? "{}");
+        } catch (e) { 
+            // Tenta recuperar do localStorage se disponível
+            const savedFormatos = localStorage.getItem('formatosSelecionados');
+            formatosSelecionados = savedFormatos ? JSON.parse(savedFormatos) : {};
+        }
 
         function updateFormat(formato, faseNum) {
             formatosSelecionados[faseNum] = formato;
+            
+            // Salva no localStorage para persistência entre páginas
+            localStorage.setItem('formatosSelecionados', JSON.stringify(formatosSelecionados));
+            
+            // Salva no servidor via AJAX, agora com competicaoId
+            if (competicaoId) {
+                fetch(`/FormatodaCompeticao/SalvarFormatos?competicaoId=${competicaoId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formatosSelecionados)
+                });
+            }
         }
 
         function configurarFase(faseNum) {
@@ -222,11 +245,23 @@
                 alert('Por favor, selecione um formato para a fase antes de configurar.');
                 return;
             }
-            window.location.href = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNum}&formato=${formato}`;
+            window.location.href = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNum}&formato=${formato}&competicaoId=${competicaoId}`;
         }
 
         function updateTableRows() {
             const numFases = parseInt(document.getElementById('numFases').value);
+            
+            // Salva o número de fases no localStorage
+            localStorage.setItem('numFases', numFases);
+            
+            // Salva o número de fases no servidor via AJAX se houver competicaoId
+            if (competicaoId) {
+                fetch(`/FormatodaCompeticao/SalvarNumFases?competicaoId=${competicaoId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(numFases)
+                });
+            }
             const tableBody = document.getElementById('fasesTableBody');
             tableBody.innerHTML = '';
 
@@ -236,11 +271,11 @@
                     <td>${i}</td>
                     <td>Fase ${i}</td>
                     <td>
-                        <select onchange="updateFormat(this.value, ${i})">
-                            <option selected disabled>Forma de Apuramento</option>
+                        <select onchange="updateFormat(this.value, ${i})" id="select-fase-${i}">
+                            <option disabled${!formatosSelecionados[i] ? ' selected' : ''}>Formato</option>
                             <option value="round-robin">Round Robin (Todos contra todos)</option>
                             <option value="ave">Sistema AVE</option>
-                            <option value="eliminacao">Eliminatórias Diretas</option>
+                            <option value="eliminacao">Taça</option>
                             <option value="campeonato">Campeonato (Liga)</option>
                             <option value="duplo-ko">Duplo KO</option>
                         </select>
@@ -252,11 +287,78 @@
                 `;
                 tableBody.appendChild(row);
             }
+
+            // Após criar as linhas, definir o valor dos selects conforme formatosSelecionados
+            for (let i = 1; i <= numFases; i++) {
+                if (formatosSelecionados[i]) {
+                    const select = document.getElementById(`select-fase-${i}`);
+                    if (select) select.value = formatosSelecionados[i];
+                }
+            }
         }
 
-        // Initialize table with default value
+        // Initialize table with default value e handler do botão Seguinte
         document.addEventListener('DOMContentLoaded', function() {
+            // Se existir valor vindo do servidor, usa-o, senão tenta do localStorage
+            const numFasesInput = document.getElementById('numFases');
+            if (@ViewBag.NumFases != null) {
+                numFasesInput.value = @ViewBag.NumFases;
+            } else {
+                const savedNumFases = localStorage.getItem('numFases');
+                if (savedNumFases) {
+                    numFasesInput.value = savedNumFases;
+                }
+            }
             updateTableRows();
+
+            // Handler do botão Seguinte
+            const nextButton = document.getElementById('nextButton');
+            nextButton.addEventListener('click', function (e) {
+                let numFases = parseInt(document.getElementById('numFases').value);
+                // Descobre as fases configuradas
+                let fasesConfiguradas = 0;
+                let fasesComFormato = [];
+                for (let i = 1; i <= numFases; i++) {
+                    if (formatosSelecionados[i]) {
+                        fasesConfiguradas++;
+                        fasesComFormato.push({ fase: i, formato: formatosSelecionados[i] });
+                    }
+                }
+                if (fasesConfiguradas < numFases) {
+                    const continuar = confirm(`Só configurou ${fasesConfiguradas} de ${numFases} fases. Deseja continuar apenas com as fases configuradas? (OK para continuar, Cancelar para configurar as restantes)`);
+                    if (!continuar) {
+                        // Fica na página para configurar as restantes
+                        return;
+                    }
+                    // Remove fases não configuradas e renumera as fases
+                    formatosSelecionados = {};
+                    for (let j = 0; j < fasesComFormato.length; j++) {
+                        formatosSelecionados[j + 1] = fasesComFormato[j].formato;
+                    }
+                    // Atualiza o número de fases para o número de fases configuradas
+                    numFasesInput.value = fasesComFormato.length;
+
+                    // Atualiza no servidor (número de fases e formatos)
+                    Promise.all([
+                        fetch(`/FormatodaCompeticao/SalvarNumFases?competicaoId=${competicaoId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(fasesComFormato.length)
+                        }),
+                        fetch(`/FormatodaCompeticao/SalvarFormatos?competicaoId=${competicaoId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(formatosSelecionados)
+                        })
+                    ]).then(() => {
+                        updateTableRows();
+                        // Não avança ainda, espera o usuário clicar novamente
+                    });
+                    return;
+                }
+                // Avança para a próxima página
+                window.location.href = '@Url.Action("Index", "ListadeJogadores")';
+            });
         });
 
         document.getElementById('btnVoltar').addEventListener('click', async function (e) {

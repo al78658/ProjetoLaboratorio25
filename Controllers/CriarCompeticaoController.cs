@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ProjetoLaboratorio25.Controllers
 {
@@ -24,14 +25,29 @@ namespace ProjetoLaboratorio25.Controllers
             // Validar dados do formulário
             if (string.IsNullOrEmpty(nome) || string.IsNullOrEmpty(tipo))
             {
-                return View();
+                ModelState.AddModelError("", "Nome e tipo de competição são obrigatórios.");
+                return View("Index");
+            }
+
+            // Verificar se já existe uma competição com o mesmo nome
+            var competicaoExistente = _context.Competicoes
+                .FirstOrDefault(c => c.Nome.ToLower() == nome.ToLower());
+
+            if (competicaoExistente != null)
+            {
+                ModelState.AddModelError("", "Já existe uma competição com este nome.");
+                return View("Index");
             }
 
             // Criar nova competição com dados básicos
             var competicao = new Competicao
             {
                 Nome = nome,
-                TipoCompeticao = tipo
+                TipoCompeticao = tipo,
+                NumJogadores = 2, // Valores padrão
+                NumEquipas = 2,   // Valores padrão
+                PontosVitoria = 3, // Valores padrão
+                PontosEmpate = 1   // Valores padrão
             };
 
             try
@@ -39,13 +55,38 @@ namespace ProjetoLaboratorio25.Controllers
                 // Adicionar competição ao contexto
                 _context.Competicoes.Add(competicao);
                 
-                // Salvar mudanças no banco de dados
+                // Salvar mudanças no banco de dados para obter o ID da competição
+                _context.SaveChanges();
+
+                // Criar configurações de fase padrão (2 fases iniciais)
+                int numFasesPadrao = 2;
+                for (int i = 1; i <= numFasesPadrao; i++)
+                {
+                    var configuracaoFase = new ConfiguracaoFase
+                    {
+                        CompeticaoId = competicao.Id,
+                        FaseNumero = i,
+                        NumJogosPorFase = 1, // Valor padrão
+                        Formato = "round-robin", // Formato padrão
+                        PontosVitoria = competicao.PontosVitoria,
+                        PontosEmpate = competicao.PontosEmpate,
+                        PontosDerrota = 0,
+                        PontosFaltaComparencia = 0,
+                        PontosDesclassificacao = 0,
+                        PontosExtra = 0,
+                        CriteriosDesempate = new List<string>() { "confronto" } // Critério padrão
+                    };
+                    _context.ConfiguracoesFase.Add(configuracaoFase);
+                }
+                
+                // Salvar as configurações de fase
                 _context.SaveChanges();
 
                 // Armazenar dados temporários para próxima view
                 TempData["NomeCompeticao"] = nome;
                 TempData["TipoCompeticao"] = tipo;
                 TempData["CompeticaoId"] = competicao.Id;
+                TempData["NumFases"] = numFasesPadrao;
 
                 // Redirecionar para configuração de formato
                 return RedirectToAction("Index", "FormatodaCompeticao");
@@ -54,7 +95,7 @@ namespace ProjetoLaboratorio25.Controllers
             {
                 // Em caso de erro, mostrar mensagem e retornar à view
                 ModelState.AddModelError("", "Erro ao criar competição: " + ex.Message);
-                return View();
+                return View("Index");
             }
         }
     }

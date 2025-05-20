@@ -27,9 +27,20 @@ namespace ProjetoLaboratorio25.Models
         [Range(0, int.MaxValue)]
         public int PontosEmpate { get; set; }
 
+
         [Required]
         [Range(0, int.MaxValue)]
         public int PontosDerrota { get; set; }
+
+        // Novos campos para Campeonato
+        [Range(0, int.MaxValue)]
+        public int PontosFaltaComparencia { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int PontosDesclassificacao { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int PontosExtra { get; set; }
 
         public List<string> CriteriosDesempate { get; set; } = new List<string>();
 

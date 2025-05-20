@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProjetoLaboratorio25.Data;
 
@@ -10,9 +11,11 @@ using ProjetoLaboratorio25.Data;
 namespace ProjetoLaboratorio25.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250516101840_AddNumJogosPorFase")]
+    partial class AddNumJogosPorFase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -85,16 +88,7 @@ namespace ProjetoLaboratorio25.Migrations
                     b.Property<int>("PontosDerrota")
                         .HasColumnType("int");
 
-                    b.Property<int>("PontosDesclassificacao")
-                        .HasColumnType("int");
-
                     b.Property<int>("PontosEmpate")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PontosExtra")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PontosFaltaComparencia")
                         .HasColumnType("int");
 
                     b.Property<int>("PontosVitoria")

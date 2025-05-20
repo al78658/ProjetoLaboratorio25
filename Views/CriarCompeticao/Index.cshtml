@@ -89,6 +89,50 @@
             .submit-button:hover {
                 background-color: #dcdcdc;
             }
+            
+        .reset-button {
+            width: 100%;
+            font-size: 16px;
+            padding: 12px 0;
+            background: #f0f0f0;
+            border: 1px solid #999;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            color: #555;
+        }
+        
+        .reset-button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .continue-button {
+            width: 100%;
+            font-size: 18px;
+            padding: 15px 0;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .continue-button:hover {
+            background-color: #45a049;
+        }
+        
+        .info-message {
+            background-color: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #495057;
+            text-align: left;
+            border-radius: 0 4px 4px 0;
+        }
 
         .back-button {
             position: absolute;
@@ -147,6 +191,9 @@
         </a>
     </div>
 
+    <!-- Navegação de Criação de Competição -->
+    @await Html.PartialAsync("_CriacaoCompeticaoNav", "Definir Competição")
+
     <!-- Conteúdo -->
     <div class="form-container">
         <div class="form-box">
@@ -202,11 +249,89 @@
                 });
             </script>
 
+
+
         </div>
     </div>
 
     <!-- Botão Voltar -->   
         <a href="/Home" class="back-button">&lt;Voltar</a>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const nomeInput = document.getElementById('nome');
+                const tipoSelect = document.getElementById('tipo');
+                // Verificar se estamos em um processo de criação em andamento
+                const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+                const tipoCompeticao = localStorage.getItem('tipoCompeticao');
+                if (nomeCompeticao && tipoCompeticao) {
+                    // Se já temos dados no localStorage, preencher os campos
+                    nomeInput.value = nomeCompeticao;
+                    tipoSelect.value = tipoCompeticao;
+                } else {
+                    // Verificar se estamos iniciando uma nova competição
+                    // Só limpar dados se não houver parâmetro de URL indicando edição
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const isEditing = urlParams.has('edit') || '@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId');
+                    if (!isEditing) {
+                        // Se estamos iniciando uma nova competição, limpar dados anteriores
+                        localStorage.removeItem('jogadoresList');
+                        localStorage.removeItem('jogadoresParaEmparelhar');
+                        localStorage.removeItem('formatosSelecionados');
+                        localStorage.removeItem('numFases');
+                        localStorage.removeItem('nomeCompeticao');
+                        localStorage.removeItem('tipoCompeticao');
+                        localStorage.removeItem('competicaoId');
+                        console.log('Iniciando nova competição, dados anteriores limpos');
+                    } else {
+                        console.log('Editando competição existente, mantendo dados');
+                    }
+                }
+            });
+            
+            document.getElementById('formCriarCompeticao').addEventListener('submit', function (e) {
+                // Guardar o nome da competição e tipo no localStorage antes de submeter
+                var nome = document.getElementById('nome').value;
+                var tipo = document.getElementById('tipo').value;
+                
+                if (!nome || nome.trim() === '') {
+                    e.preventDefault();
+                    alert('Por favor, insira um nome para a competição.');
+                    return false;
+                }
+                
+                // Verificar se estamos atualizando uma competição existente ou criando uma nova
+                const isUpdating = localStorage.getItem('nomeCompeticao') && 
+                                  (localStorage.getItem('formatosSelecionados') || 
+                                   localStorage.getItem('jogadoresList'));
+                
+                if (isUpdating) {
+                    // Se estamos apenas atualizando, perguntar ao usuário
+                    if (!confirm('Você já tem uma competição em andamento. Deseja atualizar os dados desta competição?')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+                
+                // Atualizar os dados no localStorage
+                localStorage.setItem('nomeCompeticao', nome);
+                localStorage.setItem('tipoCompeticao', tipo);
+                localStorage.setItem('ultimaAtualizacao', new Date().toISOString());
+                
+                // Se já temos um ID de competição do servidor, armazená-lo também
+                @if (ViewBag.CompeticaoId != null) {
+                    <text>
+                    localStorage.setItem('competicaoId', '@ViewBag.CompeticaoId');
+                    </text>
+                }
+                
+                // Permitir o submit normal
+                console.log('Dados da competição atualizados:', { nome, tipo });
+            });
+            
+
+        </script>
+
 
 </body>
 </html>
