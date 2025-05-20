@@ -1,4 +1,4 @@
-﻿﻿﻿@{
+﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -231,10 +231,31 @@
                     atualizarContadorJogadores();
                 }
 
-                // Verificar se há jogadores no localStorage
-                const jogadoresSalvos = localStorage.getItem('jogadoresImportados');
+                // Verificar se estamos em um processo de criação de competição
+                const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+                const tipoCompeticao = localStorage.getItem('tipoCompeticao');
+                
+                // Atualizar o título da página com base no tipo de competição
+                const h2Title = document.querySelector('h2');
+                if (tipoCompeticao === 'equipas') {
+                    h2Title.textContent = 'Lista das Equipas';
+                    document.title = 'Lista das Equipas';
+                } else {
+                    h2Title.textContent = 'Lista dos Jogadores';
+                    document.title = 'Lista dos Jogadores';
+                }
+                
+                // Verificar se há jogadores específicos para esta competição
+                const jogadoresKey = `jogadoresList_${nomeCompeticao}`;
+                const jogadoresSalvos = localStorage.getItem(jogadoresKey);
+                
                 if (jogadoresSalvos) {
+                    // Usar jogadores específicos desta competição
                     jogadoresArray = JSON.parse(jogadoresSalvos);
+                    renderizarTabelaJogadores();
+                } else {
+                    // Limpar a tabela para nova importação
+                    jogadoresArray = [];
                     renderizarTabelaJogadores();
                 }
 
@@ -289,8 +310,20 @@
                             }
                         });
                         
-                        // Salvar no localStorage
-                        localStorage.setItem('jogadoresImportados', JSON.stringify(jogadoresArray));
+                        // Obter o nome da competição atual
+                        const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+                        if (!nomeCompeticao) {
+                            alert('Erro: Nenhuma competição em andamento.');
+                            window.location.href = '/CriarCompeticao';
+                            return;
+                        }
+                        
+                        // Salvar no localStorage específico para esta competição
+                        const jogadoresKey = `jogadoresList_${nomeCompeticao}`;
+                        localStorage.setItem(jogadoresKey, JSON.stringify(jogadoresArray));
+                        
+                        // Também salvar na chave geral para compatibilidade
+                        localStorage.setItem('jogadoresList', JSON.stringify(jogadoresArray));
                         
                         // Atualizar a tabela
                         renderizarTabelaJogadores();
@@ -308,8 +341,25 @@
                         alert('O número de jogadores deve ser par para emparelhamento.');
                         return;
                     }
+                    
+                    // Obter o nome da competição atual
+                    const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+                    if (!nomeCompeticao) {
+                        alert('Erro: Nenhuma competição em andamento.');
+                        window.location.href = '/CriarCompeticao';
+                        return;
+                    }
+                    
+                    // Salvar no localStorage específico para esta competição
+                    const jogadoresKey = `jogadoresList_${nomeCompeticao}`;
+                    localStorage.setItem(jogadoresKey, JSON.stringify(jogadoresArray));
+                    
+                    // Também salvar na chave geral para compatibilidade
+                    localStorage.setItem('jogadoresList', JSON.stringify(jogadoresArray));
 
+                    // Salvar para emparelhamento
                     localStorage.setItem('jogadoresParaEmparelhar', JSON.stringify(jogadoresArray));
+                    
                     window.location.href = '/Emparelhamento';
                 });
             });

@@ -1,4 +1,4 @@
-﻿﻿﻿@{
+﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -183,9 +183,27 @@
                 // Primeiro tenta jogadoresParaEmparelhar (enviados da página anterior)
                 jogadores = JSON.parse(localStorage.getItem('jogadoresParaEmparelhar')) || [];
                 
-                // Se não tiver jogadores do emparelhamento, tenta usar a lista de jogadores
+                // Se não tiver jogadores do emparelhamento, tenta usar a lista específica desta competição
                 if (jogadores.length === 0) {
-                    jogadores = JSON.parse(localStorage.getItem('jogadoresList')) || [];
+                    const jogadoresKey = `jogadoresList_${nomeCompeticao}`;
+                    jogadores = JSON.parse(localStorage.getItem(jogadoresKey)) || [];
+                    
+                    // Se ainda não tiver, tenta a lista geral (para compatibilidade)
+                    if (jogadores.length === 0) {
+                        jogadores = JSON.parse(localStorage.getItem('jogadoresList')) || [];
+                    }
+                }
+                
+                // Atualizar o título com base no tipo de competição
+                const tipoCompeticao = localStorage.getItem('tipoCompeticao') || '';
+                const h1Title = document.querySelector('h1');
+                
+                if (tipoCompeticao === 'equipas') {
+                    h1Title.textContent = 'Emparelhamento de Equipas';
+                    document.title = 'Emparelhamento de Equipas';
+                } else {
+                    h1Title.textContent = 'Emparelhamento';
+                    document.title = 'Emparelhamento';
                 }
             }
 

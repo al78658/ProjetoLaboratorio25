@@ -243,8 +243,10 @@
                         erroDiv.textContent = 'Já existe uma competição com esse nome. Por favor escolha outro nome.';
                         return;
                     }
-                    // Se não existir, submete o form normalmente
-                    localStorage.setItem('nomeCompeticao', nome); // <-- Adicionado
+                    // Se não existir, salva os dados e submete o form
+                    const tipo = document.getElementById('tipo').value;
+                    localStorage.setItem('nomeCompeticao', nome);
+                    localStorage.setItem('tipoCompeticao', tipo);
                     document.getElementById('formCriarCompeticao').submit();
                 });
             </script>
@@ -261,31 +263,43 @@
             document.addEventListener('DOMContentLoaded', function() {
                 const nomeInput = document.getElementById('nome');
                 const tipoSelect = document.getElementById('tipo');
+                
                 // Verificar se estamos em um processo de criação em andamento
                 const nomeCompeticao = localStorage.getItem('nomeCompeticao');
                 const tipoCompeticao = localStorage.getItem('tipoCompeticao');
-                if (nomeCompeticao && tipoCompeticao) {
+                
+                // Verificar se estamos iniciando uma nova competição ou editando
+                const urlParams = new URLSearchParams(window.location.search);
+                const isEditing = urlParams.has('edit') || '@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId');
+                const isNewCompetition = urlParams.has('new');
+                
+                if (isNewCompetition) {
+                    // Se estamos explicitamente iniciando uma nova competição, limpar dados anteriores
+                    localStorage.removeItem('jogadoresList');
+                    localStorage.removeItem('jogadoresParaEmparelhar');
+                    localStorage.removeItem('formatosSelecionados');
+                    localStorage.removeItem('numFases');
+                    localStorage.removeItem('nomeCompeticao');
+                    localStorage.removeItem('tipoCompeticao');
+                    localStorage.removeItem('competicaoId');
+                    console.log('Iniciando nova competição, dados anteriores limpos');
+                } else if (nomeCompeticao && tipoCompeticao) {
                     // Se já temos dados no localStorage, preencher os campos
                     nomeInput.value = nomeCompeticao;
                     tipoSelect.value = tipoCompeticao;
+                    console.log('Continuando competição existente:', nomeCompeticao);
+                } else if (!isEditing) {
+                    // Se não estamos editando e não temos dados, limpar para começar nova
+                    localStorage.removeItem('jogadoresList');
+                    localStorage.removeItem('jogadoresParaEmparelhar');
+                    localStorage.removeItem('formatosSelecionados');
+                    localStorage.removeItem('numFases');
+                    localStorage.removeItem('nomeCompeticao');
+                    localStorage.removeItem('tipoCompeticao');
+                    localStorage.removeItem('competicaoId');
+                    console.log('Iniciando nova competição, dados anteriores limpos');
                 } else {
-                    // Verificar se estamos iniciando uma nova competição
-                    // Só limpar dados se não houver parâmetro de URL indicando edição
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const isEditing = urlParams.has('edit') || '@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId');
-                    if (!isEditing) {
-                        // Se estamos iniciando uma nova competição, limpar dados anteriores
-                        localStorage.removeItem('jogadoresList');
-                        localStorage.removeItem('jogadoresParaEmparelhar');
-                        localStorage.removeItem('formatosSelecionados');
-                        localStorage.removeItem('numFases');
-                        localStorage.removeItem('nomeCompeticao');
-                        localStorage.removeItem('tipoCompeticao');
-                        localStorage.removeItem('competicaoId');
-                        console.log('Iniciando nova competição, dados anteriores limpos');
-                    } else {
-                        console.log('Editando competição existente, mantendo dados');
-                    }
+                    console.log('Editando competição existente, mantendo dados');
                 }
             });
             

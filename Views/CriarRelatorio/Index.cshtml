@@ -51,7 +51,7 @@
             padding: 24px;
             border-radius: 12px;
             width: 90%;
-            max-width: 860px; /* largura intermédia */
+            max-width: 860px;
         }
 
         h2 {
@@ -137,7 +137,7 @@
         <div class="box">
             <h2>Criar Relatório</h2>
 
-            <form>
+            <form id="formRelatorio">
                 <div>
                     <label for="nomeRelatorio">Nome do Relatório:</label>
                     <input type="text" id="nomeRelatorio" name="nomeRelatorio" />
@@ -157,16 +157,47 @@
                     </select>
                 </div>
 
-                <button type="button" class="btn" onclick="window.location.href='/ConsultarRelatorio'">
-                    Criar
-                </button>
-
+                <button type="button" class="btn" onclick="guardarDadosRelatorio()">Criar</button>
             </form>
         </div>
     </div>
 
     <!-- Botão Voltar -->
     <a href="/Menu" class="back-button">&lt;Voltar</a>
+
+    <script>
+        function guardarDadosRelatorio() {
+            const nome = document.getElementById('nomeRelatorio').value;
+            const categoria = document.getElementById('categoria').value;
+
+            if (!nome || nome.trim() === '') {
+                alert('Por favor, insira um nome para o relatório.');
+                return;
+            }
+
+            localStorage.setItem('nomeRelatorio', nome);
+            localStorage.setItem('categoriaRelatorio', categoria);
+            localStorage.setItem('ultimaAtualizacaoRelatorio', new Date().toISOString());
+
+            console.log('Dados do relatório guardados:', { nome, categoria });
+
+            // Redirecionar
+            window.location.href = '/ConsultarRelatorio';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const nomeGuardado = localStorage.getItem('nomeRelatorio');
+            const categoriaGuardada = localStorage.getItem('categoriaRelatorio');
+
+            if (nomeGuardado) {
+                document.getElementById('nomeRelatorio').value = nomeGuardado;
+            }
+
+            if (categoriaGuardada) {
+                document.getElementById('categoria').value = categoriaGuardada;
+            }
+        });
+    </script>
 
 </body>
 </html>

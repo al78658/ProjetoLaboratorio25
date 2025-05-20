@@ -193,6 +193,24 @@
             const tipoTexto = tipoCompeticao === 'equipas' ? 'Equipas' : 'Individual';
             
             navTitle.innerHTML = `Etapas de Criação<br><small style="font-weight:normal;font-size:12px;">${nomeCompeticao} (${tipoTexto})</small>`;
+            
+            // Atualizar os textos das etapas com base no tipo de competição
+            if (tipoCompeticao === 'equipas') {
+                document.querySelector('[data-controller="ListadeJogadores"] .criacao-nav-text').textContent = 'Lista de Equipas';
+                document.querySelector('[data-controller="Emparelhamento"] .criacao-nav-text').textContent = 'Emparelhamento de Equipas';
+            } else {
+                document.querySelector('[data-controller="ListadeJogadores"] .criacao-nav-text').textContent = 'Lista de Jogadores';
+                document.querySelector('[data-controller="Emparelhamento"] .criacao-nav-text').textContent = 'Emparelhamento';
+            }
+            
+            // Atualizar os textos das etapas com base no tipo de competição
+            if (tipoCompeticao === 'equipas') {
+                document.querySelector('[data-controller="ListadeJogadores"] .criacao-nav-text').textContent = 'Lista de Equipas';
+                document.querySelector('[data-controller="Emparelhamento"] .criacao-nav-text').textContent = 'Emparelhamento de Equipas';
+            } else {
+                document.querySelector('[data-controller="ListadeJogadores"] .criacao-nav-text').textContent = 'Lista de Jogadores';
+                document.querySelector('[data-controller="Emparelhamento"] .criacao-nav-text').textContent = 'Emparelhamento';
+            }
         }
     });
 </script>
