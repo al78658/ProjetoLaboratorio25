@@ -120,20 +120,33 @@
     // Função para verificar navegação entre etapas
     function verificarNavegacao(controller) {
         const nomeCompeticao = localStorage.getItem('nomeCompeticao');
-        
-        // Se estamos indo para CriarCompeticao, verificar se já temos dados
+        // Sempre permitir voltar para a primeira etapa
         if (controller === 'CriarCompeticao') {
-            // Sempre permitir voltar para a primeira etapa
             return true;
         }
-        
         // Para outras etapas, verificar se temos nome de competição
         if (!nomeCompeticao) {
             alert('Você precisa definir uma competição primeiro.');
             window.location.href = '/CriarCompeticao';
             return false;
         }
-        
+        // Bloquear acesso ao emparelhamento se não houver lista de jogadores/equipas
+        if (controller === 'Emparelhamento') {
+            const tipoCompeticao = localStorage.getItem('tipoCompeticao');
+            if (tipoCompeticao === 'equipas') {
+                const equipas = localStorage.getItem('equipasList');
+                if (!equipas) {
+                    alert('Adicione equipas antes de aceder ao emparelhamento.');
+                    return false;
+                }
+            } else {
+                const jogadores = localStorage.getItem('jogadoresList');
+                if (!jogadores) {
+                    alert('Adicione jogadores antes de aceder ao emparelhamento.');
+                    return false;
+                }
+            }
+        }
         return true;
     }
     
