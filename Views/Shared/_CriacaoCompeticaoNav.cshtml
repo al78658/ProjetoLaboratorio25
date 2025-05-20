@@ -19,7 +19,8 @@
         {
             var isActive = etapa.Nome == etapaAtual;
             <a href="/@etapa.Controller" class="criacao-nav-step @(isActive ? "active" : "")" 
-               data-controller="@etapa.Controller" data-action="@etapa.Action">
+               data-controller="@etapa.Controller" data-action="@etapa.Action"
+               onclick="return verificarNavegacao('@etapa.Controller')">
                 <span class="criacao-nav-icon">@etapa.Icone</span>
                 <span class="criacao-nav-text">@etapa.Nome</span>
             </a>
@@ -69,8 +70,14 @@
     }
 
     .criacao-nav-step.active {
-        background-color: #e0e0e0;
+        background-color: #4CAF50;
+        color: white;
         font-weight: bold;
+    }
+    
+    .criacao-nav-step.completed {
+        background-color: #e8f5e9;
+        border-left: 3px solid #4CAF50;
     }
 
     .criacao-nav-icon {
@@ -110,6 +117,26 @@
 </style>
 
 <script>
+    // Função para verificar navegação entre etapas
+    function verificarNavegacao(controller) {
+        const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+        
+        // Se estamos indo para CriarCompeticao, verificar se já temos dados
+        if (controller === 'CriarCompeticao') {
+            // Sempre permitir voltar para a primeira etapa
+            return true;
+        }
+        
+        // Para outras etapas, verificar se temos nome de competição
+        if (!nomeCompeticao) {
+            alert('Você precisa definir uma competição primeiro.');
+            window.location.href = '/CriarCompeticao';
+            return false;
+        }
+        
+        return true;
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
         // Verificar se há uma competição em andamento
         const competicaoId = '@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId');
@@ -139,38 +166,20 @@
             return;
         }
         
-        if (!nomeCompeticao) {
-            // Se não houver competição em andamento, desabilitar todos os links exceto o primeiro
-            links.forEach((link, index) => {
-                if (index > 0) {
-                    link.classList.add('disabled');
-                    link.style.opacity = '0.5';
-                    link.style.cursor = 'not-allowed';
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        alert('Você precisa definir uma competição primeiro.');
-                    });
-                }
-            });
-        } else {
-            // Se houver competição em andamento, habilitar links até a etapa atual + 1
-            links.forEach((link, index) => {
-                if (index > currentEtapaIndex + 1) {
-                    link.classList.add('disabled');
-                    link.style.opacity = '0.7';
-                    link.style.cursor = 'not-allowed';
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        alert('Complete a etapa atual antes de avançar.');
-                    });
-                }
-            });
+        // Permitir acesso livre a todas as etapas se já existe nomeCompeticao
+        // Só impedir acesso se não houver nomeCompeticao e não estiver na primeira etapa
+        if (!nomeCompeticao && !isFirstStep) {
+            window.location.href = '/CriarCompeticao';
+            return;
         }
         
         // Adicionar informação sobre a competição atual
         if (nomeCompeticao) {
             const navTitle = document.querySelector('.criacao-nav-title');
-            navTitle.innerHTML = `Etapas de Criação<br><small style="font-weight:normal;font-size:12px;">${nomeCompeticao}</small>`;
+            const tipoCompeticao = localStorage.getItem('tipoCompeticao') || '';
+            const tipoTexto = tipoCompeticao === 'equipas' ? 'Equipas' : 'Individual';
+            
+            navTitle.innerHTML = `Etapas de Criação<br><small style="font-weight:normal;font-size:12px;">${nomeCompeticao} (${tipoTexto})</small>`;
         }
     });
 </script>
