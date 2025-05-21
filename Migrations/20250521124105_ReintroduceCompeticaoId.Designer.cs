@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProjetoLaboratorio25.Data;
 
@@ -11,9 +12,11 @@ using ProjetoLaboratorio25.Data;
 namespace ProjetoLaboratorio25.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250521124105_ReintroduceCompeticaoId")]
+    partial class ReintroduceCompeticaoId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -145,7 +148,7 @@ namespace ProjetoLaboratorio25.Migrations
                     b.ToTable("ConfiguracoesFase");
                 });
 
-            modelBuilder.Entity("ProjetoLaboratorio25.Models.EmparelhamentoBase", b =>
+            modelBuilder.Entity("ProjetoLaboratorio25.Models.EmparelhamentoEquipa", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -170,14 +173,11 @@ namespace ProjetoLaboratorio25.Migrations
                     b.Property<TimeSpan>("HoraJogo")
                         .HasColumnType("time");
 
-                    b.Property<string>("NomeCompeticao")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CompeticaoId");
 
-                    b.ToTable("EmparelhamentosBase");
+                    b.ToTable("EmparelhamentosEquipa");
                 });
 
             modelBuilder.Entity("ProjetoLaboratorio25.Models.JogoEmparelhado", b =>
@@ -269,7 +269,7 @@ namespace ProjetoLaboratorio25.Migrations
                     b.Navigation("Competicao");
                 });
 
-            modelBuilder.Entity("ProjetoLaboratorio25.Models.EmparelhamentoBase", b =>
+            modelBuilder.Entity("ProjetoLaboratorio25.Models.EmparelhamentoEquipa", b =>
                 {
                     b.HasOne("ProjetoLaboratorio25.Models.Competicao", "Competicao")
                         .WithMany()

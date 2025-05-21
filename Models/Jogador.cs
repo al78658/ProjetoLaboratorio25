@@ -1,30 +1,12 @@
-using System;
-using System.ComponentModel.DataAnnotations;
+using ProjetoLaboratorio25.Models;
+public class Jogador{
+    public int Id { get; set; }
+    public string? Nome { get; set; } = string.Empty;
+    public string? Codigo { get; set; } = string.Empty;
+    public DateTime DataNascimento { get; set; }
+    public string? Categoria { get; set; } = string.Empty;
+    public string? Clube { get; set; } = string.Empty;
 
-namespace ProjetoLaboratorio25.Models
-{
-    public class Jogador
-    {
-        [Key]
-        public int Id { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public string Nome { get; set; }
-
-        [Required]
-        [StringLength(10)]
-        public string Codigo { get; set; }
-
-        [Required]
-        public DateTime DataNascimento { get; set; }
-
-        [Required]
-        [StringLength(50)]
-        public string Categoria { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public string Clube { get; set; }
-    }
+    public int CompeticaoId { get; set; }
+    public Competicao? Competicao { get; set; }
 }

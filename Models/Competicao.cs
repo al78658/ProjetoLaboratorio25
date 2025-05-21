@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace ProjetoLaboratorio25.Models
@@ -9,11 +10,11 @@ namespace ProjetoLaboratorio25.Models
 
         [Required(ErrorMessage = "O nome da competição é obrigatório")]
         [StringLength(100)]
-        public string Nome { get; set; }
+        public string? Nome { get; set; }
 
         [Required(ErrorMessage = "O tipo de competição é obrigatório")]
         [StringLength(50)]
-        public string TipoCompeticao { get; set; }
+        public string? TipoCompeticao { get; set; }
 
         [Required(ErrorMessage = "O número de jogadores é obrigatório")]
         [Range(2, int.MaxValue, ErrorMessage = "O número de jogadores deve ser pelo menos 2")]
@@ -32,6 +33,8 @@ namespace ProjetoLaboratorio25.Models
         public int PontosEmpate { get; set; }
 
         // Navigation properties
-        public virtual ICollection<ConfiguracaoFase> ConfiguracoesFase { get; set; }
+        public virtual ICollection<Jogador> Jogadores { get; set; } = new List<Jogador>();
+        public virtual ICollection<JogoEmparelhado> JogosEmparelhados { get; set; } = new List<JogoEmparelhado>();
+        public virtual ICollection<ConfiguracaoFase> ConfiguracoesFase { get; set; } = new List<ConfiguracaoFase>();
     }
-} 
+}

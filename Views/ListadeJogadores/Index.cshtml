@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿@{
+﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -153,7 +153,7 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
-<body>
+<body data-competicao-id="@ViewBag.CompeticaoId">
     <div class="top-left-logo">
         <a href="/Home">
             <img src="img/logotipo.png" alt="Logotipo" />
@@ -188,75 +188,73 @@
 
         <div class="button-row">
             <button type="button" class="action-button" id="alterarListaButton">Alterar Lista</button>
-            <button type="button" class="action-button" id="emparelharButton">Emparelhar</button>
+            <button type="button" class="action-button" id="emparelharButton" onclick="window.location.href='/Emparelhamento';">Emparelhar</button>
         </div>
 
         <input type="file" id="fileInput" accept=".xlsx" hidden />
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                const fileInput = document.getElementById('fileInput');
                 const alterarListaButton = document.getElementById('alterarListaButton');
                 const emparelharButton = document.getElementById('emparelharButton');
                 const tableBody = document.querySelector('.scrollable-body');
                 const numJogadoresInput = document.getElementById('numJogadores');
-                
-                // Array para armazenar os jogadores
-                let jogadoresArray = [];
+                const competicaoId = document.body.getAttribute('data-competicao-id');
 
                 // Atualizar o contador de jogadores
-                function atualizarContadorJogadores() {
-                    numJogadoresInput.value = jogadoresArray.length;
+                function atualizarContadorJogadores(jogadores) {
+                    numJogadoresInput.value = jogadores.length;
                 }
 
                 // Renderizar a tabela de jogadores
-                function renderizarTabelaJogadores() {
+                function renderizarTabelaJogadores(jogadores) {
                     tableBody.innerHTML = '';
-                    
-                    jogadoresArray.forEach((jogador, index) => {
+                    jogadores.forEach((jogador) => {
                         const tr = document.createElement('tr');
-                        tr.setAttribute('data-index', index);
-                        
                         tr.innerHTML = `
                             <td>${jogador.nome}</td>
                             <td>${jogador.codigo}</td>
-                            <td>${jogador.dataNascimento}</td>
+                            <td>${jogador.dataNascimentoStr}</td>
                             <td>${jogador.categoria}</td>
                             <td>${jogador.clube}</td>
                         `;
-                        
                         tableBody.appendChild(tr);
                     });
-                    
-                    atualizarContadorJogadores();
+                    atualizarContadorJogadores(jogadores);
                 }
 
-                // Verificar se estamos em um processo de criação de competição
-                const nomeCompeticao = localStorage.getItem('nomeCompeticao');
-                const tipoCompeticao = localStorage.getItem('tipoCompeticao');
-                
-                // Atualizar o título da página com base no tipo de competição
-                const h2Title = document.querySelector('h2');
-                if (tipoCompeticao === 'equipas') {
-                    h2Title.textContent = 'Lista das Equipas';
-                    document.title = 'Lista das Equipas';
-                } else {
-                    h2Title.textContent = 'Lista dos Jogadores';
-                    document.title = 'Lista dos Jogadores';
+                // Buscar jogadores do backend
+                async function fetchJogadores() {
+                    try {
+                        const response = await fetch(`/ListadeJogadores/ObterJogadores?competicaoId=${competicaoId}`);
+                        if (!response.ok) {
+                            throw new Error('Erro ao buscar jogadores');
+                        }
+                        const jogadores = await response.json();
+                        renderizarTabelaJogadores(jogadores);
+                    } catch (error) {
+                        alert(error.message);
+                    }
                 }
-                
-                // Verificar se há jogadores específicos para esta competição
-                const jogadoresKey = `jogadoresList_${nomeCompeticao}`;
-                const jogadoresSalvos = localStorage.getItem(jogadoresKey);
-                
-                if (jogadoresSalvos) {
-                    // Usar jogadores específicos desta competição
-                    jogadoresArray = JSON.parse(jogadoresSalvos);
-                    renderizarTabelaJogadores();
-                } else {
-                    // Limpar a tabela para nova importação
-                    jogadoresArray = [];
-                    renderizarTabelaJogadores();
+
+                // Salvar jogadores no backend
+                async function salvarJogadores(jogadores) {
+                    try {
+                        const response = await fetch(`/ListadeJogadores/SalvarJogadores?competicaoId=${competicaoId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(jogadores),
+                        });
+                        if (!response.ok) {
+                            throw new Error('Erro ao salvar jogadores');
+                        }
+                        alert('Jogadores salvos com sucesso!');
+                        fetchJogadores();
+                    } catch (error) {
+                        alert(error.message);
+                    }
                 }
 
                 alterarListaButton.addEventListener('click', () => fileInput.click());
@@ -272,96 +270,25 @@
                         const sheet = workbook.Sheets[workbook.SheetNames[0]];
                         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-                        // Processar os dados do Excel
-                        jogadoresArray = [];
-                        
-                        // Formato esperado no Excel: Nome Codigo DataNascimento Categoria Clube
-                        rows.forEach(row => {
-                            if (row && row.length > 0) {
-                                const linha = row.join(' ');
-                                const partes = linha.split(' ');
-                               
-                                if (partes.length >= 5) {
-                                     // Encontrar o código (formato: XX000)
-                                    let codigoIndex = -1;
-                                    for (let i = 0; i < partes.length; i++) {
-                                        if (/^[A-Z]{2}\d{3}$/.test(partes[i])) {
-                                            codigoIndex = i;
-                                            break;
-                                        }
-                                    }
-                                    
-                                    if (codigoIndex > 0) {
-                                        const nome = partes.slice(0, codigoIndex).join(' ');
-                                        const codigo = partes[codigoIndex];
-                                        const dataNascimento = partes[codigoIndex + 1];
-                                        const categoria = partes[codigoIndex + 2];
-                                        const clube = partes.slice(codigoIndex + 3).join(' ');
-                                        
-                                        jogadoresArray.push({
-                                            nome: nome,
-                                            codigo: codigo,
-                                            dataNascimento: dataNascimento,
-                                            categoria: categoria,
-                                            clube: clube
-                                        });
-                                    }
-                                }
-                            }
-                        });
-                        
-                        // Obter o nome da competição atual
-                        const nomeCompeticao = localStorage.getItem('nomeCompeticao');
-                        if (!nomeCompeticao) {
-                            alert('Erro: Nenhuma competição em andamento.');
-                            window.location.href = '/CriarCompeticao';
-                            return;
-                        }
-                        
-                        // Salvar no localStorage específico para esta competição
-                        const jogadoresKey = `jogadoresList_${nomeCompeticao}`;
-                        localStorage.setItem(jogadoresKey, JSON.stringify(jogadoresArray));
-                        
-                        // Também salvar na chave geral para compatibilidade
-                        localStorage.setItem('jogadoresList', JSON.stringify(jogadoresArray));
-                        
-                        // Atualizar a tabela
-                        renderizarTabelaJogadores();
+                        const jogadores = rows.map(row => ({
+                            nome: row[0] || '',
+                            codigo: row[1] || '',
+                            dataNascimentoStr: row[2] || '',
+                            categoria: row[3] || '',
+                            clube: row[4] || '',
+                        })).filter(jogador => jogador.nome && jogador.codigo);
+
+                        salvarJogadores(jogadores);
                     };
                     reader.readAsArrayBuffer(file);
                 });
 
                 emparelharButton.addEventListener('click', function () {
-                    if (jogadoresArray.length < 2) {
-                        alert('Insere pelo menos 2 jogadores.');
-                        return;
-                    }
-
-                    if (jogadoresArray.length % 2 !== 0) {
-                        alert('O número de jogadores deve ser par para emparelhamento.');
-                        return;
-                    }
-                    
-                    // Obter o nome da competição atual
-                    const nomeCompeticao = localStorage.getItem('nomeCompeticao');
-                    if (!nomeCompeticao) {
-                        alert('Erro: Nenhuma competição em andamento.');
-                        window.location.href = '/CriarCompeticao';
-                        return;
-                    }
-                    
-                    // Salvar no localStorage específico para esta competição
-                    const jogadoresKey = `jogadoresList_${nomeCompeticao}`;
-                    localStorage.setItem(jogadoresKey, JSON.stringify(jogadoresArray));
-                    
-                    // Também salvar na chave geral para compatibilidade
-                    localStorage.setItem('jogadoresList', JSON.stringify(jogadoresArray));
-
-                    // Salvar para emparelhamento
-                    localStorage.setItem('jogadoresParaEmparelhar', JSON.stringify(jogadoresArray));
-                    
                     window.location.href = '/Emparelhamento';
                 });
+
+                // Inicializar a tabela de jogadores
+                fetchJogadores();
             });
         </script>
     </div>

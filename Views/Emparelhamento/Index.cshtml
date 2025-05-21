@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿@{
+﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -80,21 +80,22 @@
             width: 90%;
         }
 
-        .save-container {
+        .button-container {
             margin-top: 30px;
             text-align: center;
         }
 
-        .save-button {
+        .action-button {
             padding: 12px 28px;
             font-size: 18px;
             border: 2px solid black;
             background: white;
             border-radius: 8px;
             cursor: pointer;
+            margin: 0 10px;
         }
 
-            .save-button:hover {
+            .action-button:hover {
                 background-color: #dcdcdc;
             }
 
@@ -124,7 +125,7 @@
             min-width: unset;
         }
 
-        .save-button {
+        .action-button {
             width: 100%;
         }
 
@@ -161,8 +162,9 @@
         </table>
     </div>
 
-    <div class="save-container">
-        <button class="save-button" id="saveButton">Guardar</button>
+    <div class="button-container">
+        <button class="action-button" id="saveButton">Guardar</button>
+        <button class="action-button" id="menuButton">Menu</button>
     </div>
 
     <a href="/ListadeJogadores" class="back-button">&lt;Voltar</a>
@@ -171,162 +173,86 @@
         document.addEventListener('DOMContentLoaded', function () {
             const pairsTableBody = document.getElementById('pairsTableBody');
             const saveButton = document.getElementById('saveButton');
-            const titulo = document.getElementById('nomeCompeticao');
+            const menuButton = document.getElementById('menuButton');
 
-            // Verificar se estamos em um processo de criação de competição
-            const nomeCompeticao = localStorage.getItem('nomeCompeticao');
-            
-            // Obtem jogadores do localStorage - apenas se estivermos no mesmo processo de criação
-            let jogadores = [];
-            
-            if (nomeCompeticao) {
-                // Primeiro tenta jogadoresParaEmparelhar (enviados da página anterior)
-                jogadores = JSON.parse(localStorage.getItem('jogadoresParaEmparelhar')) || [];
-                
-                // Se não tiver jogadores do emparelhamento, tenta usar a lista específica desta competição
-                if (jogadores.length === 0) {
-                    const jogadoresKey = `jogadoresList_${nomeCompeticao}`;
-                    jogadores = JSON.parse(localStorage.getItem(jogadoresKey)) || [];
-                    
-                    // Se ainda não tiver, tenta a lista geral (para compatibilidade)
-                    if (jogadores.length === 0) {
-                        jogadores = JSON.parse(localStorage.getItem('jogadoresList')) || [];
-                    }
-                }
-                
-                // Atualizar o título com base no tipo de competição
-                const tipoCompeticao = localStorage.getItem('tipoCompeticao') || '';
-                const h1Title = document.querySelector('h1');
-                
-                if (tipoCompeticao === 'equipas') {
-                    h1Title.textContent = 'Emparelhamento de Equipas';
-                    document.title = 'Emparelhamento de Equipas';
-                } else {
-                    h1Title.textContent = 'Emparelhamento';
-                    document.title = 'Emparelhamento';
+            // Fetch clubs dynamically from the backend
+            const clubes = @Html.Raw(Json.Serialize(ViewBag.Clubes));
+
+            // Debugging: Display the list of clubs in the console
+            console.log('Clubes recebidos:', clubes);
+
+            // Render clubs in the table
+            renderClubs(clubes);
+
+            function renderClubs(clubes) {
+                pairsTableBody.innerHTML = '';
+                for (let i = 0; i < clubes.length; i += 2) {
+                    const clube1 = clubes[i] || 'N/A';
+                    const clube2 = clubes[i + 1] || 'N/A';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${clube1}</td>
+                        <td>
+                            <input type="date" class="date-input" />
+                            <input type="time" class="time-input" />
+                        </td>
+                        <td>${clube2}</td>
+                    `;
+                    pairsTableBody.appendChild(tr);
                 }
             }
 
-            if (jogadores.length < 2) {
-                alert("Erro: Nenhuma lista de jogadores disponível.");
-                return;
-            }
-
-            // Mostrar o nome da competição no título
-            if (nomeCompeticao) {
-                titulo.textContent = `Competição: ${nomeCompeticao}`;
-            } else {
-                titulo.textContent = `Emparelhamento`;
-            }
-
-            // Agrupar jogadores por clube
-            const clubes = {};
-            jogadores.forEach(jogador => {
-                const clube = typeof jogador === 'object' ? jogador.clube : '';
-                if (!clube) return;
-                
-                if (!clubes[clube]) {
-                    clubes[clube] = [];
-                }
-                clubes[clube].push(jogador);
-            });
-
-            // Converter objeto de clubes em array
-            const clubesArray = Object.keys(clubes).map(clube => ({
-                nome: clube,
-                jogadores: clubes[clube]
-            }));
-
-            // Dividir clubes em dois lados
-            const meio = Math.ceil(clubesArray.length / 2);
-            const clubesEsquerdo = clubesArray.slice(0, meio);
-            const clubesDireito = clubesArray.slice(meio);
-
-            // Criar arrays de jogadores representando os clubes
-            const ladoEsquerdo = clubesEsquerdo.map(clube => ({
-                nome: clube.nome,
-                jogadores: clube.jogadores,
-                isClube: true
-            }));
-            
-            const ladoDireito = clubesDireito.map(clube => ({
-                nome: clube.nome,
-                jogadores: clube.jogadores,
-                isClube: true
-            }));
-
-            for (let i = 0; i < Math.max(ladoEsquerdo.length, ladoDireito.length); i++) {
-                const clube1 = ladoEsquerdo[i] || '';
-                const clube2 = ladoDireito[i] || '';
-
-                const row = document.createElement('tr');
-                
-                // Obter o nome do clube
-                const nome1 = clube1 ? clube1.nome : '';
-                const nome2 = clube2 ? clube2.nome : '';
-                
-                row.innerHTML = `
-                    <td>${nome1}</td>
-                    <td>
-                        <input type="date" class="data-input" data-index1="${i}" data-index2="${i}">
-                        <input type="time" class="hora-input" data-index1="${i}" data-index2="${i}">
-                    </td>
-                    <td>${nome2}</td>
-                `;
-                pairsTableBody.appendChild(row);
-            }
-
-            saveButton.addEventListener('click', function () {
-                const dataInputs = document.querySelectorAll('.data-input');
-                const horaInputs = document.querySelectorAll('.hora-input');
-                const agendamentos = [];
-
-                dataInputs.forEach((dataInput, index) => {
-                    const horaInput = horaInputs[index];
-                    const data = dataInput.value;
-                    const hora = horaInput.value;
-                    const index1 = parseInt(dataInput.dataset.index1);
-                    const index2 = parseInt(dataInput.dataset.index2);
-                    
-                    const clube1 = ladoEsquerdo[index1];
-                    const clube2 = ladoDireito[index2];
-
-                    if (data && hora && clube1 && clube2) {
-                        agendamentos.push({ 
-                            jogador1: clube1, 
-                            jogador2: clube2, 
-                            data, 
-                            hora,
-                            isClube: true
+            // Save pairings to the backend
+            saveButton.addEventListener('click', async function () {
+                const rows = pairsTableBody.querySelectorAll('tr');
+                const emparelhamentos = [];
+                rows.forEach(row => {
+                    const clube1 = row.children[0].textContent.trim();
+                    const clube2 = row.children[2].textContent.trim();
+                    const date = row.querySelector('.date-input').value;
+                    const time = row.querySelector('.time-input').value;
+                    if (date && time) {
+                        emparelhamentos.push({
+                            Clube1: clube1,
+                            Clube2: clube2,
+                            DataJogo: date,
+                            HoraJogo: time
                         });
                     }
                 });
 
-                // Obter o nome da competição do localStorage ou criar um nome padrão
-                let nomeCompeticao = localStorage.getItem('nomeCompeticao');
-                if (!nomeCompeticao || nomeCompeticao.trim() === '') {
-                    nomeCompeticao = 'Competicao_' + new Date().toISOString().slice(0, 10);
+                try {
+                    const response = await fetch(`/Emparelhamento/SalvarEmparelhamentos?competicaoId=${@ViewBag.CompeticaoId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(emparelhamentos),
+                    });
+
+                    const result = await response.json();
+
+                    if (response.status === 207) {
+                        alert(`Alguns emparelhamentos falharam: ${JSON.stringify(result.falhas)}`);
+                    } else if (response.ok) {
+                        alert(result.mensagem);
+                    } else {
+                        throw new Error(result.mensagem || 'Erro ao salvar emparelhamentos');
+                    }
+                } catch (error) {
+                    alert(error.message);
                 }
-                
-                const timestamp = new Date().toISOString();
-
-                // Guarda todos os dados
-                localStorage.setItem(`jogadores_${nomeCompeticao}`, JSON.stringify(jogadores));
-                localStorage.setItem(`agendamentos_${nomeCompeticao}`, JSON.stringify(agendamentos));
-
-                // Regista na lista geral de competições
-                const todas = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
-                todas.push({ nome: nomeCompeticao, dataCriacao: timestamp });
-                localStorage.setItem('todasCompeticoes', JSON.stringify(todas));
-
-                // Limpa o temporário
-                localStorage.removeItem('jogadoresParaEmparelhar');
-
-                // Vai para o menu da competição específica
-                localStorage.setItem('competicaoSelecionada', nomeCompeticao);
-                alert('Emparelhamentos salvos com sucesso!');
-                window.location.href = '/Menu';
             });
+
+            // Redirect to menu
+            menuButton.addEventListener('click', function () {
+                window.location.href = `/Menu?competicaoId=${@ViewBag.CompeticaoId}`;
+            });
+
+            if (!@ViewBag.CompeticaoId) {
+                alert('Nenhuma competição encontrada. Não é possível realizar emparelhamentos.');
+                window.location.href = '/ListadeJogadores';
+            }
         });
     </script>
 </body>

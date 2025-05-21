@@ -1,36 +1,33 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProjetoLaboratorio25.Models
 {
-    public class JogoEmparelhado
+    public class EmparelhamentoBase
     {
         [Key]
         public int Id { get; set; }
-        
+
         [Required]
-        public int Jogador1Id { get; set; }
-        
+        public string Clube1 { get; set; } = string.Empty;
+
         [Required]
-        public int Jogador2Id { get; set; }
-        
+        public string Clube2 { get; set; } = string.Empty;
+
         [Required]
         public DateTime DataJogo { get; set; }
-        
+
         [Required]
         public TimeSpan HoraJogo { get; set; }
-        
+
         [Required]
         public int CompeticaoId { get; set; }
 
         [ForeignKey("CompeticaoId")]
         public virtual Competicao? Competicao { get; set; }
-        
-        [ForeignKey("Jogador1Id")]
-        public virtual Jogador? Jogador1 { get; set; }
-        
-        [ForeignKey("Jogador2Id")]
-        public virtual Jogador? Jogador2 { get; set; }
+
+        // ✅ Adiciona esta propriedade opcional se quiseres guardar também o nome da competição
+        public string? NomeCompeticao { get; set; }
     }
 }
