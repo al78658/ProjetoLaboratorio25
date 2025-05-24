@@ -34,7 +34,8 @@ namespace ProjetoLaboratorio25.Models
 
         // Navigation properties
         public virtual ICollection<Jogador> Jogadores { get; set; } = new List<Jogador>();
-        public virtual ICollection<JogoEmparelhado> JogosEmparelhados { get; set; } = new List<JogoEmparelhado>();
+        // Removido: public virtual ICollection<JogoEmparelhado> JogosEmparelhados { get; set; } = new List<JogoEmparelhado>();
+        public virtual ICollection<EmparelhamentoBase> Emparelhamentos { get; set; } = new List<EmparelhamentoBase>();
         public virtual ICollection<ConfiguracaoFase> ConfiguracoesFase { get; set; } = new List<ConfiguracaoFase>();
     }
 }

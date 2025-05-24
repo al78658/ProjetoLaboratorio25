@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProjetoLaboratorio25.Models
 {
+    // Esta classe foi substituída por EmparelhamentoBase
+    // Mantida apenas para referência histórica
+    /*
     public class JogoEmparelhado
     {
         [Key]
@@ -33,4 +36,5 @@ namespace ProjetoLaboratorio25.Models
         [ForeignKey("Jogador2Id")]
         public virtual Jogador? Jogador2 { get; set; }
     }
+    */
 }

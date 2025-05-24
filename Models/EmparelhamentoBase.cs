@@ -26,8 +26,5 @@ namespace ProjetoLaboratorio25.Models
 
         [ForeignKey("CompeticaoId")]
         public virtual Competicao? Competicao { get; set; }
-
-        // ✅ Adiciona esta propriedade opcional se quiseres guardar também o nome da competição
-        public string? NomeCompeticao { get; set; }
     }
 }

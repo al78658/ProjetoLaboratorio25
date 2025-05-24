@@ -1,4 +1,4 @@
-﻿﻿@{
+﻿﻿﻿﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -80,22 +80,21 @@
             width: 90%;
         }
 
-        .button-container {
+        .save-container {
             margin-top: 30px;
             text-align: center;
         }
 
-        .action-button {
+        .save-button {
             padding: 12px 28px;
             font-size: 18px;
             border: 2px solid black;
             background: white;
             border-radius: 8px;
             cursor: pointer;
-            margin: 0 10px;
         }
 
-            .action-button:hover {
+            .save-button:hover {
                 background-color: #dcdcdc;
             }
 
@@ -125,7 +124,7 @@
             min-width: unset;
         }
 
-        .action-button {
+        .save-button {
             width: 100%;
         }
 
@@ -162,97 +161,269 @@
         </table>
     </div>
 
-    <div class="button-container">
-        <button class="action-button" id="saveButton">Guardar</button>
-        <button class="action-button" id="menuButton">Menu</button>
+    <div class="save-container">
+        <button class="save-button" id="saveButton">Guardar</button>
     </div>
 
     <a href="/ListadeJogadores" class="back-button">&lt;Voltar</a>
 
     <script>
+        // Capturar o ID da competição do ViewBag (se disponível)
+        @if (ViewBag.CompeticaoIdJS != null)
+        {
+            <text>
+            const competicaoIdFromServer = @ViewBag.CompeticaoIdJS;
+            // Armazenar no localStorage para uso posterior
+            localStorage.setItem('competicaoId', competicaoIdFromServer);
+            </text>
+        }
+        
         document.addEventListener('DOMContentLoaded', function () {
             const pairsTableBody = document.getElementById('pairsTableBody');
             const saveButton = document.getElementById('saveButton');
-            const menuButton = document.getElementById('menuButton');
+            const titulo = document.getElementById('nomeCompeticao');
 
-            // Fetch clubs dynamically from the backend
-            const clubes = @Html.Raw(Json.Serialize(ViewBag.Clubes));
-
-            // Debugging: Display the list of clubs in the console
-            console.log('Clubes recebidos:', clubes);
-
-            // Render clubs in the table
-            renderClubs(clubes);
-
-            function renderClubs(clubes) {
-                pairsTableBody.innerHTML = '';
-                for (let i = 0; i < clubes.length; i += 2) {
-                    const clube1 = clubes[i] || 'N/A';
-                    const clube2 = clubes[i + 1] || 'N/A';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${clube1}</td>
-                        <td>
-                            <input type="date" class="date-input" />
-                            <input type="time" class="time-input" />
-                        </td>
-                        <td>${clube2}</td>
-                    `;
-                    pairsTableBody.appendChild(tr);
+            // Verificar se estamos em um processo de criação de competição
+            const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+            
+            // Obtem jogadores do localStorage - apenas se estivermos no mesmo processo de criação
+            let jogadores = [];
+            
+            if (nomeCompeticao) {
+                // Primeiro tenta jogadoresParaEmparelhar (enviados da página anterior)
+                jogadores = JSON.parse(localStorage.getItem('jogadoresParaEmparelhar')) || [];
+                
+                // Se não tiver jogadores do emparelhamento, tenta usar a lista específica desta competição
+                if (jogadores.length === 0) {
+                    const jogadoresKey = `jogadoresList_${nomeCompeticao}`;
+                    jogadores = JSON.parse(localStorage.getItem(jogadoresKey)) || [];
+                    
+                    // Se ainda não tiver, tenta a lista geral (para compatibilidade)
+                    if (jogadores.length === 0) {
+                        jogadores = JSON.parse(localStorage.getItem('jogadoresList')) || [];
+                    }
+                }
+                
+                // Atualizar o título com base no tipo de competição
+                const tipoCompeticao = localStorage.getItem('tipoCompeticao') || '';
+                const h1Title = document.querySelector('h1');
+                
+                if (tipoCompeticao === 'equipas') {
+                    h1Title.textContent = 'Emparelhamento de Equipas';
+                    document.title = 'Emparelhamento de Equipas';
+                } else {
+                    h1Title.textContent = 'Emparelhamento';
+                    document.title = 'Emparelhamento';
                 }
             }
 
-            // Save pairings to the backend
-            saveButton.addEventListener('click', async function () {
-                const rows = pairsTableBody.querySelectorAll('tr');
-                const emparelhamentos = [];
-                rows.forEach(row => {
-                    const clube1 = row.children[0].textContent.trim();
-                    const clube2 = row.children[2].textContent.trim();
-                    const date = row.querySelector('.date-input').value;
-                    const time = row.querySelector('.time-input').value;
-                    if (date && time) {
-                        emparelhamentos.push({
-                            Clube1: clube1,
-                            Clube2: clube2,
-                            DataJogo: date,
-                            HoraJogo: time
+            if (jogadores.length < 2) {
+                alert("Erro: Nenhuma lista de jogadores disponível.");
+                return;
+            }
+
+            // Mostrar o nome da competição no título
+            if (nomeCompeticao) {
+                titulo.textContent = `Competição: ${nomeCompeticao}`;
+            } else {
+                titulo.textContent = `Emparelhamento`;
+            }
+
+            // Agrupar jogadores por clube
+            const clubes = {};
+            jogadores.forEach(jogador => {
+                const clube = typeof jogador === 'object' ? jogador.clube : '';
+                if (!clube) return;
+                
+                if (!clubes[clube]) {
+                    clubes[clube] = [];
+                }
+                clubes[clube].push(jogador);
+            });
+
+            // Converter objeto de clubes em array
+            const clubesArray = Object.keys(clubes).map(clube => ({
+                nome: clube,
+                jogadores: clubes[clube]
+            }));
+
+            // Dividir clubes em dois lados
+            const meio = Math.ceil(clubesArray.length / 2);
+            const clubesEsquerdo = clubesArray.slice(0, meio);
+            const clubesDireito = clubesArray.slice(meio);
+
+            // Criar arrays de jogadores representando os clubes
+            const ladoEsquerdo = clubesEsquerdo.map(clube => ({
+                nome: clube.nome,
+                jogadores: clube.jogadores,
+                isClube: true
+            }));
+            
+            const ladoDireito = clubesDireito.map(clube => ({
+                nome: clube.nome,
+                jogadores: clube.jogadores,
+                isClube: true
+            }));
+
+            for (let i = 0; i < Math.max(ladoEsquerdo.length, ladoDireito.length); i++) {
+                const clube1 = ladoEsquerdo[i] || '';
+                const clube2 = ladoDireito[i] || '';
+
+                const row = document.createElement('tr');
+                
+                // Obter o nome do clube
+                const nome1 = clube1 ? clube1.nome : '';
+                const nome2 = clube2 ? clube2.nome : '';
+                
+                row.innerHTML = `
+                    <td>${nome1}</td>
+                    <td>
+                        <input type="date" class="data-input" data-index1="${i}" data-index2="${i}">
+                        <input type="time" class="hora-input" data-index1="${i}" data-index2="${i}">
+                    </td>
+                    <td>${nome2}</td>
+                `;
+                pairsTableBody.appendChild(row);
+            }
+
+            saveButton.addEventListener('click', function () {
+                const dataInputs = document.querySelectorAll('.data-input');
+                const horaInputs = document.querySelectorAll('.hora-input');
+                const agendamentos = [];
+
+                dataInputs.forEach((dataInput, index) => {
+                    const horaInput = horaInputs[index];
+                    const data = dataInput.value;
+                    const hora = horaInput.value;
+                    const index1 = parseInt(dataInput.dataset.index1);
+                    const index2 = parseInt(dataInput.dataset.index2);
+                    
+                    const clube1 = ladoEsquerdo[index1];
+                    const clube2 = ladoDireito[index2];
+
+                    if (data && hora && clube1 && clube2) {
+                        agendamentos.push({ 
+                            jogador1: clube1, 
+                            jogador2: clube2, 
+                            data, 
+                            hora,
+                            isClube: true
                         });
                     }
                 });
 
-                try {
-                    const response = await fetch(`/Emparelhamento/SalvarEmparelhamentos?competicaoId=${@ViewBag.CompeticaoId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(emparelhamentos),
-                    });
-
-                    const result = await response.json();
-
-                    if (response.status === 207) {
-                        alert(`Alguns emparelhamentos falharam: ${JSON.stringify(result.falhas)}`);
-                    } else if (response.ok) {
-                        alert(result.mensagem);
-                    } else {
-                        throw new Error(result.mensagem || 'Erro ao salvar emparelhamentos');
-                    }
-                } catch (error) {
-                    alert(error.message);
+                // Obter o nome da competição do localStorage ou criar um nome padrão
+                let nomeCompeticao = localStorage.getItem('nomeCompeticao');
+                if (!nomeCompeticao || nomeCompeticao.trim() === '') {
+                    nomeCompeticao = 'Competicao_' + new Date().toISOString().slice(0, 10);
                 }
-            });
+                
+                const timestamp = new Date().toISOString();
 
-            // Redirect to menu
-            menuButton.addEventListener('click', function () {
-                window.location.href = `/Menu?competicaoId=${@ViewBag.CompeticaoId}`;
-            });
+                // Guarda todos os dados
+                localStorage.setItem(`jogadores_${nomeCompeticao}`, JSON.stringify(jogadores));
+                localStorage.setItem(`agendamentos_${nomeCompeticao}`, JSON.stringify(agendamentos));
 
-            if (!@ViewBag.CompeticaoId) {
-                alert('Nenhuma competição encontrada. Não é possível realizar emparelhamentos.');
-                window.location.href = '/ListadeJogadores';
-            }
+                // Regista na lista geral de competições
+                const todas = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
+                todas.push({ nome: nomeCompeticao, dataCriacao: timestamp });
+                localStorage.setItem('todasCompeticoes', JSON.stringify(todas));
+
+                // Limpa o temporário
+                localStorage.removeItem('jogadoresParaEmparelhar');
+
+                // Preparar dados para enviar ao servidor
+                const emparelhamentosParaEnviar = [];
+                
+                agendamentos.forEach(agendamento => {
+                    // Verificar se os objetos têm a estrutura esperada
+                    const clube1 = agendamento.jogador1 && typeof agendamento.jogador1 === 'object' ? 
+                                  (agendamento.jogador1.nome || '') : '';
+                    const clube2 = agendamento.jogador2 && typeof agendamento.jogador2 === 'object' ? 
+                                  (agendamento.jogador2.nome || '') : '';
+                    
+                    if (clube1 && clube2) {
+                        emparelhamentosParaEnviar.push({
+                            clube1: clube1,
+                            clube2: clube2,
+                            dataJogo: agendamento.data,
+                            horaJogo: agendamento.hora,
+                            isClube: true
+                        });
+                    }
+                });
+                
+                // Obter o ID da competição (se disponível)
+                // Tenta várias fontes possíveis para o ID da competição
+                let competicaoId = parseInt(localStorage.getItem('competicaoId')) || 0;
+                
+                // Se não encontrou, tenta outras fontes
+                if (!competicaoId) {
+                    // Tenta obter da URL se estiver disponível
+                    const urlParams = new URLSearchParams(window.location.search);
+                    competicaoId = parseInt(urlParams.get('competicaoId')) || 0;
+                }
+                
+                // Log para depuração
+                console.log('Dados a enviar:', {
+                    competicaoId: competicaoId,
+                    nomeCompeticao: nomeCompeticao,
+                    emparelhamentos: emparelhamentosParaEnviar
+                });
+                
+                // Enviar dados para o servidor
+                fetch('/Emparelhamento/SalvarEmparelhamentos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        competicaoId: competicaoId,
+                        nomeCompeticao: nomeCompeticao,
+                        emparelhamentos: emparelhamentosParaEnviar
+                    })
+                })
+                .then(response => {
+                  // Sempre tenta obter o JSON da resposta, mesmo em caso de erro
+                      return response.json().then(data => {
+                        // Adiciona o status à resposta para verificação posterior
+                        return { status: response.status, data };
+                    });
+                })
+                .then(result => {
+                    console.log('Resposta do servidor:', result);
+                    
+                    // Verifica se a resposta foi bem-sucedida (200 OK ou 207 Multi-Status)
+                    if (result.status === 200 || result.status === 207) {
+                        // Vai para o menu da competição específica
+                        localStorage.setItem('competicaoSelecionada', nomeCompeticao);
+                        
+                        // Se houver uma mensagem na resposta, mostra-a
+                        if (result.data && result.data.mensagem) {
+                            alert(result.data.mensagem);
+                        } else {
+                            alert('Emparelhamentos salvos com sucesso!');
+                        }
+                        
+                        window.location.href = '/Menu';
+                    } else {
+                        // Se houver erro, mostra a mensagem de erro
+                        const mensagemErro = result.data && result.data.mensagem 
+                            ? result.data.mensagem 
+                            : 'Erro ao salvar emparelhamentos';
+                            
+                        throw new Error(mensagemErro);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao salvar emparelhamentos: ' + error.message);
+                    
+                    // Mesmo com erro, salva localmente e continua para o menu
+                    localStorage.setItem('competicaoSelecionada', nomeCompeticao);
+                    window.location.href = '/Menu';
+                });
+            });
         });
     </script>
 </body>

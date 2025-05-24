@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProjetoLaboratorio25.Models
 {
+    // Esta classe foi substituída por EmparelhamentoBase
+    // Mantida apenas para referência histórica
+    /*
     public class EmparelhamentoEquipa
     {
         [Key]
@@ -23,7 +26,12 @@ namespace ProjetoLaboratorio25.Models
 
         [Required]
         public string NomeCompeticao { get; set; } = string.Empty;
+        
+        [Required]
+        public int CompeticaoId { get; set; }
 
+        [ForeignKey("CompeticaoId")]
         public virtual Competicao? Competicao { get; set; }
     }
+    */
 }

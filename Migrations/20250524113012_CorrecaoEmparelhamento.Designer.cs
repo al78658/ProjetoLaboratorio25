@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProjetoLaboratorio25.Data;
 
@@ -11,9 +12,11 @@ using ProjetoLaboratorio25.Data;
 namespace ProjetoLaboratorio25.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250524113012_CorrecaoEmparelhamento")]
+    partial class CorrecaoEmparelhamento
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -56,7 +59,7 @@ namespace ProjetoLaboratorio25.Migrations
 
                     b.HasIndex("CompeticaoId");
 
-                    b.ToTable("Jogadores", (string)null);
+                    b.ToTable("Jogadores");
                 });
 
             modelBuilder.Entity("ProjetoLaboratorio25.Models.Competicao", b =>
@@ -91,7 +94,7 @@ namespace ProjetoLaboratorio25.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Competicoes", (string)null);
+                    b.ToTable("Competicoes");
                 });
 
             modelBuilder.Entity("ProjetoLaboratorio25.Models.ConfiguracaoFase", b =>
@@ -142,7 +145,7 @@ namespace ProjetoLaboratorio25.Migrations
 
                     b.HasIndex("CompeticaoId");
 
-                    b.ToTable("ConfiguracoesFase", (string)null);
+                    b.ToTable("ConfiguracoesFase");
                 });
 
             modelBuilder.Entity("ProjetoLaboratorio25.Models.EmparelhamentoBase", b =>
@@ -177,7 +180,7 @@ namespace ProjetoLaboratorio25.Migrations
 
                     b.HasIndex("CompeticaoId");
 
-                    b.ToTable("EmparelhamentosBase", (string)null);
+                    b.ToTable("EmparelhamentosBase");
                 });
 
             modelBuilder.Entity("ProjetoLaboratorio25.Models.EmparelhamentoEquipa", b =>
@@ -213,7 +216,7 @@ namespace ProjetoLaboratorio25.Migrations
 
                     b.HasIndex("CompeticaoId");
 
-                    b.ToTable("EmparelhamentosEquipa", (string)null);
+                    b.ToTable("EmparelhamentosEquipa");
                 });
 
             modelBuilder.Entity("ProjetoLaboratorio25.Models.JogoEmparelhado", b =>
@@ -247,7 +250,7 @@ namespace ProjetoLaboratorio25.Migrations
 
                     b.HasIndex("Jogador2Id");
 
-                    b.ToTable("JogosEmparelhados", (string)null);
+                    b.ToTable("JogosEmparelhados");
                 });
 
             modelBuilder.Entity("ProjetoLaboratorio25.Models.Utilizador", b =>
@@ -275,7 +278,7 @@ namespace ProjetoLaboratorio25.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Utilizadores", (string)null);
+                    b.ToTable("Utilizadores");
                 });
 
             modelBuilder.Entity("Jogador", b =>
