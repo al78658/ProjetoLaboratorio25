@@ -16,6 +16,42 @@ namespace ProjetoLaboratorio25.Controllers
 
         public IActionResult Index()
         {
+            // Limpar dados da sessão e TempData
+            HttpContext.Session.Remove("CompeticaoId");
+            HttpContext.Session.Remove("NomeCompeticao");
+            HttpContext.Session.Remove("TipoCompeticao");
+            
+            // Limpar TempData
+            TempData.Remove("CompeticaoId");
+            TempData.Remove("NomeCompeticao");
+            TempData.Remove("TipoCompeticao");
+            
+            // Limpar chaves de formatação de fases, se existirem
+            var keysToRemove = TempData.Keys
+                .Where(k => k.StartsWith("FormatosSelecionados_") || 
+                           k.StartsWith("NumFases_") ||
+                           k.StartsWith("Fase"))
+                .ToList();
+            
+            foreach (var key in keysToRemove)
+            {
+                TempData.Remove(key);
+            }
+            
+            // Adicionar um script para limpar o localStorage via JavaScript
+            ViewBag.Script = @"
+                <script>
+                    // Limpar dados da competição anterior
+                    localStorage.removeItem('jogadoresList');
+                    localStorage.removeItem('jogadoresParaEmparelhar');
+                    localStorage.removeItem('formatosSelecionados');
+                    localStorage.removeItem('numFases');
+                    localStorage.removeItem('nomeCompeticao');
+                    localStorage.removeItem('tipoCompeticao');
+                    localStorage.removeItem('competicaoId');
+                    console.log('Dados da competição anterior removidos do localStorage');
+                </script>";
+            
             return View();
         }
 

@@ -255,82 +255,82 @@
     </div>
 
     <!-- Botão Voltar -->   
-        <a href="/Home" class="back-button">&lt;Voltar</a>
+    <a href="/Home" class="back-button">&lt;Voltar</a>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const nomeInput = document.getElementById('nome');
-                const tipoSelect = document.getElementById('tipo');
-                // Verificar se estamos em um processo de criação em andamento
-                const nomeCompeticao = localStorage.getItem('nomeCompeticao');
-                const tipoCompeticao = localStorage.getItem('tipoCompeticao');
-                if (nomeCompeticao && tipoCompeticao) {
-                    // Se já temos dados no localStorage, preencher os campos
-                    nomeInput.value = nomeCompeticao;
-                    tipoSelect.value = tipoCompeticao;
-                } else {
-                    // Verificar se estamos iniciando uma nova competição
-                    // Só limpar dados se não houver parâmetro de URL indicando edição
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const isEditing = urlParams.has('edit') || '@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId');
-                    if (!isEditing) {
-                        // Se estamos iniciando uma nova competição, limpar dados anteriores
-                        localStorage.removeItem('jogadoresList');
-                        localStorage.removeItem('jogadoresParaEmparelhar');
-                        localStorage.removeItem('formatosSelecionados');
-                        localStorage.removeItem('numFases');
-                        localStorage.removeItem('nomeCompeticao');
-                        localStorage.removeItem('tipoCompeticao');
-                        localStorage.removeItem('competicaoId');
-                        console.log('Iniciando nova competição, dados anteriores limpos');
-                    } else {
-                        console.log('Editando competição existente, mantendo dados');
-                    }
-                }
-            });
+    @Html.Raw(ViewBag.Script)
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const nomeInput = document.getElementById('nome');
+            const tipoSelect = document.getElementById('tipo');
             
-            document.getElementById('formCriarCompeticao').addEventListener('submit', function (e) {
-                // Guardar o nome da competição e tipo no localStorage antes de submeter
-                var nome = document.getElementById('nome').value;
-                var tipo = document.getElementById('tipo').value;
-                
-                if (!nome || nome.trim() === '') {
+            // Verificar se estamos em um processo de criação em andamento
+            const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+            const tipoCompeticao = localStorage.getItem('tipoCompeticao');
+            
+            if (nomeCompeticao && tipoCompeticao) {
+                // Se já temos dados no localStorage, preencher os campos
+                nomeInput.value = nomeCompeticao;
+                tipoSelect.value = tipoCompeticao;
+            } else {
+                // Se não há dados no localStorage, garantir que os campos estão limpos
+                nomeInput.value = '';
+                tipoSelect.value = 'individual';
+            }
+        });
+        
+        document.getElementById('formCriarCompeticao').addEventListener('submit', function (e) {
+            // Guardar o nome da competição e tipo no localStorage antes de submeter
+            var nome = document.getElementById('nome').value;
+            var tipo = document.getElementById('tipo').value;
+            
+            if (!nome || nome.trim() === '') {
+                e.preventDefault();
+                alert('Por favor, insira um nome para a competição.');
+                return false;
+            }
+            
+            // Verificar se estamos atualizando uma competição existente ou criando uma nova
+            const isUpdating = localStorage.getItem('nomeCompeticao') && 
+                              (localStorage.getItem('formatosSelecionados') || 
+                               localStorage.getItem('jogadoresList'));
+            
+            if (isUpdating) {
+                // Se estamos apenas atualizando, perguntar ao usuário
+                if (!confirm('Você já tem uma competição em andamento. Deseja atualizar os dados desta competição?')) {
                     e.preventDefault();
-                    alert('Por favor, insira um nome para a competição.');
                     return false;
                 }
-                
-                // Verificar se estamos atualizando uma competição existente ou criando uma nova
-                const isUpdating = localStorage.getItem('nomeCompeticao') && 
-                                  (localStorage.getItem('formatosSelecionados') || 
-                                   localStorage.getItem('jogadoresList'));
-                
-                if (isUpdating) {
-                    // Se estamos apenas atualizando, perguntar ao usuário
-                    if (!confirm('Você já tem uma competição em andamento. Deseja atualizar os dados desta competição?')) {
-                        e.preventDefault();
-                        return false;
-                    }
-                }
-                
-                // Atualizar os dados no localStorage
-                localStorage.setItem('nomeCompeticao', nome);
-                localStorage.setItem('tipoCompeticao', tipo);
-                localStorage.setItem('ultimaAtualizacao', new Date().toISOString());
-                
-                // Se já temos um ID de competição do servidor, armazená-lo também
-                @if (ViewBag.CompeticaoId != null) {
-                    <text>
-                    localStorage.setItem('competicaoId', '@ViewBag.CompeticaoId');
-                    </text>
-                }
-                
-                // Permitir o submit normal
-                console.log('Dados da competição atualizados:', { nome, tipo });
-            });
+            }
             
+            // Atualizar os dados no localStorage
+            localStorage.setItem('nomeCompeticao', nome);
+            localStorage.setItem('tipoCompeticao', tipo);
+            localStorage.setItem('ultimaAtualizacao', new Date().toISOString());
+            
+            // Se já temos um ID de competição do servidor, armazená-lo também
+            @if (ViewBag.CompeticaoId != null) {
+                <text>
+                localStorage.setItem('competicaoId', '@ViewBag.CompeticaoId');
+                </text>
+            }
+            
+            // Permitir o submit normal
+            console.log('Dados da competição atualizados:', { nome, tipo });
+        });
+        
 
-        </script>
+        // Limpar localStorage
+        localStorage.removeItem('nomeCompeticao');
+        localStorage.removeItem('tipoCompeticao');
+        localStorage.removeItem('ultimaAtualizacao');
+        localStorage.removeItem('competicaoId');
+        localStorage.removeItem('jogadoresList');
+        localStorage.removeItem('jogadoresParaEmparelhar');
+        localStorage.removeItem('formatosSelecionados');
+        localStorage.removeItem('numFases');
+
+    </script>
 
 
 </body>

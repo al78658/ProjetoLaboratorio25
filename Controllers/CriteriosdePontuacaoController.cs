@@ -18,22 +18,29 @@ namespace ProjetoLaboratorio25.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(int faseNumero, string formato)
+        public IActionResult Index(int faseNumero, string formato, int? competicaoId = null)
         {
-            // Recupera o ID da competição do TempData
-            int competicaoId = 0;
-            if (TempData.ContainsKey("CompeticaoId") && TempData["CompeticaoId"] != null)
+            // Tenta obter o ID da competição do parâmetro, se não estiver disponível, tenta do TempData
+            int compId = 0;
+            if (competicaoId.HasValue && competicaoId.Value > 0)
             {
-                competicaoId = Convert.ToInt32(TempData["CompeticaoId"]);
+                compId = competicaoId.Value;
+                // Salva no TempData para uso futuro
+                TempData["CompeticaoId"] = compId;
+                TempData.Keep("CompeticaoId");
+            }
+            else if (TempData.ContainsKey("CompeticaoId") && TempData["CompeticaoId"] != null)
+            {
+                compId = Convert.ToInt32(TempData["CompeticaoId"]);
                 TempData.Keep("CompeticaoId");
             }
 
             // Busca a configuração da fase no banco de dados
             ConfiguracaoFase configuracao = null;
-            if (competicaoId > 0)
+            if (compId > 0)
             {
                 configuracao = _context.ConfiguracoesFase
-                    .FirstOrDefault(c => c.CompeticaoId == competicaoId && c.FaseNumero == faseNumero);
+                    .FirstOrDefault(c => c.CompeticaoId == compId && c.FaseNumero == faseNumero);
             }
 
             // Se não encontrou, cria uma nova configuração
@@ -43,7 +50,7 @@ namespace ProjetoLaboratorio25.Controllers
                 { 
                     FaseNumero = faseNumero,
                     Formato = formato,
-                    CompeticaoId = competicaoId,
+                    CompeticaoId = compId,
                     NumJogosPorFase = 1, // Valor padrão
                     PontosVitoria = 3,   // Valores padrão
                     PontosEmpate = 1,
@@ -61,10 +68,10 @@ namespace ProjetoLaboratorio25.Controllers
                 tipoCompeticao = TempData["TipoCompeticao"] as string;
                 TempData.Keep("TipoCompeticao");
             }
-            else if (competicaoId > 0)
+            else if (compId > 0)
             {
                 // Tenta buscar do banco de dados
-                var comp = _context.Competicoes.FirstOrDefault(c => c.Id == competicaoId);
+                var comp = _context.Competicoes.FirstOrDefault(c => c.Id == compId);
                 if (comp != null)
                 {
                     tipoCompeticao = comp.TipoCompeticao;
@@ -77,44 +84,52 @@ namespace ProjetoLaboratorio25.Controllers
             ViewBag.Configuracao = configuracao;
             ViewBag.FormatoSelecionado = formato;
             ViewBag.TipoCompeticao = tipoCompeticao ?? "Individual";
+            ViewBag.CompeticaoId = compId; // Garante que o ID da competição está disponível na view
+            
             return View();
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Index(int faseNumero, string formato, int vitoria, int empate, int derrota, 
             int faltaComparencia = 0, int desclassificacao = 0, int pontosExtra = 0, 
-            List<string> criterios = null, int numApurados = 0, string tipoSorteio = null)
+            List<string> criterios = null, int numApurados = 0, string tipoSorteio = null, int? competicaoId = null)
         {
-            // Recupera o ID da competição do TempData
-            int competicaoId = 0;
-            if (TempData.ContainsKey("CompeticaoId") && TempData["CompeticaoId"] != null)
-            {
-                competicaoId = Convert.ToInt32(TempData["CompeticaoId"]);
-                TempData.Keep("CompeticaoId");
-            }
-
-            // Validação dos critérios específicos por formato
-            if (criterios != null && !ValidateFormatCriteria(formato, criterios))
-            {
-                TempData["Erro"] = "Critérios inválidos para o formato selecionado.";
-                return RedirectToAction("Index", new { faseNumero, formato });
-            }
-
             try
             {
-                // Busca a configuração existente ou cria uma nova
+                // 1. Obter o ID da competição
+                int compId = 0;
+                if (competicaoId.HasValue && competicaoId.Value > 0)
+                {
+                    compId = competicaoId.Value;
+                    TempData["CompeticaoId"] = compId;
+                    TempData.Keep("CompeticaoId");
+                }
+                else if (TempData.ContainsKey("CompeticaoId") && TempData["CompeticaoId"] != null)
+                {
+                    compId = Convert.ToInt32(TempData["CompeticaoId"]);
+                    TempData.Keep("CompeticaoId");
+                }
+
+                if (compId == 0)
+                {
+                    TempData["Erro"] = "ID da competição não encontrado.";
+                    return RedirectToAction("Index", new { faseNumero, formato });
+                }
+
+                // 2. Buscar ou criar configuração
                 var configuracao = _context.ConfiguracoesFase
-                    .FirstOrDefault(c => c.CompeticaoId == competicaoId && c.FaseNumero == faseNumero);
+                    .FirstOrDefault(c => c.CompeticaoId == compId && c.FaseNumero == faseNumero);
 
                 if (configuracao == null)
                 {
-                    // Cria uma nova configuração
+                    // Criar nova configuração
                     configuracao = new ConfiguracaoFase
                     {
-                        CompeticaoId = competicaoId,
+                        CompeticaoId = compId,
                         FaseNumero = faseNumero,
                         Formato = formato,
-                        NumJogosPorFase = 1, // Valor padrão, pode ser ajustado conforme necessário
+                        NumJogosPorFase = 1, // Valor padrão
                         PontosVitoria = vitoria,
                         PontosEmpate = empate,
                         PontosDerrota = derrota,
@@ -127,7 +142,7 @@ namespace ProjetoLaboratorio25.Controllers
                 }
                 else
                 {
-                    // Atualiza a configuração existente
+                    // Atualizar configuração existente
                     configuracao.Formato = formato;
                     configuracao.PontosVitoria = vitoria;
                     configuracao.PontosEmpate = empate;
@@ -138,16 +153,16 @@ namespace ProjetoLaboratorio25.Controllers
                     configuracao.CriteriosDesempate = criterios ?? new List<string>();
                 }
 
-                // Salva as alterações no banco de dados
+                // 3. Salvar alterações
                 _context.SaveChanges();
 
-                TempData["Mensagem"] = "Configuração guardada com sucesso!";
+                TempData["Mensagem"] = "Configuração da fase " + faseNumero + " salva com sucesso!";
                 return RedirectToAction("Index", "FormatodaCompeticao");
             }
             catch (Exception ex)
             {
-                TempData["Erro"] = $"Erro ao salvar configuração: {ex.Message}";
-                return RedirectToAction("Index", new { faseNumero, formato });
+                TempData["Erro"] = "Erro ao salvar configuração: " + ex.Message;
+                return RedirectToAction("Index", new { faseNumero, formato, competicaoId });
             }
         }
 

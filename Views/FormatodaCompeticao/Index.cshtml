@@ -245,7 +245,13 @@
                 alert('Por favor, selecione um formato para a fase antes de configurar.');
                 return;
             }
-            window.location.href = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNum}&formato=${formato}&competicaoId=${competicaoId}`;
+            // Garante que o competicaoId está disponível
+            const compId = '@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId');
+            if (!compId) {
+                alert('Erro: ID da competição não encontrado. Por favor, recarregue a página e tente novamente.');
+                return;
+            }
+            window.location.href = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNum}&formato=${formato}&competicaoId=${compId}`;
         }
 
         function updateTableRows() {
