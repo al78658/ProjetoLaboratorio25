@@ -1,0 +1,229 @@
+﻿@model ProjetoLaboratorio25.Models.Report
+
+@{
+    Layout = null;
+    string categoria = ViewBag.Categoria as string ?? "";
+    string codigo = ViewBag.Codigo as string ?? "";
+    bool temRelatorio = Model != null;
+}
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <title>Relatórios</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+
+            .top-left-logo img {
+                width: 160px;
+            }
+
+        .main-container {
+            margin-top: 80px;
+            margin-bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            padding: 60px 20px;
+        }
+
+        .box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 900px;
+            border: 2px solid black;
+        }
+
+        h2 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            color: black;
+            text-align: left;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            background-color: white;
+            border: 2px solid black;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+            .btn:hover {
+                background-color: #dcdcdc;
+            }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .report-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .report-content {
+            min-height: 250px;
+            border: 2px solid black;
+            padding: 20px;
+            font-size: 18px;
+        }
+
+        .back-button {
+            position: absolute;
+            right: 30px;
+            bottom: 30px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .icon-button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+        }
+
+            .icon-button img {
+                width: 18px;
+                height: 18px;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="top-left-logo">
+        <a href="/home">
+            <img src="@Url.Content("~/img/logotipo.png")" alt="Logotipo" />
+        </a>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="main-container">
+        <div class="box">
+            <h2>Relatórios</h2>
+            <!-- Botões superiores -->
+            <div class="button-group">
+                @if (ViewBag.AnteriorId != null)
+                {
+                    <button class="btn"
+                            onclick="window.location.href='/Relatorio/ConsultarRelatorio?id=@ViewBag.AnteriorId&categoria=@ViewBag.Categoria&codigo=@ViewBag.Codigo'">
+                        &lt; Relatório Anterior
+                    </button>
+                }
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <button type="button" class="btn"
+                            onclick="window.location.href='/CriarRelatorio?competicaoId=@ViewBag.Codigo'">
+                        Criar Relatório
+                    </button>
+                }
+
+                @if (ViewBag.ProximoId != null)
+                {
+                    <button class="btn"
+                            onclick="window.location.href='/Relatorio/ConsultarRelatorio?id=@ViewBag.ProximoId&categoria=@ViewBag.Categoria&codigo=@ViewBag.Codigo'">
+                        Próximo Relatório &gt;
+                    </button>
+                }
+            </div>
+
+            @if (temRelatorio)
+            {
+                <!-- Cabeçalho do relatório -->
+                <div class="report-header">
+                    <div class="report-title">@Model.Titulo (@categoria)</div>
+                    <div class="report-actions">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <button class="btn icon-button">
+                                <img src="~/img/1160515.png" alt="Editar" />
+                                Editar Relatório
+                            </button>
+                        }
+                        <button class="btn icon-button">
+                            <img src="~/img/724827.png" alt="Exportar" />
+                            Exportar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Conteúdo do relatório -->
+                <div class="report-content">
+                    <p>@Model.Conteudo</p>
+                    <small><em>Data de criação: @Model.DataCriacao.ToString("dd/MM/yyyy HH:mm")</em></small>
+                </div>
+            }
+            else
+            {
+                <div class="report-content">
+                    <p>Não existem relatórios disponíveis.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Botão voltar -->
+    <a href="/Menu?competicaoId=@ViewBag.Codigo" class="back-button">&lt;Voltar</a>
+
+</body>
+</html>

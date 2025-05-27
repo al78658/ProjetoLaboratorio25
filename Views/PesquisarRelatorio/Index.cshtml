@@ -5,7 +5,7 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8" />
-    <title>Consultar Relatórios</title>
+    <title>Pesquisar Relatórios</title>
     <style>
         * {
             box-sizing: border-box;
@@ -53,7 +53,7 @@
             padding: 40px;
             border-radius: 12px;
             width: 100%;
-            max-width: 500px; /* reduzido para evitar caixas muito largas */
+            max-width: 500px;
             text-align: center;
         }
 
@@ -80,7 +80,6 @@
         input[type="text"],
         select {
             width: 100%;
-            max-width: 100%;
             padding: 12px;
             font-size: 18px;
             border: 2px solid #333;
@@ -130,33 +129,65 @@
         </a>
     </div>
 
-    <!-- Conteúdo principal -->
     <div class="main-container">
         <div class="box">
-            <h2>Consultar Relatórios</h2>
+            <h2>Pesquisar Relatórios</h2>
 
-            <form>
-                <div>
-                    <label for="categoria">Categoria:</label>
-                    <select id="categoria" name="categoria">
-                        <option>Relatório de Equipas</option>
-                        <option>Relatório de Jogadores</option>
-                        <option>Relatório de Competição</option>
-                    </select>
+            <form id="pesquisaForm" method="get" action="/Relatorio/ConsultarRelatorio">
+                <label for="categoria">Categoria:</label>
+                <select id="categoria" name="categoria" onchange="atualizarFiltro()">
+                    <option value="competicao">Competição</option>
+                    <option value="jogador">Jogador</option>
+                    <option value="equipa">Equipa</option>
+                </select>
+
+                <div id="codigoContainer" style="margin-top: 20px;">
+                    <label id="codigoLabel" for="codigo">ID de Referência:</label>
+                    <input type="text" id="codigo" name="codigo" placeholder="Digite o ID..." />
                 </div>
 
-                <div>
-                    <label for="equipa">Qual a equipa que quer consultar:</label>
-                    <input type="text" id="equipa" name="equipa" value="Braga" />
-                </div>
+                <!-- Campo hidden exclusivo para categoria=competicao -->
+                <input type="hidden" id="codigoCompeticaoHidden" name="codigo" />
 
-                <button type="button" class="btn" onclick="window.location.href='/ConsultarRelatorio'">Procurar</button>
+                <button type="submit" class="btn" style="margin-top: 20px;">Pesquisar</button>
             </form>
+
         </div>
     </div>
 
-    <!-- Botão Voltar absoluto -->
-    <a href="/Menu" class="back-button">&lt;Voltar</a>
+    <a href="/Menu" class="back-button">&lt; Voltar</a>
+
+    <script>
+        function atualizarFiltro() {
+            const categoria = document.getElementById("categoria").value;
+            const codigoContainer = document.getElementById("codigoContainer");
+            const codigoLabel = document.getElementById("codigoLabel");
+            const codigoInput = document.getElementById("codigo");
+            const codigoHidden = document.getElementById("codigoCompeticaoHidden");
+
+            if (categoria === "competicao") {
+                // Oculta input visível e usa o ID da competição do localStorage
+                codigoContainer.style.display = "none";
+                const competicaoId = localStorage.getItem("competicaoSelecionadaId");
+                codigoHidden.value = competicaoId || "";
+            } else {
+                // Mostra campo para jogador ou equipa
+                codigoContainer.style.display = "block";
+                codigoHidden.value = ""; // limpa campo hidden para não conflitar
+
+                if (categoria === "jogador") {
+                    codigoLabel.textContent = "Código do Jogador:";
+                    codigoInput.placeholder = "Ex: 12345";
+                } else if (categoria === "equipa") {
+                    codigoLabel.textContent = "Nome da Equipa:";
+                    codigoInput.placeholder = "Ex: FC Porto";
+                }
+            }
+        }
+
+        // Aplicar ao carregar
+        document.addEventListener("DOMContentLoaded", atualizarFiltro);
+    </script>
 
 </body>
 </html>

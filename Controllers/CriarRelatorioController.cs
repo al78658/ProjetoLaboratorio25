@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ProjetoLaboratorio25.Models;
 
 namespace ProjetoLaboratorio25.Controllers
 {

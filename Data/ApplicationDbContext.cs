@@ -17,6 +17,8 @@ namespace ProjetoLaboratorio25.Data
         // Removido: public DbSet<JogoEmparelhado> JogosEmparelhados { get; set; }
         public DbSet<EmparelhamentoBase> EmparelhamentosBase { get; set; }
         // Removido: public DbSet<EmparelhamentoEquipa> EmparelhamentosEquipa { get; set; }
+        public DbSet<Notificacao> Notificacoes { get; set; }
+        public DbSet<Report> Reports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
