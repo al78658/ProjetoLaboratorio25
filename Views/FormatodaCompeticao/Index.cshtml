@@ -227,8 +227,8 @@
             <button class="next-button" id="nextButton">Seguinte</button>
             @if (edicao)
             {
-                <form asp-action="ConfirmarAlteracao" asp-controller="FormatodaCompeticao" method="post" style="display:inline;">
-                    <button type="submit" class="next-button">Confirmar Alteração</button>
+                <form asp-action="ConfirmarAlteracao" asp-controller="FormatodaCompeticao" method="post" style="display:inline;" id="formConfirmarAlteracao">
+                    <button type="submit" class="next-button" id="btnConfirmarAlteracao">Confirmar Alteração</button>
                 </form>
             }
         </div>
@@ -402,6 +402,56 @@ else
                 window.location.href = '@Url.Action("Index", "ListadeJogadores")';
             });
         });
+
+        // Handler do botão Confirmar Alteração (modo edição)
+        const formConfirmarAlteracao = document.getElementById('formConfirmarAlteracao');
+        if (formConfirmarAlteracao) {
+            formConfirmarAlteracao.addEventListener('submit', function (e) {
+                let numFases = parseInt(document.getElementById('numFases').value);
+                let fasesConfiguradas = 0;
+                let fasesComFormato = [];
+                for (let i = 1; i <= numFases; i++) {
+                    if (formatosSelecionados[i]) {
+                        fasesConfiguradas++;
+                        fasesComFormato.push({ fase: i, formato: formatosSelecionados[i] });
+                    }
+                }
+                if (fasesConfiguradas < numFases) {
+                    const continuar = confirm(`Só configurou ${fasesConfiguradas} de ${numFases} fases. Deseja continuar apenas com as fases configuradas? (OK para continuar, Cancelar para configurar as restantes)`);
+                    if (!continuar) {
+                        e.preventDefault();
+                        return;
+                    }
+                    // Remove fases não configuradas e renumera as fases
+                    formatosSelecionados = {};
+                    for (let j = 0; j < fasesComFormato.length; j++) {
+                        formatosSelecionados[j + 1] = fasesComFormato[j].formato;
+                    }
+                    // Atualiza o número de fases para o número de fases configuradas
+                    document.getElementById('numFases').value = fasesComFormato.length;
+
+                    // Atualiza no servidor (número de fases e formatos)
+                    Promise.all([
+                        fetch(`/FormatodaCompeticao/SalvarNumFases?competicaoId=${competicaoId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(fasesComFormato.length)
+                        }),
+                        fetch(`/FormatodaCompeticao/SalvarFormatos?competicaoId=${competicaoId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(formatosSelecionados)
+                        })
+                    ]).then(() => {
+                        // Atualiza a tabela para refletir o novo número de fases antes de submeter
+                        updateTableRows();
+                        // Agora NÃO submete automaticamente! O admin deve clicar novamente em Confirmar Alteração.
+                    });
+                    e.preventDefault(); // Impede o submit original
+                }
+                // Caso contrário, deixa submeter normalmente
+            });
+        }
 
         document.getElementById('btnVoltar').addEventListener('click', async function (e) {
             // Verificar se estamos em modo de edição
