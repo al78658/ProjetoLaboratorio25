@@ -1,4 +1,4 @@
-﻿﻿﻿﻿@{
+﻿﻿﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -50,6 +50,61 @@
 
         .back-button:hover {
         background-color: #dcdcdc;
+        }
+        
+        /* Estilos para o menu lateral de edição */
+        .edit-sidebar {
+            position: fixed;
+            right: 20px;
+            top: 120px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            padding: 20px;
+            width: 250px;
+            z-index: 100;
+        }
+        
+        .edit-sidebar-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        
+        .edit-sidebar-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .edit-sidebar-step {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            border: 1px solid #ddd;
+        }
+        
+        .edit-sidebar-step:hover {
+            background-color: #e9ecef;
+        }
+        
+        .edit-sidebar-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .edit-sidebar-text {
+            font-size: 14px;
         }
 
         h2 {
@@ -183,20 +238,26 @@
         #selectedDateDisplay {
             font-weight: bold;
         }
+        
 
-        media (max-width: 768px) {
-        .table-buttons, .result-nav
 
-        {
-        flex-direction: column;
-        align-items: stretch;
-        }
+        @@media (max-width: 768px) {
+            .table-buttons, .result-nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
 
-        .table-buttons button,
-        .result-nav button {
-        width: 100%;
-        }
-
+            .table-buttons button,
+            .result-nav button {
+                width: 100%;
+            }
+            
+            .edit-sidebar {
+                position: static;
+                width: 90%;
+                margin: 20px auto;
+                margin-bottom: 30px;
+            }
         }
     </style>
 </head>
@@ -206,6 +267,36 @@
             <img src="img/logotipo.png" alt="Logotipo" />
         </a>
     </div>
+    
+    <!-- Menu lateral de edição (visível apenas para administradores) -->
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="edit-sidebar" id="editSidebar" style="display: none;">
+            <div class="edit-sidebar-title">
+                Editar Competição
+                <div style="font-size: 14px; font-weight: normal; margin-top: 5px;" id="competicaoNomeDisplay"></div>
+            </div>
+            <div class="edit-sidebar-steps">
+                <a class="edit-sidebar-step" onclick="irParaEtapa('CriarCompeticao')">
+                    <span class="edit-sidebar-icon">📝</span>
+                    <span class="edit-sidebar-text">Definir Competição</span>
+                </a>
+                <a class="edit-sidebar-step" onclick="irParaEtapa('FormatodaCompeticao')">
+                    <span class="edit-sidebar-icon">🏆</span>
+                    <span class="edit-sidebar-text">Formato da Competição</span>
+                </a>
+
+                <a class="edit-sidebar-step" onclick="irParaEtapa('ListadeJogadores')">
+                    <span class="edit-sidebar-icon">👥</span>
+                    <span class="edit-sidebar-text">Lista de Jogadores</span>
+              </a>
+                <a class="edit-sidebar-step" onclick="irParaEtapa('Emparelhamento')">
+                    <span class="edit-sidebar-icon">🔄</span>
+                    <span class="edit-sidebar-text">Emparelhamento</span>
+                </a>
+              </div>
+        </div>
+    }
 
     <div class="content-wrapper">
         <!-- Tabela Classificativa -->
@@ -215,6 +306,9 @@
             {
                 <button type="button" class="login-button" onclick="window.location.href='/CriarRelatorio'">
                     Criar Relatório
+                </button>
+                <button type="button" class="login-button" onclick="toggleEditSidebar()">
+                    Editar Competição
                 </button>
             }
             <button type="button" class="login-button" onclick="window.location.href='/PesquisarRelatorio'">
@@ -321,12 +415,124 @@
 
     <a href="/Competicoes" class="back-button">&lt;Voltar</a>
     <script>
+        // Função para mostrar/esconder o menu lateral de edição
+        function toggleEditSidebar() {
+            const sidebar = document.getElementById('editSidebar');
+            if (sidebar.style.display === 'none') {
+                // Carregar dados da competição atual
+                carregarDadosCompeticaoAtual();
+                sidebar.style.display = 'block';
+            } else {
+                sidebar.style.display = 'none';
+            }
+        }
+        
+        // Função para carregar dados da competição atual
+        function carregarDadosCompeticaoAtual() {
+            const nomeCompeticao = localStorage.getItem('competicaoSelecionada');
+            if (!nomeCompeticao) {
+                alert('Nenhuma competição selecionada.');
+                return false;
+            }
+            
+            // Exibir o nome da competição no menu lateral
+            document.getElementById('competicaoNomeDisplay').textContent = nomeCompeticao;
+            
+            // Buscar dados da competição no localStorage
+            let competicaoId = null;
+            let dadosCompeticao = null;
+            
+            // Procurar a competição pelo nome
+            for (let i = 0; i < localStorage.length; i++) {
+                const chave = localStorage.key(i);
+                if (chave.startsWith('competicao_')) {
+                    try {
+                        const comp = JSON.parse(localStorage.getItem(chave));
+                        if (comp.nome === nomeCompeticao) {
+                            competicaoId = comp.id;
+                            dadosCompeticao = comp;
+                            break;
+                        }
+                    } catch (e) {
+                        console.error('Erro ao processar competição:', e);
+                    }
+                }
+            }
+            
+            if (!competicaoId || !dadosCompeticao) {
+                // Se não encontrou pelo nome, tentar criar um ID baseado no nome
+                competicaoId = nomeCompeticao.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                
+                // Criar objeto básico da competição
+                dadosCompeticao = {
+                    id: competicaoId,
+                    nome: nomeCompeticao,
+                    tipo: 'individual' // valor padrão
+                };
+                
+                // Salvar no localStorage para uso futuro
+                localStorage.setItem(`competicao_${competicaoId}`, JSON.stringify(dadosCompeticao));
+            }
+            
+            // Preparar dados para edição
+            prepararDadosParaEdicao(competicaoId, dadosCompeticao);
+            
+            return true;
+        }
+        
+        // Função para preparar dados para edição
+        function prepararDadosParaEdicao(competicaoId, dadosCompeticao) {
+            // Armazenar dados básicos no localStorage para edição
+            localStorage.setItem('competicaoId', competicaoId);
+            localStorage.setItem('nomeCompeticao', dadosCompeticao.nome);
+            localStorage.setItem('tipoCompeticao', dadosCompeticao.tipo || 'individual');
+            
+            // Armazenar outros dados relevantes se existirem
+            if (dadosCompeticao.formatosSelecionados) {
+                localStorage.setItem('formatosSelecionados', JSON.stringify(dadosCompeticao.formatosSelecionados));
+            }
+            
+            if (dadosCompeticao.criteriosPontuacao) {
+                localStorage.setItem('criteriosPontuacao', JSON.stringify(dadosCompeticao.criteriosPontuacao));
+            }
+            
+            if (dadosCompeticao.jogadoresList) {
+                localStorage.setItem('jogadoresList', JSON.stringify(dadosCompeticao.jogadoresList));
+            }
+            
+            if (dadosCompeticao.emparelhamentos) {
+                localStorage.setItem('emparelhamentos', JSON.stringify(dadosCompeticao.emparelhamentos));
+            }
+            
+            // Registrar que estamos em modo de edição
+            localStorage.setItem('modoEdicao', 'true');
+        }
+        
+        // Função para ir para uma etapa específica do processo de criação
+        function irParaEtapa(controller) {
+            // Verificar se há uma competição carregada
+            if (!carregarDadosCompeticaoAtual()) {
+                return;
+            }
+            
+            // Estamos em modo de edição, permitir navegação livre
+            localStorage.setItem('modoEdicao', 'true');
+            
+            // Redirecionar para a etapa selecionada
+            window.location.href = `/${controller}`;
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const nomeCompeticao = localStorage.getItem('competicaoSelecionada');
             const tabelaResultados = document.querySelector('.section table');
             const prevBtn = document.getElementById('prevDayBtn');
             const nextBtn = document.getElementById('nextDayBtn');
             const dateDisplay = document.getElementById('selectedDateDisplay');
+            
+            // Inicializar o menu lateral de edição
+            if (nomeCompeticao) {
+                document.getElementById('competicaoNomeDisplay').textContent = nomeCompeticao;
+            }
 
             if (!nomeCompeticao) {
                 alert('Nenhuma competição selecionada.');
@@ -520,5 +726,7 @@
             </div>
         </div>
     </div>
+    
+
 </body>
 </html>

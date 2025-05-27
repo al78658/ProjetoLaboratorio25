@@ -120,16 +120,35 @@
     // Função para verificar navegação entre etapas
     function verificarNavegacao(controller) {
         const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+        const modoEdicao = localStorage.getItem('modoEdicao');
+        
+        // Se estamos em modo de edição, permitir navegação livre entre as etapas
+        if (modoEdicao === 'true') {
+            return true;
+        }
+        
         // Sempre permitir voltar para a primeira etapa
         if (controller === 'CriarCompeticao') {
             return true;
         }
+        
         // Para outras etapas, verificar se temos nome de competição
         if (!nomeCompeticao) {
             alert('Você precisa definir uma competição primeiro.');
             window.location.href = '/CriarCompeticao';
             return false;
         }
+        
+        // Verificar requisitos para cada etapa
+        if (controller === 'ListadeJogadores' || controller === 'Emparelhamento') {
+            const formatosSelecionados = localStorage.getItem('formatosSelecionados');
+            if (!formatosSelecionados) {
+                alert('Você precisa definir o formato da competição primeiro.');
+                window.location.href = '/FormatodaCompeticao';
+                return false;
+            }
+        }
+        
         // Bloquear acesso ao emparelhamento se não houver lista de jogadores/equipas
         if (controller === 'Emparelhamento') {
             const tipoCompeticao = localStorage.getItem('tipoCompeticao');

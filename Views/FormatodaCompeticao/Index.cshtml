@@ -368,6 +368,15 @@
         });
 
         document.getElementById('btnVoltar').addEventListener('click', async function (e) {
+            // Verificar se estamos em modo de edição
+            const modoEdicao = localStorage.getItem('modoEdicao');
+            if (modoEdicao === 'true') {
+                // Se estamos em modo de edição, não eliminar a competição
+                e.preventDefault();
+                window.location.href = '/CriarCompeticao';
+                return false;
+            }
+            
             // Elimina a competição criada se o utilizador sair antes de configurar
             const competicaoId = '@(ViewBag.CompeticaoId ?? "")';
             if (competicaoId) {

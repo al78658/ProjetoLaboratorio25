@@ -291,14 +291,35 @@
                 }
                 
                 const timestamp = new Date().toISOString();
+                const competicaoId = localStorage.getItem('competicaoId') || nomeCompeticao.toLowerCase().replace(/[^a-z0-9]/g, '_');
 
                 // Guarda todos os dados
                 localStorage.setItem(`jogadores_${nomeCompeticao}`, JSON.stringify(jogadores));
                 localStorage.setItem(`agendamentos_${nomeCompeticao}`, JSON.stringify(agendamentos));
+                
+                // Salvar dados da competição completa
+                const dadosCompeticao = {
+                    id: competicaoId,
+                    nome: nomeCompeticao,
+                    tipo: localStorage.getItem('tipoCompeticao') || 'individual',
+                    formatosSelecionados: JSON.parse(localStorage.getItem('formatosSelecionados') || '{}'),
+                    jogadoresList: jogadores,
+                    emparelhamentos: agendamentos,
+                    dataCriacao: timestamp
+                };
+                
+                // Salvar no localStorage
+                localStorage.setItem(`competicao_${competicaoId}`, JSON.stringify(dadosCompeticao));
 
                 // Regista na lista geral de competições
                 const todas = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
-                todas.push({ nome: nomeCompeticao, dataCriacao: timestamp });
+                // Verificar se já existe esta competição na lista
+                const existeIndex = todas.findIndex(c => c.nome === nomeCompeticao);
+                if (existeIndex >= 0) {
+                    todas[existeIndex].dataCriacao = timestamp;
+                } else {
+                    todas.push({ nome: nomeCompeticao, id: competicaoId, dataCriacao: timestamp });
+                }
                 localStorage.setItem('todasCompeticoes', JSON.stringify(todas));
 
                 // Limpa o temporário

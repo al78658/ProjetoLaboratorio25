@@ -320,15 +320,19 @@
         });
         
 
-        // Limpar localStorage
-        localStorage.removeItem('nomeCompeticao');
-        localStorage.removeItem('tipoCompeticao');
-        localStorage.removeItem('ultimaAtualizacao');
-        localStorage.removeItem('competicaoId');
-        localStorage.removeItem('jogadoresList');
-        localStorage.removeItem('jogadoresParaEmparelhar');
-        localStorage.removeItem('formatosSelecionados');
-        localStorage.removeItem('numFases');
+        // Verificar se estamos em modo de edição
+        if (!localStorage.getItem('modoEdicao')) {
+            // Se não estamos em modo de edição, limpar localStorage
+            localStorage.removeItem('nomeCompeticao');
+            localStorage.removeItem('tipoCompeticao');
+            localStorage.removeItem('ultimaAtualizacao');
+            localStorage.removeItem('competicaoId');
+            localStorage.removeItem('jogadoresList');
+            localStorage.removeItem('jogadoresParaEmparelhar');
+            localStorage.removeItem('formatosSelecionados');
+            localStorage.removeItem('numFases');
+        }
+        // Não removemos a flag de modo de edição para permitir navegação livre
 
     </script>
 
