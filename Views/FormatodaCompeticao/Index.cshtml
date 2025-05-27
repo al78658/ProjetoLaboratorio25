@@ -172,6 +172,24 @@
     </style>
 </head>
 <body>
+    @{
+        bool edicao = ViewBag.Edicao != null && (bool)ViewBag.Edicao;
+    }
+    @if (TempData["Mensagem"] != null)
+    {
+        <div style="background: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 10px; border-radius: 5px; margin: 15px auto; max-width: 700px; text-align: center;">
+            @TempData["Mensagem"]
+        </div>
+    }
+    @if (TempData["Erro"] != null)
+    {
+        <div style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 10px; border-radius: 5px; margin: 15px auto; max-width: 700px; text-align: center;">
+            @TempData["Erro"]
+        </div>
+    }
+    <script>
+        var modoEdicao = @(edicao ? "true" : "false");
+    </script>
 
     <!-- Logotipo -->
     <div class="top-left-logo">
@@ -205,11 +223,26 @@
             </tbody>
         </table>
 
-        <button class="next-button" id="nextButton">Seguinte</button>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+            <button class="next-button" id="nextButton">Seguinte</button>
+            @if (edicao)
+            {
+                <form asp-action="ConfirmarAlteracao" asp-controller="FormatodaCompeticao" method="post" style="display:inline;">
+                    <button type="submit" class="next-button">Confirmar Alteração</button>
+                </form>
+            }
+        </div>
     </div>
 
     <!-- Botão Voltar -->   
+    @if (edicao)
+{
+    <a href="/Menu" class="back-button" id="btnVoltar">&lt;Voltar</a>
+}
+else
+{
     <a href="/CriarCompeticao" class="back-button" id="btnVoltar">&lt;Voltar</a>
+}
 
     <script>
         // Recebe do Razor (TempData) ou do localStorage
@@ -245,13 +278,16 @@
                 alert('Por favor, selecione um formato para a fase antes de configurar.');
                 return;
             }
-            // Garante que o competicaoId está disponível
+
             const compId = '@ViewBag.CompeticaoId' || localStorage.getItem('competicaoId');
             if (!compId) {
                 alert('Erro: ID da competição não encontrado. Por favor, recarregue a página e tente novamente.');
                 return;
             }
-            window.location.href = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNum}&formato=${formato}&competicaoId=${compId}`;
+
+            // Passa o modo de edição para a próxima página
+            let url = `@Url.Action("Index", "CriteriosdePontuacao")?faseNumero=${faseNum}&formato=${formato}&competicaoId=${compId}&edicao=${modoEdicao}`;
+            window.location.href = url;
         }
 
         function updateTableRows() {

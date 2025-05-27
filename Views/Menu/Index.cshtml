@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿@{
+﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -307,9 +307,7 @@
                 <button type="button" class="login-button" onclick="window.location.href='/CriarRelatorio'">
                     Criar Relatório
                 </button>
-                <button type="button" class="login-button" onclick="toggleEditSidebar()">
-                    Editar Competição
-                </button>
+                <button type="button" class="login-button" onclick="window.location.href='@Url.Action("Index", "FormatodaCompeticao", new { edicao = true })'">Editar Competição</button>
             }
             <button type="button" class="login-button" onclick="window.location.href='/PesquisarRelatorio'">
                 Consultar Relatórios

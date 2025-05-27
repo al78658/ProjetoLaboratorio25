@@ -17,7 +17,7 @@ namespace ProjetoLaboratorio25.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(bool edicao = false)
         {
             // Get the competition data from TempData
             ViewBag.NomeCompeticao = TempData["NomeCompeticao"];
@@ -27,6 +27,9 @@ namespace ProjetoLaboratorio25.Controllers
             var competicaoId = TempData["CompeticaoId"]?.ToString();
             ViewBag.FormatosSelecionados = competicaoId != null ? (TempData[$"FormatosSelecionados_{competicaoId}"] as string ?? "{}") : "{}";
             ViewBag.NumFases = TempData[$"NumFases_{competicaoId}"] ?? 2;
+
+            // Passa o modo edição para a view
+            ViewBag.Edicao = edicao;
 
             // Preserve TempData for the next request
             TempData.Keep("NomeCompeticao");
@@ -260,6 +263,12 @@ namespace ProjetoLaboratorio25.Controllers
                 _context.SaveChanges();
             }
             return Ok();
+        }
+        [HttpPost]
+        public IActionResult ConfirmarAlteracao()
+        {
+            // Aqui pode salvar alterações, se necessário
+            return RedirectToAction("Index", "Menu");
         }
     }
 }

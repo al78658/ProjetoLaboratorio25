@@ -4,7 +4,7 @@ using ProjetoLaboratorio25.Data;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Text.Json;
+using System;
 
 namespace ProjetoLaboratorio25.Controllers
 {
@@ -18,7 +18,7 @@ namespace ProjetoLaboratorio25.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(int faseNumero, string formato, int? competicaoId = null)
+        public IActionResult Index(int faseNumero, string formato, int? competicaoId = null, bool edicao = false, string origin = null)
         {
             // Tenta obter o ID da competição do parâmetro, se não estiver disponível, tenta do TempData
             int compId = 0;
@@ -34,6 +34,21 @@ namespace ProjetoLaboratorio25.Controllers
                 compId = Convert.ToInt32(TempData["CompeticaoId"]);
                 TempData.Keep("CompeticaoId");
             }
+            
+            // Armazena a informação de origem (para saber de onde o usuário veio)
+            if (!string.IsNullOrEmpty(origin))
+            {
+                TempData["Origin"] = origin;
+            }
+            else if (Request.Headers.ContainsKey("Referer"))
+            {
+                // Se não foi fornecido explicitamente, tenta obter do cabeçalho Referer
+                var referer = Request.Headers["Referer"].ToString();
+                if (referer.Contains("/FormatodaCompeticao"))
+                {
+                    TempData["Origin"] = "FormatodaCompeticao";
+                }
+            }
 
             // Busca a configuração da fase no banco de dados
             ConfiguracaoFase configuracao = null;
@@ -46,8 +61,8 @@ namespace ProjetoLaboratorio25.Controllers
             // Se não encontrou, cria uma nova configuração
             if (configuracao == null)
             {
-                configuracao = new ConfiguracaoFase 
-                { 
+                configuracao = new ConfiguracaoFase
+                {
                     FaseNumero = faseNumero,
                     Formato = formato,
                     CompeticaoId = compId,
@@ -84,16 +99,18 @@ namespace ProjetoLaboratorio25.Controllers
             ViewBag.Configuracao = configuracao;
             ViewBag.FormatoSelecionado = formato;
             ViewBag.TipoCompeticao = tipoCompeticao ?? "Individual";
-            ViewBag.CompeticaoId = compId; // Garante que o ID da competição está disponível na view
-            
+            ViewBag.CompeticaoId = compId;
+            ViewBag.Edicao = edicao;
+
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Index(int faseNumero, string formato, int vitoria, int empate, int derrota, 
-            int faltaComparencia = 0, int desclassificacao = 0, int pontosExtra = 0, 
-            List<string> criterios = null, int numApurados = 0, string tipoSorteio = null, int? competicaoId = null)
+        public IActionResult Index(int faseNumero, string formato, int vitoria, int empate, int derrota,
+            int faltaComparencia = 0, int desclassificacao = 0, int pontosExtra = 0,
+            List<string> criterios = null, int numApurados = 0, string tipoSorteio = null,
+            int? competicaoId = null, bool edicao = false)
         {
             try
             {
@@ -114,7 +131,7 @@ namespace ProjetoLaboratorio25.Controllers
                 if (compId == 0)
                 {
                     TempData["Erro"] = "ID da competição não encontrado.";
-                    return RedirectToAction("Index", new { faseNumero, formato });
+                    return RedirectToAction("Index", new { faseNumero, formato, edicao });
                 }
 
                 // 2. Buscar ou criar configuração
@@ -156,13 +173,14 @@ namespace ProjetoLaboratorio25.Controllers
                 // 3. Salvar alterações
                 _context.SaveChanges();
 
-                TempData["Mensagem"] = "Configuração da fase " + faseNumero + " salva com sucesso!";
-                return RedirectToAction("Index", "FormatodaCompeticao");
+
+                // Após guardar, redireciona SEMPRE para FormatodaCompeticao/Index.cshtml, mantendo o valor de edição
+                return RedirectToAction("Index", "FormatodaCompeticao", new { edicao = edicao });
             }
             catch (Exception ex)
             {
                 TempData["Erro"] = "Erro ao salvar configuração: " + ex.Message;
-                return RedirectToAction("Index", new { faseNumero, formato, competicaoId });
+                return RedirectToAction("Index", new { faseNumero, formato, competicaoId, edicao });
             }
         }
 
