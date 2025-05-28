@@ -136,7 +136,7 @@ namespace ProjetoLaboratorio25.Controllers
                 else
                 {
                     // Determinar o formato a ser usado
-                    string formato = "round-robin"; // Formato padrão
+                    string formato = ""; // Formato padrão
                     if (formatos.ContainsKey(i))
                     {
                         formato = formatos[i];
@@ -258,7 +258,7 @@ namespace ProjetoLaboratorio25.Controllers
                                 CompeticaoId = compId,
                                 FaseNumero = i,
                                 NumJogosPorFase = 1, // Valor padrão
-                                Formato = "round-robin", // Formato padrão
+                                Formato = "", // Formato padrão
                                 PontosVitoria = competicao.PontosVitoria,
                                 PontosEmpate = competicao.PontosEmpate,
                                 PontosDerrota = 0,
