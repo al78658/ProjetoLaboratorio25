@@ -1,4 +1,4 @@
-﻿﻿﻿@{
+﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -143,7 +143,7 @@
     </div>
 
     <!-- Navegação de Criação de Competição -->
-    @await Html.PartialAsync("_CriacaoCompeticaoNav", "Emparelhamento")
+    @await Html.PartialAsync("_CriacaoCompeticaoNav", new { etapaAtual = "Emparelhamento", edicao = false })
 
     <h1>Emparelhamento</h1>
     <h2 id="nomeCompeticao"></h2>

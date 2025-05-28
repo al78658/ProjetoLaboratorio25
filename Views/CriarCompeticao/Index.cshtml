@@ -192,7 +192,7 @@
     </div>
 
     <!-- Navegação de Criação de Competição -->
-    @await Html.PartialAsync("_CriacaoCompeticaoNav", "Definir Competição")
+    @await Html.PartialAsync("_CriacaoCompeticaoNav", new { etapaAtual = "Definir Competição", edicao = false })
 
     <!-- Conteúdo -->
     <div class="form-container">

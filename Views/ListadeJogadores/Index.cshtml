@@ -1,4 +1,4 @@
-﻿﻿﻿@{
+﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -161,7 +161,7 @@
     </div>
 
     <!-- Navegação de Criação de Competição -->
-    @await Html.PartialAsync("_CriacaoCompeticaoNav", "Lista de Jogadores")
+    @await Html.PartialAsync("_CriacaoCompeticaoNav", new { etapaAtual = "Lista de Jogadores", edicao = false })
 
     <div class="main-container">
         <h2>Lista dos Jogadores</h2>

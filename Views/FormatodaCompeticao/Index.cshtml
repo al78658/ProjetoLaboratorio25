@@ -194,12 +194,12 @@
     <!-- Logotipo -->
     <div class="top-left-logo">
         <a href="/">
-            <img src="img/logotipo.png" alt="Logotipo" />
+            <img src="@Url.Content("~/img/logotipo.png")" alt="Logotipo" />
         </a>
     </div>
 
     <!-- Navegação de Criação de Competição -->
-    @await Html.PartialAsync("_CriacaoCompeticaoNav", "Formato da Competição")
+    @await Html.PartialAsync("_CriacaoCompeticaoNav", new { etapaAtual = "Formato da Competição", edicao = edicao })
 
     <!-- Conteúdo -->
     <div class="main-container">
@@ -207,7 +207,7 @@
 
         <div class="fase-selector">
             <label for="numFases">Número de Fases</label>
-            <input type="number" id="numFases" name="numFases" min="1" max="5" value="@ViewBag.NumFases ?? 2" onchange="updateTableRows()" />
+            <input type="number" id="numFases" name="numFases" min="1" max="5" value="@ViewBag.NumFases ?? 2" onchange="if(this.oldValue !== this.value) { this.oldValue = this.value; updateTableRows(); }" />
         </div>
 
         <table id="fasesTable">
@@ -224,7 +224,7 @@
         </table>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
-            <button class="next-button" id="nextButton">Seguinte</button>
+            <button class="next-button" id="nextButton" @(edicao ? "disabled=\"disabled\"" : "")>Seguinte</button>
             @if (edicao)
             {
                 <form asp-action="ConfirmarAlteracao" asp-controller="FormatodaCompeticao" method="post" style="display:inline;" id="formConfirmarAlteracao">
@@ -234,15 +234,15 @@
         </div>
     </div>
 
-    <!-- Botão Voltar -->   
-    @if (edicao)
-{
-    <a href="/Menu" class="back-button" id="btnVoltar">&lt;Voltar</a>
-}
-else
-{
-    <a href="/CriarCompeticao" class="back-button" id="btnVoltar">&lt;Voltar</a>
-}
+        <!-- Botão Voltar -->   
+        @if (edicao)
+    {
+        <a href="/Menu/Index" class="back-button" id="btnVoltar">&lt;Voltar</a>
+    }
+    else
+    {
+        <a href="/CriarCompeticao" class="back-button" id="btnVoltar">&lt;Voltar</a>
+    }
 
     <script>
         // Recebe do Razor (TempData) ou do localStorage
@@ -292,6 +292,17 @@ else
 
         function updateTableRows() {
             const numFases = parseInt(document.getElementById('numFases').value);
+            const oldNumFases = localStorage.getItem('numFases');
+            const tableBody = document.getElementById('fasesTableBody');
+            
+            // Verifica se a tabela está vazia (quando voltamos para a página)
+            const isTableEmpty = tableBody.children.length === 0;
+            
+            // Verifica se houve alteração no número de fases
+            if (!isTableEmpty && oldNumFases && parseInt(oldNumFases) === numFases && Object.keys(formatosSelecionados).length > 0) {
+                // Se não houve alteração, a tabela não está vazia e já temos formatos selecionados, não recria a tabela
+                return;
+            }
             
             // Salva o número de fases no localStorage
             localStorage.setItem('numFases', numFases);
@@ -304,7 +315,8 @@ else
                     body: JSON.stringify(numFases)
                 });
             }
-            const tableBody = document.getElementById('fasesTableBody');
+            
+            // Limpa a tabela para recriá-la
             tableBody.innerHTML = '';
 
             for (let i = 1; i <= numFases; i++) {
@@ -315,11 +327,11 @@ else
                     <td>
                         <select onchange="updateFormat(this.value, ${i})" id="select-fase-${i}">
                             <option disabled${!formatosSelecionados[i] ? ' selected' : ''}>Formato</option>
-                            <option value="round-robin">Round Robin (Todos contra todos)</option>
-                            <option value="ave">Sistema AVE</option>
-                            <option value="eliminacao">Taça</option>
-                            <option value="campeonato">Campeonato (Liga)</option>
-                            <option value="duplo-ko">Duplo KO</option>
+                            <option value="round-robin"${formatosSelecionados[i] === 'round-robin' ? ' selected' : ''}>Round Robin (Todos contra todos)</option>
+                            <option value="ave"${formatosSelecionados[i] === 'ave' ? ' selected' : ''}>Sistema AVE</option>
+                            <option value="eliminacao"${formatosSelecionados[i] === 'eliminacao' ? ' selected' : ''}>Taça</option>
+                            <option value="campeonato"${formatosSelecionados[i] === 'campeonato' ? ' selected' : ''}>Campeonato (Liga)</option>
+                            <option value="duplo-ko"${formatosSelecionados[i] === 'duplo-ko' ? ' selected' : ''}>Duplo KO</option>
                         </select>
                     </td>
                     <td>
@@ -328,14 +340,6 @@ else
                     </td>
                 `;
                 tableBody.appendChild(row);
-            }
-
-            // Após criar as linhas, definir o valor dos selects conforme formatosSelecionados
-            for (let i = 1; i <= numFases; i++) {
-                if (formatosSelecionados[i]) {
-                    const select = document.getElementById(`select-fase-${i}`);
-                    if (select) select.value = formatosSelecionados[i];
-                }
             }
         }
 
@@ -351,6 +355,12 @@ else
                     numFasesInput.value = savedNumFases;
                 }
             }
+            // Inicializa o valor oldValue para comparação futura
+            numFasesInput.oldValue = numFasesInput.value;
+            
+            // Forçar a criação da tabela no carregamento da página
+            const tableBody = document.getElementById('fasesTableBody');
+            tableBody.innerHTML = '';
             updateTableRows();
 
             // Handler do botão Seguinte
@@ -373,12 +383,16 @@ else
                         return;
                     }
                     // Remove fases não configuradas e renumera as fases
-                    formatosSelecionados = {};
+                    const novoFormatosSelecionados = {};
                     for (let j = 0; j < fasesComFormato.length; j++) {
-                        formatosSelecionados[j + 1] = fasesComFormato[j].formato;
+                        novoFormatosSelecionados[j + 1] = fasesComFormato[j].formato;
                     }
+                    
                     // Atualiza o número de fases para o número de fases configuradas
                     numFasesInput.value = fasesComFormato.length;
+                    
+                    // Atualiza o objeto formatosSelecionados com os novos valores
+                    formatosSelecionados = novoFormatosSelecionados;
 
                     // Atualiza no servidor (número de fases e formatos)
                     Promise.all([
@@ -393,6 +407,9 @@ else
                             body: JSON.stringify(formatosSelecionados)
                         })
                     ]).then(() => {
+                        // Força a recriação da tabela com os novos valores
+                        const tableBody = document.getElementById('fasesTableBody');
+                        tableBody.innerHTML = '';
                         updateTableRows();
                         // Não avança ainda, espera o usuário clicar novamente
                     });
@@ -423,12 +440,15 @@ else
                         return;
                     }
                     // Remove fases não configuradas e renumera as fases
-                    formatosSelecionados = {};
+                    const novoFormatosSelecionados = {};
                     for (let j = 0; j < fasesComFormato.length; j++) {
-                        formatosSelecionados[j + 1] = fasesComFormato[j].formato;
+                        novoFormatosSelecionados[j + 1] = fasesComFormato[j].formato;
                     }
                     // Atualiza o número de fases para o número de fases configuradas
                     document.getElementById('numFases').value = fasesComFormato.length;
+                    
+                    // Atualiza o objeto formatosSelecionados com os novos valores
+                    formatosSelecionados = novoFormatosSelecionados;
 
                     // Atualiza no servidor (número de fases e formatos)
                     Promise.all([
@@ -443,7 +463,9 @@ else
                             body: JSON.stringify(formatosSelecionados)
                         })
                     ]).then(() => {
-                        // Atualiza a tabela para refletir o novo número de fases antes de submeter
+                        // Força a recriação da tabela com os novos valores
+                        const tableBody = document.getElementById('fasesTableBody');
+                        tableBody.innerHTML = '';
                         updateTableRows();
                         // Agora NÃO submete automaticamente! O admin deve clicar novamente em Confirmar Alteração.
                     });
@@ -455,11 +477,38 @@ else
 
         document.getElementById('btnVoltar').addEventListener('click', async function (e) {
             // Verificar se estamos em modo de edição
-            const modoEdicao = localStorage.getItem('modoEdicao');
-            if (modoEdicao === 'true') {
+            const modoEdicao = '@edicao' === 'True' || localStorage.getItem('modoEdicao') === 'true';
+            
+            // Salvar o estado atual antes de navegar
+            const numFases = parseInt(document.getElementById('numFases').value);
+            
+            // Salva o número de fases no localStorage
+            localStorage.setItem('numFases', numFases);
+            
+            // Salva o número de fases e formatos no servidor via AJAX se houver competicaoId
+            if (competicaoId) {
+                try {
+                    await Promise.all([
+                        fetch(`/FormatodaCompeticao/SalvarNumFases?competicaoId=${competicaoId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(numFases)
+                        }),
+                        fetch(`/FormatodaCompeticao/SalvarFormatos?competicaoId=${competicaoId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(formatosSelecionados)
+                        })
+                    ]);
+                } catch (error) {
+                    console.error('Erro ao salvar dados:', error);
+                }
+            }
+            
+            if (modoEdicao) {
                 // Se estamos em modo de edição, não eliminar a competição
                 e.preventDefault();
-                window.location.href = '/CriarCompeticao';
+                window.location.href = '/Menu/Index';
                 return false;
             }
             

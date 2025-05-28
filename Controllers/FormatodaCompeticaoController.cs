@@ -3,8 +3,7 @@ using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-
-
+using System.Linq;
 
 namespace ProjetoLaboratorio25.Controllers
 {
@@ -25,10 +24,36 @@ namespace ProjetoLaboratorio25.Controllers
             ViewBag.CompeticaoId = TempData["CompeticaoId"];
 
             var competicaoId = TempData["CompeticaoId"]?.ToString();
-            ViewBag.FormatosSelecionados = competicaoId != null ? (TempData[$"FormatosSelecionados_{competicaoId}"] as string ?? "{}") : "{}";
-            ViewBag.NumFases = TempData[$"NumFases_{competicaoId}"] ?? 2;
+            
+            if (edicao && !string.IsNullOrEmpty(competicaoId) && int.TryParse(competicaoId, out int compId))
+            {
+                // Load configurations from database for edit mode
+                var configuracoes = _context.ConfiguracoesFase
+                    .Where(c => c.CompeticaoId == compId)
+                    .OrderBy(c => c.FaseNumero)
+                    .ToList();
 
-            // Passa o modo edição para a view
+                if (configuracoes.Any())
+                {
+                    // Convert configurations to dictionary format
+                    var formatosDict = configuracoes.ToDictionary(c => c.FaseNumero, c => c.Formato);
+                    ViewBag.FormatosSelecionados = System.Text.Json.JsonSerializer.Serialize(formatosDict);
+                    ViewBag.NumFases = configuracoes.Count;
+                }
+                else
+                {
+                    ViewBag.FormatosSelecionados = "{}";
+                    ViewBag.NumFases = 2;
+                }
+            }
+            else
+            {
+                // Default behavior for new competition
+                ViewBag.FormatosSelecionados = competicaoId != null ? (TempData[$"FormatosSelecionados_{competicaoId}"] as string ?? "{}") : "{}";
+                ViewBag.NumFases = TempData[$"NumFases_{competicaoId}"] ?? 2;
+            }
+
+            // Pass the edit mode to the view
             ViewBag.Edicao = edicao;
 
             // Preserve TempData for the next request
