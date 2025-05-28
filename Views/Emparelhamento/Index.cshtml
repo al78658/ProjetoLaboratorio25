@@ -343,7 +343,11 @@
                 localStorage.setItem(agendamentosKey, JSON.stringify(agendamentos));
                 
                 const timestamp = new Date().toISOString();
-                const competicaoId = localStorage.getItem('competicaoId') || nomeCompeticao.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                // Use the existing competicaoId from localStorage or generate a new one
+                let competicaoId = parseInt(localStorage.getItem('competicaoId')) || 0;
+                if (!competicaoId) {
+                    competicaoId = nomeCompeticao.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                }
 
                 // Guarda todos os dados
                 localStorage.setItem(`jogadores_${nomeCompeticao}`, JSON.stringify(jogadores));
@@ -385,9 +389,6 @@
                 
                 // Obter o ID da competição (se disponível)
                 // Tenta várias fontes possíveis para o ID da competição
-                let competicaoId = parseInt(localStorage.getItem('competicaoId')) || 0;
-                
-                // Se não encontrou, tenta outras fontes
                 if (!competicaoId) {
                     // Tenta obter da URL se estiver disponível
                     const urlParams = new URLSearchParams(window.location.search);
