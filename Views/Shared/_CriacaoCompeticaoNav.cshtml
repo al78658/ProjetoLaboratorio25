@@ -18,7 +18,8 @@
         @foreach (var etapa in etapas)
         {
             var isActive = etapa.Nome == etapaAtual;
-            var isDisabled = edicao && etapa.Nome != "Formato da Competição";
+            // Agora desabilita TODAS as etapas (inclusive "Formato da Competição") em modo edição
+            var isDisabled = edicao;
             <a href="/@etapa.Controller" class="criacao-nav-step @(isActive ? "active" : "") @(isDisabled ? "disabled" : "")" 
                data-controller="@etapa.Controller" data-action="@etapa.Action"
                @(isDisabled ? "tabindex='-1' onclick='event.preventDefault(); this.classList.add(\"active\"); return false;' style='opacity:0.5;'" : "onclick=\"return verificarNavegacao('" + etapa.Controller + "')\"")>
