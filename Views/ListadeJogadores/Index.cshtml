@@ -231,12 +231,8 @@
                     atualizarContadorJogadores();
                 }
 
-                // Verificar se há jogadores no localStorage
-                const jogadoresSalvos = localStorage.getItem('jogadoresImportados');
-                if (jogadoresSalvos) {
-                    jogadoresArray = JSON.parse(jogadoresSalvos);
-                    renderizarTabelaJogadores();
-                }
+                // Limpar lista de jogadores ao iniciar uma nova competição
+                localStorage.removeItem('jogadoresImportados');
 
                 alterarListaButton.addEventListener('click', () => fileInput.click());
 
