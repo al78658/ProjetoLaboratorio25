@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿﻿﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -22,10 +22,24 @@ namespace ProjetoLaboratorio25.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int? competicaoId = null)
         {
-            // Obter o ID da competição atual do TempData
-            int? competicaoId = TempData["CompeticaoId"] as int?;
+            // Primeiro tenta obter o ID da competição da URL
+            if (competicaoId == null)
+            {
+                // Se não estiver na URL, tenta obter do TempData
+                competicaoId = TempData["CompeticaoId"] as int?;
+            }
+            
+            // Se ainda não tiver o ID, tenta buscar a competição mais recente
+            if (competicaoId == null)
+            {
+                var ultimaCompeticao = _context.Competicoes.OrderByDescending(c => c.Id).FirstOrDefault();
+                if (ultimaCompeticao != null)
+                {
+                    competicaoId = ultimaCompeticao.Id;
+                }
+            }
             
             // Preservar o TempData para uso posterior
             TempData.Keep("NomeCompeticao");
@@ -44,6 +58,11 @@ namespace ProjetoLaboratorio25.Controllers
                 {
                     ViewBag.NomeCompeticao = competicao.Nome;
                     ViewBag.TipoCompeticao = competicao.TipoCompeticao;
+                    
+                    // Armazena no TempData também
+                    TempData["NomeCompeticao"] = competicao.Nome;
+                    TempData["TipoCompeticao"] = competicao.TipoCompeticao;
+                    TempData["CompeticaoId"] = competicao.Id;
                 }
             }
             
@@ -127,6 +146,9 @@ namespace ProjetoLaboratorio25.Controllers
         [HttpPost]
         public IActionResult Emparelhar(int competicaoId)
         {
+            // Armazenar o ID da competição no TempData para persistência
+            TempData["CompeticaoId"] = competicaoId;
+            
             // Redirect directly to the Emparelhamento page with the competition ID
             return RedirectToAction("Index", "Emparelhamento", new { competicaoId });
         }

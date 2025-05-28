@@ -113,6 +113,16 @@
                 background-color: #dcdcdc;
             }
 
+        .error-message {
+            color: #ff0000;
+            background-color: #ffe6e6;
+            border: 1px solid #ff0000;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
         media (max-width: 700px) {
             .top-left-logo img
 
@@ -155,6 +165,13 @@
         <div class="login-box">
             <h2>Criar Conta</h2>
 
+            @if (ViewBag.Erro != null)
+            {
+                <div class="error-message">
+                    @ViewBag.Erro
+                </div>
+            }
+
             <form method="post">
                 <div class="form-group">
                     <label for="utilizador">Utilizador:</label>
@@ -168,7 +185,7 @@
 
                 <div class="form-group">
                     <label for="senha">Senha:</label>
-                    <input type="password" id="senha" name="senha" required />
+                    <input type="password" id="senha" name="senha" required minlength="6" />
                 </div>
 
                 <button type="submit" class="login-button">

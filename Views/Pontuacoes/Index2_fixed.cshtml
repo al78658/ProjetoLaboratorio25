@@ -1,0 +1,522 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <title>Gestão de Resultados</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+
+            .top-left-logo img {
+                width: 160px;
+            }
+
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        h2 {
+            font-size: 32px;
+            color: black;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .victory-button {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 2px;
+            font-size: 12px;
+        }
+
+            .victory-button:hover {
+                background-color: #e0e0e0;
+            }
+
+        .arrow-button {
+            padding: 2px 8px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .confirm-button {
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+            .confirm-button:hover {
+                background-color: #45a049;
+            }
+
+        .back-button {
+            position: absolute;
+            top: 40px;
+            right: 50px;
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .pontuacao-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <a href="/home">
+            <img src="/img/logotipo.png" alt="Logotipo" />
+        </a>
+    </div>
+
+    <!-- Conteúdo Centralizado -->
+    <div class="content-wrapper">
+        <h2>Gestão de Resultados</h2>
+        <h3 id="competicaoNome" style="margin-bottom: 15px; color: #333; text-align: center;"></h3>
+        <div style="margin-bottom: 24px; text-align: center;">
+            <p style="font-style: italic; color: #666;">Todos os jogos da competição agrupados por data</p>
+        </div>
+        <table id="tabelaPontuacoes">
+            <thead>
+                <tr>
+                    <th>Partidas</th>
+                    <th>Pontuação</th>
+                    <th>Vitória</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Jogos renderizados por JS -->
+            </tbody>
+        </table>
+        <button class="confirm-button" id="btnRegistar">Registar</button>
+    </div>
+    <a href="/Menu?competicaoId=@ViewBag.CompeticaoId" class="back-button">&lt;Voltar</a>
+    <script>
+
+        // Inicialização
+        let agendamentos = [];
+        let resultados = [];
+
+        // Função para renderizar os jogos na tabela
+        function renderJogos() {
+            const tabela = document.querySelector('#tabelaPontuacoes tbody');
+            
+            console.log('Renderizando todos os jogos da competição');
+            console.log('Total de agendamentos:', agendamentos.length);
+            
+            tabela.innerHTML = '';
+            
+            if (agendamentos.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="4">Nenhum jogo agendado para esta competição.</td>`;
+                tabela.appendChild(row);
+                return;
+            }
+
+            // Agrupar jogos por data
+            const jogosPorData = {};
+            agendamentos.forEach(jogo => {
+                // Usar a data formatada retornada pelo controller
+                const dataFormatada = jogo.DataFormatada || 'Data não definida';
+                if (!jogosPorData[dataFormatada]) {
+                    jogosPorData[dataFormatada] = [];
+                }
+                jogosPorData[dataFormatada].push(jogo);
+            });
+
+            // Ordenar as datas
+            const datasOrdenadas = Object.keys(jogosPorData).sort((a, b) => {
+                // Converter para formato ISO para comparação
+                const dataA = new Date(a.split('/').reverse().join('-'));
+                const dataB = new Date(b.split('/').reverse().join('-'));
+                return dataA - dataB;
+            });
+
+            // Renderizar jogos agrupados por data
+            datasOrdenadas.forEach(data => {
+                // Adicionar cabeçalho da data
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = `<td colspan="4" style="background-color: #e0e0e0; font-weight: bold; text-align: center;">${data}</td>`;
+                tabela.appendChild(headerRow);
+
+                // Renderizar jogos desta data
+                jogosPorData[data].forEach((jogo, idx) => {
+                    const globalIdx = agendamentos.findIndex(a => a.id === jogo.id);
+                    const resultado = resultados[globalIdx] || {};
+                    const pontuacao = resultado.pontuacao || `${jogo.pontuacaoClube1}-${jogo.pontuacaoClube2}`;
+                    const vencedor = resultado.vencedor || '';
+                    const motivo = resultado.motivo || jogo.motivo || '';
+
+                    // Nomes dos clubes
+                    const clube1 = jogo.clube1;
+                    const clube2 = jogo.clube2;
+
+                    console.log(`Renderizando jogo ${globalIdx}: ${clube1} vs ${clube2}, pontuação: ${pontuacao}`);
+
+                    // Estilo para os botões de vitória
+                    const v1Active = vencedor === clube1 ? 'background-color: #4CAF50; color: white;' : '';
+                    const v2Active = vencedor === clube2 ? 'background-color: #4CAF50; color: white;' : '';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${clube1} vs ${clube2}<br><small>${jogo.horario || ''}</small></td>
+                        <td>
+                            <div class="pontuacao-flex">
+                                <div>
+                                    <button class="arrow-button" onclick="incrementScore(${globalIdx},1)">↑</button>
+                                </div>
+                                <span id="score-${globalIdx}" style="margin: 0 10px;">${pontuacao}</span>
+                                <div>
+                                    <button class="arrow-button" onclick="incrementScore(${globalIdx},2)">↑</button>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="victory-button" style="${v1Active}" onclick="darVitoria(${globalIdx},'${clube1}')">Dar Vitória ${clube1}</button>
+                            <button class="victory-button" style="${v2Active}" onclick="darVitoria(${globalIdx},'${clube2}')">Dar Vitória ${clube2}</button>
+                        </td>
+                        <td><input type="text" class="motivo-input" data-idx="${globalIdx}" value="${motivo}" placeholder="Motivo (obrigatório se vitória)" style="width:140px;" /></td>
+                    `;
+                    tabela.appendChild(row);
+                });
+            });
+        }
+
+        window.incrementScore = function(idx, player) {
+            const scoreSpan = document.getElementById('score-' + idx);
+            let scores = scoreSpan.textContent.split('-').map(Number);
+            if (scores.length !== 2) scores = [0, 0];
+            if (scores[player - 1] < 99) scores[player - 1]++;
+            scoreSpan.textContent = scores.join('-');
+        }
+
+        window.darVitoria = function(idx, vencedor) {
+            // Atualiza todos os motivos e pontuações atuais antes de redesenhar
+            agendamentos.forEach((jogo, i) => {
+                const scoreSpan = document.getElementById('score-' + i);
+                const motivoInput = document.querySelector(`.motivo-input[data-idx='${i}']`);
+                resultados[i] = resultados[i] || {};
+                if (scoreSpan) resultados[i].pontuacao = scoreSpan.textContent;
+                if (motivoInput) resultados[i].motivo = motivoInput.value.trim();
+            });
+
+            resultados[idx].vencedor = vencedor;
+            
+            // Se o vencedor for o clube1, definir pontuação como 1-0
+            if (vencedor === agendamentos[idx].clube1) {
+                resultados[idx].pontuacao = '1-0';
+            } 
+            // Se o vencedor for o clube2, definir pontuação como 0-1
+            else if (vencedor === agendamentos[idx].clube2) {
+                resultados[idx].pontuacao = '0-1';
+            }
+
+            renderJogos(); // redesenha sem perder dados temporários
+        }
+
+
+        const btnRegistar = document.getElementById('btnRegistar');
+        btnRegistar.addEventListener('click', function () {
+            console.log('Botão Registar clicado');
+            console.log('Agendamentos:', agendamentos);
+            console.log('Resultados:', resultados);
+            
+            let erro = false;
+
+            // Verificar se todos os jogos com vitória têm motivo
+            agendamentos.forEach((jogo, idx) => {
+                const resultado = resultados[idx] || {};
+                if (resultado.vencedor && (!resultado.motivo || resultado.motivo.trim() === '')) {
+                    alert(`Por favor, forneça um motivo para a vitória de ${resultado.vencedor}.`);
+                    erro = true;
+                }
+            });
+
+            if (erro) return;
+
+            // Atualizar todos os motivos e pontuações antes de enviar
+            agendamentos.forEach((jogo, idx) => {
+                const scoreSpan = document.getElementById('score-' + idx);
+                const motivoInput = document.querySelector(`.motivo-input[data-idx='${idx}']`);
+                resultados[idx] = resultados[idx] || {};
+                if (scoreSpan) resultados[idx].pontuacao = scoreSpan.textContent;
+                if (motivoInput) resultados[idx].motivo = motivoInput.value.trim();
+            });
+
+            // Preparar os novos resultados para enviar ao servidor
+            const novosResultados = agendamentos.map((jogo, idx) => {
+                const resultado = resultados[idx] || {};
+                return {
+                    id: jogo.id,
+                    pontuacao: resultado.pontuacao || `${jogo.pontuacaoClube1}-${jogo.pontuacaoClube2}`,
+                    vencedor: resultado.vencedor || '',
+                    motivo: resultado.motivo || jogo.motivo || ''
+                };
+            });
+
+            // Verificar se temos o ID da competição
+            const urlParams = new URLSearchParams(window.location.search);
+            const competicaoId = urlParams.get('competicaoId');
+            
+            if (competicaoId) {
+                // Mostrar mensagem de carregamento
+                alert('Salvando resultados, por favor aguarde...');
+                
+                // Para cada jogo, atualizar a pontuação
+                const promises = [];
+                novosResultados.forEach(resultado => {
+                    const pontuacoes = resultado.pontuacao.split('-').map(Number);
+                    
+                    if (pontuacoes.length === 2) {
+                        // Garantir que o motivo seja enviado corretamente
+                        const motivo = resultado.motivo || '';
+                        console.log(`Motivo para o jogo ${resultado.id}: "${motivo}"`);
+                        
+                        const updateData = {
+                            emparelhamentoId: resultado.id,
+                            pontuacaoClube1: pontuacoes[0],
+                            pontuacaoClube2: pontuacoes[1],
+                            motivo: motivo
+                        };
+                        
+                        console.log('Enviando dados para atualização:', updateData);
+                        
+                        const promise = fetch('/Pontuacoes/AtualizarPontuacao', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(updateData)
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Erro ao atualizar pontuação: ' + response.statusText);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Atualização bem-sucedida:', data);
+                            alert('Pontuações atualizadas com sucesso!');
+                            // Redirecionar para o Menu com o ID da competição
+                            localStorage.setItem('competicaoSelecionadaId', competicaoId);
+                            window.location.href = '/Menu?competicaoId=' + competicaoId;
+                        })
+                        .catch(error => {
+                            console.error('Erro ao atualizar pontuações no servidor:', error);
+                            alert('Erro ao atualizar pontuações: ' + error.message);
+                            
+                            // Em caso de erro, mostrar mensagem e não redirecionar automaticamente
+                            alert('Erro ao atualizar pontuações. Por favor, tente novamente.');
+                            console.error('Erro detalhado:', error);
+                        });
+                        
+                        promises.push(promise);
+                    }
+                });
+                
+                // Aguardar todas as atualizações
+                Promise.all(promises)
+                    .then(() => {
+                        console.log('Todas as pontuações foram atualizadas com sucesso');
+                    })
+                    .catch(error => {
+                        console.error('Erro ao atualizar pontuações:', error);
+                    });
+            } else {
+                // Se não tiver nome da competição ou data, apenas redirecionar
+                const urlParams = new URLSearchParams(window.location.search);
+                const competicaoId = urlParams.get('competicaoId');
+                
+                if (competicaoId) {
+                    localStorage.setItem('competicaoSelecionadaId', competicaoId);
+                    window.location.href = '/Menu?competicaoId=' + competicaoId;
+                } else {
+                    window.location.href = '/Menu';
+                }
+            }
+        });
+    </script>
+    <script>
+        // Carregar dados do servidor
+        async function carregarJogos() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const competicaoId = urlParams.get('competicaoId');
+
+                console.log('Parâmetros da URL:', { competicaoId });
+
+                if (!competicaoId) {
+                    throw new Error('ID da competição não fornecido');
+                }
+
+                // Mostrar mensagem de carregamento
+                const tbody = document.querySelector('#tabelaPontuacoes tbody');
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">Carregando jogos...</td></tr>';
+
+                // Atualizar o nome da competição
+                document.getElementById('competicaoNome').textContent = 'Carregando...';
+                
+                try {
+                    const competicaoResponse = await fetch(`/api/Competicoes/${competicaoId}`);
+                    if (competicaoResponse.ok) {
+                        const competicao = await competicaoResponse.json();
+                        document.getElementById('competicaoNome').textContent = competicao.nome;
+                    }
+                } catch (error) {
+                    console.error('Erro ao obter nome da competição:', error);
+                }
+
+                // Buscar os jogos do servidor
+                const response = await fetch(`/Pontuacoes/ObterJogosPorData?competicaoId=${competicaoId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar jogos (' + response.status + '): ' + (response.statusText || ''));
+                }
+                
+                const dataJogos = await response.json();
+                console.log('Dados carregados do servidor:', dataJogos);
+
+                if (!Array.isArray(dataJogos)) {
+                    throw new Error('Dados recebidos não são um array');
+                }
+
+                // Atualizar os dados locais
+                agendamentos = dataJogos;
+                
+                // Inicializar resultados
+                resultados = dataJogos.map(jogo => {
+                    return {
+                        pontuacao: jogo.pontuacaoClube1 !== null && jogo.pontuacaoClube2 !== null 
+                            ? `${jogo.pontuacaoClube1}-${jogo.pontuacaoClube2}`
+                            : '0-0',
+                        vencedor: jogo.jogoRealizado 
+                            ? (jogo.pontuacaoClube1 > jogo.pontuacaoClube2 ? jogo.clube1 
+                               : jogo.pontuacaoClube2 > jogo.pontuacaoClube1 ? jogo.clube2 
+                               : '')
+                            : '',
+                        motivo: jogo.motivo || ''
+                    };
+                });
+
+                // Remover linha de carregamento
+                tbody.innerHTML = '';
+                
+                // Renderizar os jogos
+                renderJogos();
+
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                const tbody = document.querySelector('#tabelaPontuacoes tbody');
+                tbody.innerHTML = '';
+                const errorRow = document.createElement('tr');
+                errorRow.innerHTML = `
+                    <td colspan="4">
+                        <div style="text-align: center; padding: 20px;">
+                            <p style="color: red;">Erro ao carregar os dados:</p>
+                            <p>${error.message}</p>
+                            <p>Por favor, tente novamente mais tarde.</p>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(errorRow);
+                
+                // Registrar o erro no console para depuração
+                console.error('Detalhes do erro:', {
+                    message: error.message,
+                    stack: error.stack,
+                    url: error.url || '/Pontuacoes/ObterJogosPorData'
+                });
+            }
+        }
+
+        // Inicializar quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarJogos();
+        });
+    </script>
+</body>
+</html>

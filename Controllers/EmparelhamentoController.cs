@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
@@ -18,33 +18,59 @@ namespace ProjetoLaboratorio25.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? competicaoId = null)
         {
-            // Fetch the latest competition ID
-            var latestCompetition = await _context.Competicoes
-                .OrderByDescending(c => c.Id)
-                .FirstOrDefaultAsync();
+            // Primeiro tenta obter o ID da competição da URL
+            if (competicaoId == null)
+            {
+                // Se não estiver na URL, tenta obter do TempData
+                competicaoId = TempData["CompeticaoId"] as int?;
+                
+                // Se ainda não tiver o ID, busca a competição mais recente
+                if (competicaoId == null)
+                {
+                    var latestCompetition = await _context.Competicoes
+                        .OrderByDescending(c => c.Id)
+                        .FirstOrDefaultAsync();
+                        
+                    if (latestCompetition == null)
+                    {
+                        ViewBag.CompeticaoId = null;
+                        ViewBag.ErrorMessage = "Nenhuma competição encontrada.";
+                        return View();
+                    }
+                    
+                    competicaoId = latestCompetition.Id;
+                }
+            }
+            
+            // Busca a competição pelo ID
+            var competition = await _context.Competicoes.FindAsync(competicaoId);
 
-            if (latestCompetition == null)
+            if (competition == null)
             {
                 ViewBag.CompeticaoId = null;
-                ViewBag.ErrorMessage = "Nenhuma competição encontrada.";
+                ViewBag.ErrorMessage = "Competição não encontrada.";
                 return View();
             }
-
-            // Fetch clubs associated with the latest competition
+            
+            // Fetch clubs associated with the competition
             var clubes = await _context.Jogadores
-                .Where(j => j.CompeticaoId == latestCompetition.Id && !string.IsNullOrEmpty(j.Clube))
+                .Where(j => j.CompeticaoId == competition.Id && !string.IsNullOrEmpty(j.Clube))
                 .Select(j => j.Clube != null ? j.Clube.Trim().ToLower() : "")
                 .Distinct()
                 .ToListAsync();
 
-            ViewBag.CompeticaoId = latestCompetition.Id;
-            ViewBag.CompeticaoNome = latestCompetition.Nome;
+            ViewBag.CompeticaoId = competition.Id;
+            ViewBag.CompeticaoNome = competition.Nome;
             ViewBag.Clubes = clubes;
             
             // Passar o ID da competição para o JavaScript
-            ViewBag.CompeticaoIdJS = latestCompetition.Id;
+            ViewBag.CompeticaoIdJS = competition.Id;
+            
+            // Armazenar no TempData para persistência
+            TempData["CompeticaoId"] = competition.Id;
+            TempData["NomeCompeticao"] = competition.Nome;
 
             return View();
         }
@@ -54,7 +80,7 @@ namespace ProjetoLaboratorio25.Controllers
         {
             try
             {
-                var emparelhamentos = await _context.EmparelhamentosBase
+                var emparelhamentos = await _context.EmparelhamentosFinal
                     .Where(e => e.CompeticaoId == competicaoId)
                     .ToListAsync();
                     
@@ -66,6 +92,130 @@ namespace ProjetoLaboratorio25.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { mensagem = $"Erro ao verificar emparelhamentos: {ex.Message}" });
+            }
+        }
+        
+        [HttpGet]
+        public async Task<IActionResult> ObterEmparelhamentos(int competicaoId)
+        {
+            try
+            {
+                var emparelhamentos = await _context.EmparelhamentosFinal
+                    .Where(e => e.CompeticaoId == competicaoId)
+                    .Select(e => new
+                    {
+                        e.Id,
+                        e.Clube1,
+                        e.Clube2,
+                        DataJogo = e.DataJogo.ToString("yyyy-MM-dd"),
+                        HoraJogo = e.HoraJogo.ToString(@"hh\:mm"),
+                        e.PontuacaoClube1,
+                        e.PontuacaoClube2,
+                        e.JogoRealizado
+                    })
+                    .ToListAsync();
+                    
+                return Ok(emparelhamentos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensagem = $"Erro ao obter emparelhamentos: {ex.Message}" });
+            }
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> AtualizarDataHora([FromBody] AtualizarDataHoraModel model)
+        {
+            try
+            {
+                var emparelhamento = await _context.EmparelhamentosFinal.FindAsync(model.EmparelhamentoId);
+                
+                if (emparelhamento == null)
+                {
+                    return NotFound(new { mensagem = "Emparelhamento não encontrado." });
+                }
+                
+                // Atualizar data e hora
+                if (DateTime.TryParse(model.DataJogo, out var novaData))
+                {
+                    emparelhamento.DataJogo = novaData;
+                }
+                
+                if (TimeSpan.TryParse(model.HoraJogo, out var novaHora))
+                {
+                    emparelhamento.HoraJogo = novaHora;
+                }
+                
+                await _context.SaveChangesAsync();
+                
+                // Criar notificação de alteração de data/hora
+                var notificacao = new Notificacao
+                {
+                    Clube1 = emparelhamento.Clube1,
+                    Clube2 = emparelhamento.Clube2,
+                    Motivo = "Alteração de data/hora do jogo",
+                    DataNotificacao = DateTime.Now,
+                };
+                
+                _context.Notificacoes.Add(notificacao);
+                await _context.SaveChangesAsync();
+                
+                return Ok(new { mensagem = "Data e hora atualizadas com sucesso." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensagem = $"Erro ao atualizar data e hora: {ex.Message}" });
+            }
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> AtualizarPontuacao([FromBody] AtualizarPontuacaoModel model)
+        {
+            try
+            {
+                var emparelhamento = await _context.EmparelhamentosFinal.FindAsync(model.EmparelhamentoId);
+                
+                if (emparelhamento == null)
+                {
+                    return NotFound(new { mensagem = "Emparelhamento não encontrado." });
+                }
+                
+                // Atualizar pontuações
+                emparelhamento.PontuacaoClube1 = model.PontuacaoClube1;
+                emparelhamento.PontuacaoClube2 = model.PontuacaoClube2;
+                emparelhamento.JogoRealizado = true;
+                
+                await _context.SaveChangesAsync();
+                
+                // Determinar o clube vitorioso
+                string? clubeVitorioso = null;
+                if (model.PontuacaoClube1 > model.PontuacaoClube2)
+                {
+                    clubeVitorioso = emparelhamento.Clube1;
+                }
+                else if (model.PontuacaoClube2 > model.PontuacaoClube1)
+                {
+                    clubeVitorioso = emparelhamento.Clube2;
+                }
+                
+                // Criar notificação de resultado
+                var notificacao = new Notificacao
+                {
+                    Clube1 = emparelhamento.Clube1,
+                    Clube2 = emparelhamento.Clube2,
+                    ClubeVitorioso = clubeVitorioso,
+                    Motivo = "Resultado do jogo registrado",
+                    DataNotificacao = DateTime.Now,
+                };
+                
+                _context.Notificacoes.Add(notificacao);
+                await _context.SaveChangesAsync();
+                
+                return Ok(new { mensagem = "Pontuação atualizada com sucesso." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensagem = $"Erro ao atualizar pontuação: {ex.Message}" });
             }
         }
 
@@ -125,18 +275,16 @@ namespace ProjetoLaboratorio25.Controllers
                 int competicaoId = competicao.Id;
                 string nomeCompeticao = competicao.Nome ?? "";
 
-                // Remover emparelhamentos existentes para a competição (EmparelhamentoBase)
-                var emparelhamentosBaseExistentes = await _context.EmparelhamentosBase
+                // Remover emparelhamentos existentes para a competição (EmparelhamentoFinal)
+                var emparelhamentosExistentes = await _context.EmparelhamentosFinal
                     .Where(e => e.CompeticaoId == competicaoId)
                     .ToListAsync();
                 
-                if (emparelhamentosBaseExistentes.Any())
+                if (emparelhamentosExistentes.Any())
                 {
-                    _context.EmparelhamentosBase.RemoveRange(emparelhamentosBaseExistentes);
+                    _context.EmparelhamentosFinal.RemoveRange(emparelhamentosExistentes);
                     await _context.SaveChangesAsync();
                 }
-
-                // Removido: Não precisamos mais remover JogosEmparelhados
 
                 var falhas = new List<EmparelhamentoViewModel>();
                 var sucessos = new List<string>();
@@ -146,51 +294,21 @@ namespace ProjetoLaboratorio25.Controllers
                 {
                     try
                     {
-                        // Verificar se é emparelhamento de clubes ou jogadores
-                        if (e.IsClube)
+                        // Criar novo emparelhamento independente do tipo
+                        var novoEmparelhamento = new EmparelhamentoFinal
                         {
-                            // Salvar como EmparelhamentoBase
-                            var novoEmparelhamento = new EmparelhamentoBase
-                            {
-                                CompeticaoId = competicaoId,
-                                Clube1 = e.Clube1 ?? "",
-                                Clube2 = e.Clube2 ?? "",
-                                DataJogo = DateTime.TryParse(e.DataJogo, out var data) ? data : DateTime.Now,
-                                HoraJogo = TimeSpan.TryParse(e.HoraJogo, out var hora) ? hora : TimeSpan.Zero
-                            };
+                            CompeticaoId = competicaoId,
+                            Clube1 = e.Clube1 ?? "",
+                            Clube2 = e.Clube2 ?? "",
+                            DataJogo = DateTime.TryParse(e.DataJogo, out var data) ? data : DateTime.Now,
+                            HoraJogo = TimeSpan.TryParse(e.HoraJogo, out var hora) ? hora : TimeSpan.Zero,
+                            PontuacaoClube1 = e.PontuacaoClube1,
+                            PontuacaoClube2 = e.PontuacaoClube2,
+                            JogoRealizado = e.JogoRealizado
+                        };
 
-                            _context.EmparelhamentosBase.Add(novoEmparelhamento);
-                            sucessos.Add($"Emparelhamento entre {e.Clube1} e {e.Clube2} salvo com sucesso.");
-                        }
-                        else
-                        {
-                            // Buscar os jogadores pelo nome
-                            var jogador1 = await _context.Jogadores
-                                .FirstOrDefaultAsync(j => j.Nome == e.Jogador1Nome && j.CompeticaoId == competicaoId);
-                            
-                            var jogador2 = await _context.Jogadores
-                                .FirstOrDefaultAsync(j => j.Nome == e.Jogador2Nome && j.CompeticaoId == competicaoId);
-
-                            if (jogador1 != null && jogador2 != null)
-                            {
-                                // Agora usamos EmparelhamentoBase para jogadores também
-                                var novoEmparelhamento = new EmparelhamentoBase
-                                {
-                                    CompeticaoId = competicaoId,
-                                    Clube1 = jogador1.Nome ?? "",
-                                    Clube2 = jogador2.Nome ?? "",
-                                    DataJogo = DateTime.TryParse(e.DataJogo, out var data) ? data : DateTime.Now,
-                                    HoraJogo = TimeSpan.TryParse(e.HoraJogo, out var hora) ? hora : TimeSpan.Zero
-                                };
-
-                                _context.EmparelhamentosBase.Add(novoEmparelhamento);
-                                sucessos.Add($"Emparelhamento entre {e.Jogador1Nome} e {e.Jogador2Nome} salvo com sucesso.");
-                            }
-                            else
-                            {
-                                falhas.Add(e);
-                            }
-                        }
+                        _context.EmparelhamentosFinal.Add(novoEmparelhamento);
+                        sucessos.Add($"Emparelhamento entre {e.Clube1} e {e.Clube2} salvo com sucesso.");
                     }
                     catch (Exception ex)
                     {
@@ -241,6 +359,9 @@ namespace ProjetoLaboratorio25.Controllers
         public string? DataJogo { get; set; }
         public string? HoraJogo { get; set; }
         public bool IsClube { get; set; }
+        public int? PontuacaoClube1 { get; set; }
+        public int? PontuacaoClube2 { get; set; }
+        public bool JogoRealizado { get; set; }
     }
 
     public class EmparelhamentoRequestModel
@@ -248,5 +369,20 @@ namespace ProjetoLaboratorio25.Controllers
         public int CompeticaoId { get; set; }
         public string? NomeCompeticao { get; set; }
         public List<EmparelhamentoViewModel> Emparelhamentos { get; set; } = new List<EmparelhamentoViewModel>();
+    }
+    
+    public class AtualizarDataHoraModel
+    {
+        public int EmparelhamentoId { get; set; }
+        public string DataJogo { get; set; } = string.Empty;
+        public string HoraJogo { get; set; } = string.Empty;
+    }
+    
+    public class AtualizarPontuacaoModel
+    {
+        public int EmparelhamentoId { get; set; }
+        public int PontuacaoClube1 { get; set; }
+        public int PontuacaoClube2 { get; set; }
+        public string Motivo { get; set; } = string.Empty;
     }
 }

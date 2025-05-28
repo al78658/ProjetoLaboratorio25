@@ -12,8 +12,8 @@ using ProjetoLaboratorio25.Data;
 namespace ProjetoLaboratorio25.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250521133517_AddNomeCompeticaoToEmparelhamentoEquipa")]
-    partial class AddNomeCompeticaoToEmparelhamentoEquipa
+    [Migration("20250528125327_migracao2")]
+    partial class migracao2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -148,7 +148,7 @@ namespace ProjetoLaboratorio25.Migrations
                     b.ToTable("ConfiguracoesFase");
                 });
 
-            modelBuilder.Entity("ProjetoLaboratorio25.Models.EmparelhamentoEquipa", b =>
+            modelBuilder.Entity("ProjetoLaboratorio25.Models.EmparelhamentoFinal", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -173,18 +173,26 @@ namespace ProjetoLaboratorio25.Migrations
                     b.Property<TimeSpan>("HoraJogo")
                         .HasColumnType("time");
 
-                    b.Property<string>("NomeCompeticao")
-                        .IsRequired()
+                    b.Property<bool>("JogoRealizado")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Motivo")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PontuacaoClube1")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PontuacaoClube2")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CompeticaoId");
 
-                    b.ToTable("EmparelhamentosEquipa");
+                    b.ToTable("EmparelhamentosFinal");
                 });
 
-            modelBuilder.Entity("ProjetoLaboratorio25.Models.JogoEmparelhado", b =>
+            modelBuilder.Entity("ProjetoLaboratorio25.Models.Notificacao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -192,35 +200,67 @@ namespace ProjetoLaboratorio25.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CompeticaoId")
-                        .HasColumnType("int");
+                    b.Property<string>("Clube1")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<int?>("CompeticaoId1")
-                        .HasColumnType("int");
+                    b.Property<string>("Clube2")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("DataJogo")
+                    b.Property<string>("ClubeVitorioso")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("DataNotificacao")
                         .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan>("HoraJogo")
-                        .HasColumnType("time");
+                    b.Property<string>("Motivo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("Jogador1Id")
+                    b.Property<int>("Pontuacao1")
                         .HasColumnType("int");
 
-                    b.Property<int>("Jogador2Id")
+                    b.Property<int>("Pontuacao2")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompeticaoId");
+                    b.ToTable("Notificacoes");
+                });
 
-                    b.HasIndex("CompeticaoId1");
+            modelBuilder.Entity("ProjetoLaboratorio25.Models.Report", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.HasIndex("Jogador1Id");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.HasIndex("Jogador2Id");
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("JogosEmparelhados");
+                    b.Property<string>("Codigo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Conteudo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Reports");
                 });
 
             modelBuilder.Entity("ProjetoLaboratorio25.Models.Utilizador", b =>
@@ -273,55 +313,24 @@ namespace ProjetoLaboratorio25.Migrations
                     b.Navigation("Competicao");
                 });
 
-            modelBuilder.Entity("ProjetoLaboratorio25.Models.EmparelhamentoEquipa", b =>
+            modelBuilder.Entity("ProjetoLaboratorio25.Models.EmparelhamentoFinal", b =>
                 {
                     b.HasOne("ProjetoLaboratorio25.Models.Competicao", "Competicao")
-                        .WithMany()
+                        .WithMany("EmparelhamentosFinal")
                         .HasForeignKey("CompeticaoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Competicao");
-                });
-
-            modelBuilder.Entity("ProjetoLaboratorio25.Models.JogoEmparelhado", b =>
-                {
-                    b.HasOne("ProjetoLaboratorio25.Models.Competicao", "Competicao")
-                        .WithMany()
-                        .HasForeignKey("CompeticaoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ProjetoLaboratorio25.Models.Competicao", null)
-                        .WithMany("JogosEmparelhados")
-                        .HasForeignKey("CompeticaoId1");
-
-                    b.HasOne("Jogador", "Jogador1")
-                        .WithMany()
-                        .HasForeignKey("Jogador1Id")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Jogador", "Jogador2")
-                        .WithMany()
-                        .HasForeignKey("Jogador2Id")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Competicao");
-
-                    b.Navigation("Jogador1");
-
-                    b.Navigation("Jogador2");
                 });
 
             modelBuilder.Entity("ProjetoLaboratorio25.Models.Competicao", b =>
                 {
                     b.Navigation("ConfiguracoesFase");
 
-                    b.Navigation("Jogadores");
+                    b.Navigation("EmparelhamentosFinal");
 
-                    b.Navigation("JogosEmparelhados");
+                    b.Navigation("Jogadores");
                 });
 #pragma warning restore 612, 618
         }

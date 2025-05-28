@@ -96,28 +96,6 @@
     </div>
 
     <div class="section">
-        <h2>Utilizadores Cadastrados</h2>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Email</th>
-            </tr>
-            @if (ViewBag.Utilizadores != null)
-            {
-                @foreach (var user in ViewBag.Utilizadores)
-                {
-                    <tr>
-                        <td>@user.Id</td>
-                        <td>@user.UtilizadorNome</td>
-                        <td>@user.Email</td>
-                    </tr>
-                }
-            }
-        </table>
-    </div>
-
-    <div class="section">
         <h2>Competições Cadastradas</h2>
         <table>
             <tr>
@@ -140,6 +118,85 @@
                     </tr>
                 }
             }
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Jogadores Cadastrados</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Código</th>
+                    <th>Clube</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var jogador in ViewBag.Jogadores)
+                {
+                    <tr>
+                        <td>@jogador.Id</td>
+                        <td>@jogador.Nome</td>
+                        <td>@jogador.Codigo</td>
+                        <td>@jogador.Clube</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Emparelhamentos Base</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Clube 1</th>
+                    <th>Clube 2</th>
+                    <th>Data</th>
+                    <th>Hora</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var emp in ViewBag.EmparelhamentosBase)
+                {
+                    <tr>
+                        <td>@emp.Id</td>
+                        <td>@emp.Clube1</td>
+                        <td>@emp.Clube2</td>
+                        <td>@emp.DataJogo.ToShortDateString()</td>
+                        <td>@emp.HoraJogo</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Emparelhamentos Finais</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Clube 1</th>
+                    <th>Clube 2</th>
+                    <th>Data</th>
+                    <th>Hora</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var emp in ViewBag.EmparelhamentosFinal)
+                {
+                    <tr>
+                        <td>@emp.Id</td>
+                        <td>@emp.Clube1</td>
+                        <td>@emp.Clube2</td>
+                        <td>@emp.DataJogo.ToShortDateString()</td>
+                        <td>@emp.HoraJogo</td>
+                    </tr>
+                }
+            </tbody>
         </table>
     </div>
 </body>

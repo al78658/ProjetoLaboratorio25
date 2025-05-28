@@ -1,4 +1,4 @@
-﻿﻿﻿﻿@{
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -183,97 +183,135 @@
     </div>
 
     <!-- Botão Voltar absoluto -->
-    <a href="/Menu" class="back-button">&lt;Voltar</a>
+    <a href="/Menu?competicaoId=@ViewBag.CompeticaoId" class="back-button">&lt;Voltar</a>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const nomeCompeticao = localStorage.getItem('competicaoSelecionada');
+        const competicaoId = @ViewBag.CompeticaoId;
+        const competicaoNome = "@ViewBag.CompeticaoNome";
         const tabela = document.getElementById('tabelaJogos').getElementsByTagName('tbody')[0];
-        let agendamentos = [];
-        if (nomeCompeticao) {
-            agendamentos = JSON.parse(localStorage.getItem('agendamentos_' + nomeCompeticao)) || [];
+        
+        // Atualizar o título
+        document.querySelector('h2').textContent = `Jogos Agendados - ${competicaoNome}`;
+        
+        // Carregar jogos do servidor
+        function carregarJogos() {
+            // Mostrar mensagem de carregamento
+            tabela.innerHTML = '<tr><td colspan="3">Carregando jogos...</td></tr>';
+            
+            fetch(`/ProximosJogos/ObterProximosJogos?competicaoId=${competicaoId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao obter jogos');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.mensagem) {
+                        // Se recebemos uma mensagem específica do servidor
+                        console.log(data.mensagem);
+                        tabela.innerHTML = `<tr><td colspan="3">${data.mensagem}</td></tr>`;
+                    } else {
+                        renderJogos(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    tabela.innerHTML = `<tr><td colspan="3">Erro ao carregar jogos: ${error.message}</td></tr>`;
+                });
         }
-
-        function renderJogos() {
+        
+        function renderJogos(dados) {
             tabela.innerHTML = '';
-            if (agendamentos.length === 0) {
+            
+            if (!dados || dados.length === 0) {
                 const row = document.createElement('tr');
-                row.innerHTML = '<td colspan="@((User.Identity.IsAuthenticated) ? 4 : 3)">Nenhum jogo agendado.</td>';
+                row.innerHTML = '<td colspan="3">Nenhum jogo agendado.</td>';
                 tabela.appendChild(row);
                 return;
             }
-            agendamentos.forEach(function(jogo, idx) {
-                const row = document.createElement('tr');
-                var html = '';
-                // Verificar se é um emparelhamento de clubes ou jogadores
-                let jogador1Nome, jogador2Nome;
+            
+            // Para cada data, criar um cabeçalho e listar os jogos
+            dados.forEach(grupo => {
+                // Adicionar cabeçalho da data
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = `<td colspan="3" style="background-color: #e0e0e0; font-weight: bold;">${grupo.dataFormatada}</td>`;
+                tabela.appendChild(headerRow);
                 
-                if (jogo.isClube) {
-                    // É um emparelhamento de clubes
-                    jogador1Nome = jogo.jogador1.nome;
-                    jogador2Nome = jogo.jogador2.nome;
-                    html += '<td><strong>Equipa:</strong> ' + (jogador1Nome || '') + ' vs ' + (jogador2Nome || '') + '</td>';
-                } else {
-                    // É um emparelhamento de jogadores individual
-                    jogador1Nome = typeof jogo.jogador1 === 'object' ? jogo.jogador1.nome : jogo.jogador1;
-                    jogador2Nome = typeof jogo.jogador2 === 'object' ? jogo.jogador2.nome : jogo.jogador2;
-                    html += '<td>' + (jogador1Nome || '') + ' vs ' + (jogador2Nome || '') + '</td>';
-                }
-                // Bloco de edição só para autenticados
-                        if (@(User.Identity.IsAuthenticated.ToString().ToLower())) {
-            html += '<td><input type="date" value="' + (jogo.data ? jogo.data : '') + '" class="data-input" data-idx="' + idx + '"></td>';
-            html += '<td><input type="time" value="' + (jogo.hora ? jogo.hora : '') + '" class="hora-input" data-idx="' + idx + '"></td>';
-        } else {
-            html += '<td>' + (jogo.data ? jogo.data : '') + '</td>';
-            html += '<td>' + (jogo.hora ? jogo.hora : '') + '</td>';
-        }
-
-                row.innerHTML = html;
-                tabela.appendChild(row);
+                // Adicionar jogos da data
+                grupo.jogos.forEach(jogo => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${jogo.clube1} vs ${jogo.clube2}</td>
+                        <td>
+                            <input type="date" class="edit-date" data-jogo-id="${jogo.id}" value="${grupo.data}" style="padding: 5px; width: 140px;">
+                        </td>
+                        <td>
+                            <input type="time" class="edit-time" data-jogo-id="${jogo.id}" value="${jogo.horario}" style="padding: 5px; width: 100px;">
+                        </td>
+                    `;
+                    tabela.appendChild(row);
+                });
             });
         }
-
-        window.guardarAlteracao = function(idx) {
-            const dataInput = document.querySelector('input.data-input[data-idx="' + idx + '"]');
-            const horaInput = document.querySelector('input.hora-input[data-idx="' + idx + '"]');
-            agendamentos[idx].data = dataInput.value;
-            agendamentos[idx].hora = horaInput.value;
-            // Garantir que a propriedade isClube seja preservada
-            if (agendamentos[idx].isClube === undefined) {
-                agendamentos[idx].isClube = false;
-            }
-            if (nomeCompeticao) {
-                localStorage.setItem('agendamentos_' + nomeCompeticao, JSON.stringify(agendamentos));
-            }
-            renderJogos();
-        }
-
-        // Guardar todos os jogos de uma vez
+        
+        // Guardar alterações (para usuários autenticados)
         var btnGuardarTodos = document.getElementById('btnGuardarTodos');
         if (btnGuardarTodos) {
             btnGuardarTodos.addEventListener('click', function() {
-                document.querySelectorAll('input.data-input').forEach(function(input) {
-                    var idx = input.getAttribute('data-idx');
-                    agendamentos[idx].data = input.value;
-                    // Garantir que a propriedade isClube seja preservada
-                    if (agendamentos[idx].isClube === undefined) {
-                        agendamentos[idx].isClube = false;
+                // Coletar todas as alterações
+                const alteracoes = [];
+                const datas = document.querySelectorAll('.edit-date');
+                const horas = document.querySelectorAll('.edit-time');
+                
+                for (let i = 0; i < datas.length; i++) {
+                    const jogoId = datas[i].getAttribute('data-jogo-id');
+                    const novaData = datas[i].value;
+                    const novaHora = horas[i].value;
+                    
+                    if (jogoId && novaData && novaHora) {
+                        alteracoes.push({
+                            id: jogoId,
+                            data: novaData,
+                            hora: novaHora
+                        });
                     }
-                });
-                document.querySelectorAll('input.hora-input').forEach(function(input) {
-                    var idx = input.getAttribute('data-idx');
-                    agendamentos[idx].hora = input.value;
-                });
-                if (nomeCompeticao) {
-                    localStorage.setItem('agendamentos_' + nomeCompeticao, JSON.stringify(agendamentos));
                 }
-                renderJogos();
-                // Redirect to Menu page after saving
-                window.location.href = '/Menu';
+                
+                if (alteracoes.length > 0) {
+                    // Enviar alterações para o servidor
+                    fetch('/ProximosJogos/AtualizarDatasHoras', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(alteracoes)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erro ao salvar alterações');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        alert('Alterações salvas com sucesso!');
+                        // Recarregar os jogos
+                        carregarJogos();
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        alert('Erro ao salvar alterações: ' + error.message);
+                    });
+                } else {
+                    alert('Nenhuma alteração para salvar.');
+                }
             });
         }
+        
 
-        renderJogos();
+        
+        // Inicializar
+        carregarJogos();
     });
 </script>
 

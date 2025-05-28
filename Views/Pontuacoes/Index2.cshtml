@@ -1,0 +1,763 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <title>Gestão de Resultados</title>
+    <style>
+        /* Keyframes for spinner animation */
+        @@keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @@-webkit-keyframes spin {
+            from { -webkit-transform: rotate(0deg); }
+            to { -webkit-transform: rotate(360deg); }
+        }
+    </style>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+
+            .top-left-logo img {
+                width: 160px;
+            }
+
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        h2 {
+            font-size: 32px;
+            color: black;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .victory-button {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 2px;
+            font-size: 12px;
+        }
+
+            .victory-button:hover {
+                background-color: #e0e0e0;
+            }
+
+        .arrow-button {
+            padding: 2px 8px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .confirm-button {
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+            .confirm-button:hover {
+                background-color: #45a049;
+            }
+
+        .back-button {
+            position: absolute;
+            top: 40px;
+            right: 50px;
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .pontuacao-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .score-input {
+            width: 60px;
+            height: 35px;
+            text-align: center;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        .score-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+
+        .score-input::-webkit-inner-spin-button,
+        .score-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .score-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .victory-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .victory-btn {
+            padding: 8px 16px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .victory-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .victory-btn.active {
+            background-color: #808080 !important;
+            color: white;
+            border-color: #666666;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .motivo-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .motivo-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+        
+        /* Loading spinner */
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #4CAF50;
+            margin: 0 auto;
+            -webkit-animation-name: spin;
+            -webkit-animation-duration: 1000ms;
+            -webkit-animation-iteration-count: infinite;
+            -webkit-animation-timing-function: linear;
+            -moz-animation-name: spin;
+            -moz-animation-duration: 1000ms;
+            -moz-animation-iteration-count: infinite;
+            -moz-animation-timing-function: linear;
+            -ms-animation-name: spin;
+            -ms-animation-duration: 1000ms;
+            -ms-animation-iteration-count: infinite;
+            -ms-animation-timing-function: linear;
+            animation-name: spin;
+            animation-duration: 1000ms;
+            animation-iteration-count: infinite;
+            animation-timing-function: linear;
+        }
+
+        .score-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .score-controls {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .score-arrow {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 2px 5px;
+            color: #666;
+        }
+
+        .score-arrow:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <a href="/home">
+            <img src="/img/logotipo.png" alt="Logotipo" />
+        </a>
+    </div>
+
+    <!-- Conteúdo Centralizado -->
+    <div class="content-wrapper">
+        <h2>Gestão de Resultados</h2>
+        <h3 id="competicaoNome" style="margin-bottom: 15px; color: #333; text-align: center;"></h3>
+        <div style="margin-bottom: 24px; text-align: center;">
+            <p style="font-style: italic; color: #666;">Todos os jogos da competição agrupados por data</p>
+        </div>
+        <table id="tabelaPontuacoes">
+            <thead>
+                <tr>
+                    <th>Partidas</th>
+                    <th>Pontuação</th>
+                    <th>Vitória</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Jogos renderizados por JS -->
+            </tbody>
+        </table>
+        <button class="confirm-button" id="btnRegistar">Registar</button>
+    </div>
+    <a href="/Menu?competicaoId=@ViewBag.CompeticaoId" class="back-button">&lt;Voltar</a>
+    <script>
+        // Configuração de debug
+        const DEBUG = true;
+        
+        // Função para log condicional
+        function debugLog(...args) {
+            if (DEBUG) {
+                console.log(...args);
+            }
+        }
+        
+        // Inicialização
+        let agendamentos = [];
+        let resultados = [];
+
+        // Função para renderizar os jogos na tabela
+        function renderJogos() {
+            const tabela = document.querySelector('#tabelaPontuacoes tbody');
+            
+            debugLog('Renderizando todos os jogos da competição');
+            debugLog('Total de agendamentos:', agendamentos.length);
+            
+            tabela.innerHTML = '';
+            
+            if (!agendamentos || agendamentos.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="4" style="text-align: center; padding: 30px;">
+                        <p style="font-size: 16px; color: #666;">Nenhum jogo agendado para esta competição.</p>
+                        <p style="margin-top: 10px; font-size: 14px; color: #888;">Verifique se a competição está configurada corretamente.</p>
+                    </td>`;
+                tabela.appendChild(row);
+                return;
+            }
+
+            // Agrupar jogos por data
+            const jogosPorData = {};
+            agendamentos.forEach(jogo => {
+                // Usar a data formatada retornada pelo controller
+                const dataFormatada = jogo.DataFormatada || 'Data não definida';
+                if (!jogosPorData[dataFormatada]) {
+                    jogosPorData[dataFormatada] = [];
+                }
+                jogosPorData[dataFormatada].push(jogo);
+            });
+
+            // Ordenar as datas
+            const datasOrdenadas = Object.keys(jogosPorData).sort((a, b) => {
+                // Converter para formato ISO para comparação
+                const dataA = new Date(a.split('/').reverse().join('-'));
+                const dataB = new Date(b.split('/').reverse().join('-'));
+                return dataA - dataB;
+            });
+
+            // Renderizar jogos agrupados por data
+            datasOrdenadas.forEach(data => {
+                // Adicionar cabeçalho da data
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = `<td colspan="4" style="background-color: #e0e0e0; font-weight: bold; text-align: center;">${data}</td>`;
+                tabela.appendChild(headerRow);
+
+                // Renderizar jogos desta data
+                jogosPorData[data].forEach((jogo, idx) => {
+                    const globalIdx = agendamentos.findIndex(a => a.id === jogo.id);
+                    const resultado = resultados[globalIdx] || {};
+
+                    // Nomes dos jogadores/clubes
+                    const clube1 = jogo.clube1;
+                    const clube2 = jogo.clube2;
+
+                    // Verificar o tipo de competição
+                    const tipoCompeticao = localStorage.getItem('tipoCompeticao') || '';
+                    const isIndividual = tipoCompeticao !== 'equipas';
+
+                    console.log(`Renderizando jogo ${globalIdx}: ${clube1} vs ${clube2}, pontuação: ${jogo.pontuacaoClube1}-${jogo.pontuacaoClube2}`);
+
+                    // Criar a linha do jogo
+                    const row = document.createElement('tr');
+                    row.className = isIndividual ? 'jogo-individual' : 'jogo-equipe';
+
+                    // Coluna de partidas
+                    const partidasCell = document.createElement('td');
+                    partidasCell.innerHTML = `${clube1} vs ${clube2}`;
+                    row.appendChild(partidasCell);
+
+                    // Coluna de pontuação
+                    const pontuacaoCell = document.createElement('td');
+                    pontuacaoCell.innerHTML = `
+                        <div class="pontuacao-flex">
+                            <button class="score-arrow" onclick="incrementScore(${globalIdx}, 0)">▲</button>
+                            <input type="number" min="0" max="99" class="score-input" 
+                                   value="${jogo.pontuacaoClube1 || 0}" 
+                                   onchange="updateScore(${globalIdx})" 
+                                   data-player="0" 
+                                   style="width: 60px; text-align: center;">
+                            <span style="margin: 0 10px;">-</span>
+                            <input type="number" min="0" max="99" class="score-input" 
+                                   value="${jogo.pontuacaoClube2 || 0}" 
+                                   onchange="updateScore(${globalIdx})" 
+                                   data-player="1" 
+                                   style="width: 60px; text-align: center;">
+                            <button class="score-arrow" onclick="incrementScore(${globalIdx}, 1)">▲</button>
+                        </div>
+                    `;
+                    row.appendChild(pontuacaoCell);
+
+                    // Coluna de vitória
+                    const vitoriaCell = document.createElement('td');
+                    vitoriaCell.innerHTML = `
+                        <div class="victory-buttons">
+                            <button class="victory-btn ${jogo.motivo && jogo.pontuacaoClube1 > jogo.pontuacaoClube2 ? 'active' : ''}" onclick="declararVencedor(${globalIdx}, '${clube1}')">${clube1}</button>
+                            <button class="victory-btn ${jogo.motivo && jogo.pontuacaoClube2 > jogo.pontuacaoClube1 ? 'active' : ''}" onclick="declararVencedor(${globalIdx}, '${clube2}')">${clube2}</button>
+                        </div>
+                    `;
+                    row.appendChild(vitoriaCell);
+
+                    // Coluna de motivo
+                    const motivoCell = document.createElement('td');
+                    motivoCell.innerHTML = `
+                        <input type="text" class="motivo-input" data-idx="${globalIdx}" 
+                               value="${jogo.motivo || ''}" placeholder="Motivo da vitória">
+                    `;
+                    row.appendChild(motivoCell);
+
+                    tabela.appendChild(row);
+                });
+            });
+        }
+
+        // Remover as funções increment/decrement e adicionar updateScore
+        window.updateScore = function(idx) {
+            const inputs = document.querySelectorAll(`td:nth-child(2) input[type="number"]`);
+            const score1 = parseInt(inputs[idx * 2].value) || 0;
+            const score2 = parseInt(inputs[idx * 2 + 1].value) || 0;
+            
+            // Atualizar o resultado
+            resultados[idx] = resultados[idx] || {};
+            resultados[idx].pontuacao = `${score1}-${score2}`;
+        }
+
+        window.incrementScore = function(idx, player) {
+            const inputs = document.querySelectorAll(`td:nth-child(2) input[type="number"]`);
+            const input = inputs[idx * 2 + player];
+            const currentValue = parseInt(input.value) || 0;
+            input.value = Math.min(currentValue + 1, 99);
+            updateScore(idx);
+        }
+
+        window.declararVencedor = function(idx, vencedor) {
+            // Encontrar a linha correta do jogo
+            const rows = document.querySelectorAll('#tabelaPontuacoes tbody tr');
+            let currentGameIndex = 0;
+            let targetRow = null;
+            
+            // Percorrer as linhas para encontrar o jogo correto
+            for (let row of rows) {
+                if (row.cells.length === 1) continue; // Pular linhas de data
+                if (currentGameIndex === idx) {
+                    targetRow = row;
+                    break;
+                }
+                currentGameIndex++;
+            }
+            
+            if (!targetRow) return;
+            
+            // Atualizar os botões de vitória imediatamente
+            const victoryButtons = targetRow.querySelectorAll('.victory-btn');
+            victoryButtons.forEach(btn => {
+                if (btn.textContent === vencedor) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Atualizar o estado interno
+            resultados[idx] = resultados[idx] || {};
+            resultados[idx].vencedor = vencedor;
+
+            // Atualizar o motivo se não houver um
+            const motivoInput = targetRow.querySelector('.motivo-input');
+            if (motivoInput && !motivoInput.value.trim()) {
+                motivoInput.value = `Vitória atribuída a ${vencedor}`;
+            }
+        }
+
+        const btnRegistar = document.getElementById('btnRegistar');
+        btnRegistar.addEventListener('click', function () {
+            console.log('Botão Registar clicado');
+            
+            let erro = false;
+
+            // Verificar se há motivo apenas quando uma vitória foi atribuída manualmente
+            const rows = document.querySelectorAll('#tabelaPontuacoes tbody tr');
+            let currentGameIndex = 0;
+
+            rows.forEach((row) => {
+                // Pular as linhas de cabeçalho de data
+                if (row.cells.length === 1) return;
+
+                const vitoriaBotoes = row.querySelectorAll('.victory-btn');
+                const vitoriaAtribuida = Array.from(vitoriaBotoes).some(btn => btn.classList.contains('active'));
+                const motivoInput = row.querySelector('.motivo-input');
+
+                if (vitoriaAtribuida && (!motivoInput || !motivoInput.value.trim())) {
+                    const jogo = agendamentos[currentGameIndex];
+                    if (jogo) {
+                        alert(`Por favor, forneça um motivo para a vitória atribuída no jogo entre ${jogo.clube1} e ${jogo.clube2}.`);
+                        erro = true;
+                    }
+                }
+                currentGameIndex++;
+            });
+
+            if (erro) return;
+
+            // Verificar se temos o ID da competição
+            const urlParams = new URLSearchParams(window.location.search);
+            const competicaoId = urlParams.get('competicaoId');
+            
+            if (competicaoId) {
+                // Mostrar mensagem de carregamento
+                alert('Salvando resultados, por favor aguarde...');
+                
+                // Para cada jogo, atualizar a pontuação
+                const promises = [];
+                currentGameIndex = 0;
+
+                rows.forEach((row) => {
+                    // Pular as linhas de cabeçalho de data
+                    if (row.cells.length === 1) return;
+                    
+                    const jogo = agendamentos[currentGameIndex];
+                    if (!jogo) return;
+
+                    const inputs = row.querySelectorAll('.score-input');
+                    const motivoInput = row.querySelector('.motivo-input');
+                    const vitoriaBotoes = row.querySelectorAll('.victory-btn');
+                    const vencedorBtn = Array.from(vitoriaBotoes).find(btn => btn.classList.contains('active'));
+                    
+                    if (inputs.length >= 2) {
+                        const pontuacao1 = parseInt(inputs[0].value) || 0;
+                        const pontuacao2 = parseInt(inputs[1].value) || 0;
+                        
+                        const updateData = {
+                            emparelhamentoId: jogo.id,
+                            pontuacaoClube1: pontuacao1,
+                            pontuacaoClube2: pontuacao2,
+                            motivo: motivoInput ? motivoInput.value.trim() : ''
+                        };
+                        
+                        console.log('Enviando dados para atualização:', updateData);
+                        
+                        const promise = fetch('/Pontuacoes/AtualizarPontuacao', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(updateData)
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Erro ao atualizar pontuação: ' + response.statusText);
+                            }
+                            return response.json();
+                        })
+                        .catch(error => {
+                            console.error('Erro ao atualizar pontuação:', error);
+                            throw error;
+                        });
+                        
+                        promises.push(promise);
+                    }
+                    
+                    currentGameIndex++;
+                });
+                
+                // Aguardar todas as atualizações
+                Promise.all(promises)
+                    .then(() => {
+                        console.log('Todas as pontuações foram atualizadas com sucesso');
+                        alert('Pontuações atualizadas com sucesso!');
+                        window.location.href = '/Menu?competicaoId=' + competicaoId;
+                    })
+                    .catch(error => {
+                        console.error('Erro ao atualizar pontuações:', error);
+                        alert('Erro ao atualizar pontuações. Por favor, tente novamente.');
+                    });
+            } else {
+                alert('ID da competição não encontrado.');
+            }
+        });
+    </script>
+    <script>
+        // Carregar dados do servidor
+        async function carregarJogos() {
+            try {
+                debugLog('Iniciando carregamento de jogos...');
+                const urlParams = new URLSearchParams(window.location.search);
+                const competicaoId = urlParams.get('competicaoId');
+                const dataParam = urlParams.get('data');
+
+                debugLog('Parâmetros da URL:', { competicaoId, data: dataParam });
+
+                if (!competicaoId) {
+                    throw new Error('ID da competição não fornecido');
+                }
+
+                // Mostrar mensagem de carregamento
+                const tbody = document.querySelector('#tabelaPontuacoes tbody');
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;"><div class="loading-spinner"></div><p style="margin-top:10px;">Carregando jogos...</p></td></tr>';
+
+                // Atualizar o nome da competição
+                document.getElementById('competicaoNome').textContent = 'Carregando...';
+                
+                // Buscar informações da competição
+                try {
+                    debugLog('Buscando informações da competição...');
+                    const competicaoResponse = await fetch(`/api/ApiCompeticoes/${competicaoId}`);
+                    if (competicaoResponse.ok) {
+                        const competicao = await competicaoResponse.json();
+                        document.getElementById('competicaoNome').textContent = competicao.nome;
+                        debugLog('Nome da competição carregado:', competicao.nome);
+                    } else {
+                        debugLog('Erro ao buscar competição:', competicaoResponse.status, competicaoResponse.statusText);
+                        document.getElementById('competicaoNome').textContent = `Competição #${competicaoId}`;
+                    }
+                } catch (error) {
+                    debugLog('Erro ao obter nome da competição:', error);
+                    document.getElementById('competicaoNome').textContent = `Competição #${competicaoId}`;
+                }
+
+                // Construir URL para buscar jogos
+                const url = dataParam 
+                    ? `/Pontuacoes/ObterJogosPorData?competicaoId=${competicaoId}&data=${encodeURIComponent(dataParam)}`
+                    : `/Pontuacoes/ObterJogosPorData?competicaoId=${competicaoId}`;
+                    
+                debugLog('URL da requisição:', url);
+                
+                // Buscar jogos com timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos de timeout
+                
+                try {
+                    const response = await fetch(url, { 
+                        signal: controller.signal,
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                        // Tentar obter detalhes do erro do corpo da resposta
+                        const errorText = await response.text();
+                        debugLog('Resposta de erro do servidor:', errorText);
+                        
+                        let errorMessage = 'Erro ao carregar jogos (' + response.status + '): ' + (response.statusText || '');
+                        
+                        try {
+                            // Tentar analisar o JSON de erro, se disponível
+                            const errorJson = JSON.parse(errorText);
+                            if (errorJson.mensagem) {
+                                errorMessage += ' - ' + errorJson.mensagem;
+                            }
+                            if (errorJson.detalhes) {
+                                errorMessage += ' (' + errorJson.detalhes + ')';
+                            }
+                        } catch (e) {
+                            debugLog('Não foi possível analisar a resposta de erro como JSON:', e);
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    const dataJogos = await response.json();
+                    debugLog('Dados carregados do servidor:', dataJogos);
+
+                    // Verificar se os dados são um objeto com a propriedade emparelhamentos (lowercase)
+                    if (!dataJogos || !dataJogos.emparelhamentos) {
+                        throw new Error('Formato de dados inválido');
+                    }
+
+                    // Atualizar os dados locais com os emparelhamentos
+                    agendamentos = dataJogos.emparelhamentos;
+                    
+                    // Inicializar resultados
+                    resultados = dataJogos.emparelhamentos.map(jogo => {
+                        return {
+                            pontuacao: jogo.pontuacaoClube1 !== null && jogo.pontuacaoClube2 !== null 
+                                ? `${jogo.pontuacaoClube1}-${jogo.pontuacaoClube2}`
+                                : '0-0',
+                            vencedor: jogo.jogoRealizado 
+                                ? (jogo.pontuacaoClube1 > jogo.pontuacaoClube2 ? jogo.clube1 
+                                   : jogo.pontuacaoClube2 > jogo.pontuacaoClube1 ? jogo.clube2 
+                                   : '')
+                                : '',
+                            motivo: jogo.motivo || ''
+                        };
+                    });
+
+                    // Remover linha de carregamento
+                    tbody.innerHTML = '';
+                    
+                    // Renderizar os jogos
+                    renderJogos();
+                    
+                    debugLog('Jogos carregados e renderizados com sucesso');
+                    
+                } catch (fetchError) {
+                    clearTimeout(timeoutId);
+                    
+                    if (fetchError.name === 'AbortError') {
+                        throw new Error('A requisição demorou muito tempo e foi cancelada. Por favor, tente novamente.');
+                    } else {
+                        throw fetchError;
+                    }
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                const tbody = document.querySelector('#tabelaPontuacoes tbody');
+                tbody.innerHTML = '';
+                const errorRow = document.createElement('tr');
+                errorRow.innerHTML = `
+                    <td colspan="4">
+                        <div style="text-align: center; padding: 20px;">
+                            <p style="color: red; font-weight: bold;">Erro ao carregar os dados:</p>
+                            <p style="margin: 10px 0; color: #d32f2f;">${error.message}</p>
+                            <p>Por favor, tente novamente mais tarde ou contacte o suporte.</p>
+                            <button onclick="carregarJogos()" style="margin-top: 15px; padding: 8px 16px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Tentar Novamente
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(errorRow);
+                
+                // Registrar o erro no console para depuração
+                console.error('Detalhes do erro:', {
+                    message: error.message,
+                    stack: error.stack,
+                    url: error.url || '/Pontuacoes/ObterJogosPorData'
+                });
+            }
+        }
+
+        // Inicializar quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarJogos();
+        });
+    </script>
+</body>
+</html>

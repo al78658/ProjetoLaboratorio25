@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
+using System.Linq;
 
 namespace ProjetoLaboratorio25.Controllers
 {
@@ -16,32 +17,20 @@ namespace ProjetoLaboratorio25.Controllers
 
         public IActionResult Index()
         {
-            // Buscar todos os dados
-            var utilizadores = _context.Utilizadores.ToList();
             var competicoes = _context.Competicoes.ToList();
-            var configuracoes = _context.ConfiguracoesFase.ToList();
+            var jogadores = _context.Jogadores.ToList();
+            var emparelhamentosFinal = _context.EmparelhamentosFinal.ToList();
 
-            ViewBag.Utilizadores = utilizadores;
-            ViewBag.Competicoes = competicoes;
-            ViewBag.Configuracoes = configuracoes;
-
-            return View();
+            return View(new { 
+                competicoes = competicoes,
+                jogadores = jogadores,
+                emparelhamentosFinal = emparelhamentosFinal
+            });
         }
 
-        [HttpPost]
-        public IActionResult CriarUtilizador(string nome, string email, string senha)
+        public IActionResult Privacy()
         {
-            var novoUtilizador = new Utilizador
-            {
-                UtilizadorNome = nome,
-                Email = email,
-                Senha = senha
-            };
-
-            _context.Utilizadores.Add(novoUtilizador);
-            _context.SaveChanges();
-
-            return RedirectToAction("Index");
+            return View();
         }
 
         [HttpPost]

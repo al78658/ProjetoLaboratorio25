@@ -25,20 +25,7 @@ namespace ProjetoLaboratorio25.Models
         [Required]
         public DateTime DataNotificacao { get; set; } = DateTime.Now;
 
-        // Indica se a notificação foi lida
-        public bool Lida { get; set; } = false;
-
-        // Referência ao emparelhamento relacionado (opcional)
-        public int? EmparelhamentoId { get; set; }
-
-        [ForeignKey("EmparelhamentoId")]
-        public virtual EmparelhamentoBase? Emparelhamento { get; set; }
-
-        // Referência à competição
-        [Required]
-        public int CompeticaoId { get; set; }
-
-        [ForeignKey("CompeticaoId")]
-        public virtual Competicao? Competicao { get; set; }
+        public int Pontuacao1 { get; set; }
+        public int Pontuacao2 { get; set; }
     }
 }

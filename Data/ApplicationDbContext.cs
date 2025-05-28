@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProjetoLaboratorio25.Models;
+using System.Collections.Generic;
 
 namespace ProjetoLaboratorio25.Data
 {
@@ -10,15 +11,13 @@ namespace ProjetoLaboratorio25.Data
         {
         }
 
-        public DbSet<Utilizador> Utilizadores { get; set; }
         public DbSet<Competicao> Competicoes { get; set; }
-        public DbSet<ConfiguracaoFase> ConfiguracoesFase { get; set; }
         public DbSet<Jogador> Jogadores { get; set; }
-        // Removido: public DbSet<JogoEmparelhado> JogosEmparelhados { get; set; }
-        public DbSet<EmparelhamentoBase> EmparelhamentosBase { get; set; }
-        // Removido: public DbSet<EmparelhamentoEquipa> EmparelhamentosEquipa { get; set; }
-        public DbSet<Notificacao> Notificacoes { get; set; }
+        public DbSet<EmparelhamentoFinal> EmparelhamentosFinal { get; set; }
+        public DbSet<ConfiguracaoFase> ConfiguracoesFase { get; set; }
         public DbSet<Report> Reports { get; set; }
+        public DbSet<Notificacao> Notificacoes { get; set; }
+        public DbSet<Utilizador> Utilizadores { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,27 +29,48 @@ namespace ProjetoLaboratorio25.Data
 
             modelBuilder.Entity<Utilizador>()
                 .Property(u => u.UtilizadorNome)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Utilizador>()
+                .Property(u => u.Email)
+                .IsRequired()
+                .HasMaxLength(100);
 
             modelBuilder.Entity<Utilizador>()
                 .Property(u => u.Senha)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(100);
 
             // Configure Competicao
             modelBuilder.Entity<Competicao>()
                 .HasKey(c => c.Id);
-
+                
             modelBuilder.Entity<Competicao>()
                 .Property(c => c.Nome)
-                .IsRequired();
-
+                .IsRequired()
+                .HasMaxLength(100);
+                
             modelBuilder.Entity<Competicao>()
                 .Property(c => c.TipoCompeticao)
+                .IsRequired()
+                .HasMaxLength(50);
+                
+            modelBuilder.Entity<Competicao>()
+                .Property(c => c.NumJogadores)
                 .IsRequired();
-
-            // Configure ConfiguracaoFase
-            modelBuilder.Entity<ConfiguracaoFase>()
-                .HasKey(cf => cf.Id);
+                
+            modelBuilder.Entity<Competicao>()
+                .Property(c => c.NumEquipas)
+                .IsRequired();
+                
+            modelBuilder.Entity<Competicao>()
+                .Property(c => c.PontosVitoria)
+                .IsRequired();
+                
+            modelBuilder.Entity<Competicao>()
+                .Property(c => c.PontosEmpate)
+                .IsRequired();
 
             // Configure CriteriosDesempate como JSON
             modelBuilder.Entity<ConfiguracaoFase>()
@@ -90,20 +110,39 @@ namespace ProjetoLaboratorio25.Data
             modelBuilder.Entity<Jogador>()
                 .Property(j => j.Clube)
                 .IsRequired();
+
+            // Configure EmparelhamentoFinal
+            modelBuilder.Entity<EmparelhamentoFinal>()
+                .HasKey(ef => ef.Id);
                 
-            // Configuração de JogoEmparelhado removida
-            
-            // Configure EmparelhamentoBase
-            modelBuilder.Entity<EmparelhamentoBase>()
-                .HasKey(eb => eb.Id);
-                
-            modelBuilder.Entity<EmparelhamentoBase>()
-                .HasOne(eb => eb.Competicao)
-                .WithMany(c => c.Emparelhamentos)
-                .HasForeignKey(eb => eb.CompeticaoId)
+            modelBuilder.Entity<EmparelhamentoFinal>()
+                .HasOne(ef => ef.Competicao)
+                .WithMany(c => c.EmparelhamentosFinal)
+                .HasForeignKey(ef => ef.CompeticaoId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
-            // Configuração de EmparelhamentoEquipa removida
+
+            // Configure Notificacao
+            modelBuilder.Entity<Notificacao>(entity =>
+            {
+                entity.HasKey(n => n.Id);
+
+                entity.Property(n => n.Clube1)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(n => n.Clube2)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(n => n.ClubeVitorioso)
+                    .HasMaxLength(100);
+
+                entity.Property(n => n.Motivo)
+                    .HasMaxLength(500);
+
+                entity.Property(n => n.DataNotificacao)
+                    .IsRequired();
+            });
         }
     }
 } 

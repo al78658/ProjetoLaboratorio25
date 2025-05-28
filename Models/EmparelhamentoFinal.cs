@@ -4,10 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProjetoLaboratorio25.Models
 {
-    // Esta classe foi substituída por EmparelhamentoBase
-    // Mantida apenas para referência histórica
-    /*
-    public class EmparelhamentoEquipa
+    public class EmparelhamentoFinal
     {
         [Key]
         public int Id { get; set; }
@@ -25,13 +22,17 @@ namespace ProjetoLaboratorio25.Models
         public TimeSpan HoraJogo { get; set; }
 
         [Required]
-        public string NomeCompeticao { get; set; } = string.Empty;
-        
-        [Required]
         public int CompeticaoId { get; set; }
 
         [ForeignKey("CompeticaoId")]
         public virtual Competicao? Competicao { get; set; }
+        
+        public int? PontuacaoClube1 { get; set; }
+        
+        public int? PontuacaoClube2 { get; set; }
+        
+        public bool JogoRealizado { get; set; } = false;
+        
+        public string? Motivo { get; set; }
     }
-    */
-}
+} 

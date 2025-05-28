@@ -49,15 +49,24 @@ namespace ProjetoLaboratorio25.Controllers
                 new Claim(ClaimTypes.Email, user.Email)
             };
 
-            var claimsIdentity = new ClaimsIdentity(claims, "CookieAuth");
-            var authProperties = new AuthenticationProperties();
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(2)
+            };
 
             await HttpContext.SignInAsync(
-                "CookieAuth",
+                CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
 
-            // Redirecionar para Dashboard
+            return RedirectToAction("Index", "Home");
+        }
+
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
     }

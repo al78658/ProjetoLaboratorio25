@@ -1,4 +1,4 @@
-﻿﻿﻿﻿@{
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -183,20 +183,25 @@
         #selectedDateDisplay {
             font-weight: bold;
         }
+        
+        .jogo-realizado {
+            background-color: #e8f5e9 !important;
+        }
+        
+        .jogo-realizado td {
+            font-weight: bold;
+        }
 
         media (max-width: 768px) {
-        .table-buttons, .result-nav
+            .table-buttons, .result-nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
 
-        {
-        flex-direction: column;
-        align-items: stretch;
-        }
-
-        .table-buttons button,
-        .result-nav button {
-        width: 100%;
-        }
-
+            .table-buttons button,
+            .result-nav button {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -213,62 +218,63 @@
         <div class="table-buttons">
             @if (User.Identity.IsAuthenticated)
             {
-                <button type="button" class="login-button" onclick="window.location.href='/CriarRelatorio'">
+                <script>
+                    // Função para obter parâmetros da URL
+                    function getQueryParam(name) {
+                        const params = new URLSearchParams(window.location.search);
+                        return params.get(name);
+                    }
+
+                    // Guardar o ID da competição
+                    const competicaoId = getQueryParam('competicaoId');
+                </script>
+
+                <button type="button" class="login-button" onclick="window.location.href = `/CriarRelatorio?competicaoId=${competicaoId}`;">
                     Criar Relatório
                 </button>
             }
-            <button type="button" class="login-button" onclick="window.location.href='/PesquisarRelatorio'">
+            <button type="button" class="login-button" onclick="consultarRelatorios()">
                 Consultar Relatórios
             </button>
+
+            <script>
+                function getQueryParam(name) {
+                    const params = new URLSearchParams(window.location.search);
+                    return params.get(name);
+                }
+
+                function consultarRelatorios() {
+                    const competicaoId = getQueryParam('competicaoId');
+                    if (competicaoId) {
+                        window.location.href = `/PesquisarRelatorio?competicaoId=${competicaoId}`;
+                    } else {
+                        window.location.href = `/PesquisarRelatorio`;
+                    }
+                }
+            </script>
             <button type="button" class="login-button" onclick="window.location.href='/ProximosJogos'">
                 Jogos Agendados
             </button>
         </div>
         <table>
-            <tr>
-                <th>Lugar</th>
-                <th>Nome</th>
-                <th>Jogos</th>
-                <th>Vitórias</th>
-                <th>Empates</th>
-                <th>Derrotas</th>
-                <th>Frames</th>
-                <th>Pontuação</th>
-                <th>Forma</th>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td>Benfica</td>
-                <td>3</td>
-                <td>20</td>
-                <td>12</td>
-                <td>2</td>
-                <td>14:7</td>
-                <td>40</td>
-                <td><span class="form-box form-v">V</span><span class="form-box form-d">D</span><span class="form-box form-v">V</span></td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>Porto</td>
-                <td>2</td>
-                <td>12</td>
-                <td>8</td>
-                <td>15</td>
-                <td>6:17</td>
-                <td>28</td>
-                <td><span class="form-box form-e">E</span><span class="form-box form-d">D</span><span class="form-box form-d">D</span></td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>Sporting</td>
-                <td>4</td>
-                <td>7</td>
-                <td>12</td>
-                <td>20</td>
-                <td>18:9</td>
-                <td>11</td>
-                <td><span class="form-box form-d">D</span><span class="form-box form-e">E</span><span class="form-box form-v">V</span></td>
-            </tr>
+            <thead>
+                <tr>
+                    <th>Lugar</th>
+                    <th>Nome</th>
+                    <th>Jogos</th>
+                    <th>Vitórias</th>
+                    <th>Empates</th>
+                    <th>Derrotas</th>
+                    <th>Frames</th>
+                    <th>Pontuação</th>
+                    <th>Forma</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="9">Carregando dados...</td>
+                </tr>
+            </tbody>
         </table>
 
         <!-- Resultados -->
@@ -278,9 +284,10 @@
                 <div>
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <button type="button" class="login-button" onclick="guardarDataEIrParaPontuacoes()">
+                        <button type="button" class="login-button" onclick="irParaPontuacoes()">
                             Alterar Resultados
                         </button>
+
                     }
                     <button type="button" class="login-button" onclick="window.location.href='/Historico'">
                         Histórico
@@ -291,60 +298,174 @@
                 </div>
             </div>
             <table>
-                <tr>
-                    <th>Partidas</th>
-                    <th>Horário</th>
-                    <th>Resultado</th>
-                    <th>Motivo</th>
-                </tr>
-                <tr>
-                    <td>Higgins e Andres vs Federer e Nadal</td>
-                    <td>19h30</td>
-                    <td>Por definir</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Marco vs Alberto</td>
-                    <td>18h45</td>
-                    <td>-</td>
-                    <td>Falta de Comparência</td>
-                </tr>
-                <tr>
-                    <td>Andrea vs Caspirenovic</td>
-                    <td>17h15</td>
-                    <td>5 - 11</td>
-                    <td></td>
-                </tr>
+                <thead>
+                    <tr>
+                        <th>Partidas</th>
+                        <th>Horário</th>
+                        <th>Resultado</th>
+                        <th>Motivo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4">Carregando dados...</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
 
-    <a href="/Competicoes" class="back-button">&lt;Voltar</a>
+    <a href="#" id="btnVoltar" class="back-button">&lt;Voltar para Competições</a>
+    <script>
+        document.getElementById('btnVoltar').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = '/Competicoes';
+        });
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const nomeCompeticao = localStorage.getItem('competicaoSelecionada');
+            let competicaoId = @ViewBag.CompeticaoId;
+            let competicaoNome = "@ViewBag.CompeticaoNome";
             const tabelaResultados = document.querySelector('.section table');
             const prevBtn = document.getElementById('prevDayBtn');
             const nextBtn = document.getElementById('nextDayBtn');
             const dateDisplay = document.getElementById('selectedDateDisplay');
 
-            if (!nomeCompeticao) {
-                alert('Nenhuma competição selecionada.');
-                return;
+            // Se não houver competicaoId na ViewBag, tenta obter do localStorage
+            if (!competicaoId) {
+                const storedId = localStorage.getItem('competicaoSelecionadaId');
+                if (storedId && !isNaN(parseInt(storedId))) {
+                    competicaoId = parseInt(storedId);
+                    competicaoNome = localStorage.getItem('competicaoSelecionada') || "Competição";
+                    
+                    // Redirecionar para a mesma página com o ID na URL para manter a consistência
+                    window.location.href = '/Menu?competicaoId=' + competicaoId;
+                    return;
+                } else {
+                    alert('Nenhuma competição selecionada. Redirecionando para a página de competições.');
+                    window.location.href = '/Competicoes';
+                    return;
+                }
             }
-
-            const chaveAgendamento = `agendamentos_${nomeCompeticao}`;
-            const agendamentos = JSON.parse(localStorage.getItem(chaveAgendamento)) || [];
+            
+            // Carregar a tabela classificativa
+            function carregarTabelaClassificativa() {
+                const tabelaClassificativa = document.querySelector('.content-wrapper table:first-of-type');
+                const tbody = tabelaClassificativa.querySelector('tbody');
+                
+                // Limpar a tabela existente
+                tbody.innerHTML = '';
+                
+                // Adicionar linha de carregamento
+                const loadingRow = document.createElement('tr');
+                loadingRow.innerHTML = '<td colspan="9">Carregando dados...</td>';
+                tbody.appendChild(loadingRow);
+                
+                console.log(`Carregando tabela classificativa para competição ID: ${competicaoId}`);
+                
+                // Buscar dados do servidor
+                fetch(`/Menu/ObterTabelaClassificativa?competicaoId=${competicaoId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Erro ao obter tabela classificativa: ${response.status} ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Dados da tabela classificativa recebidos:', data);
+                        
+                        // Limpar a tabela novamente
+                        tbody.innerHTML = '';
+                        
+                        if (!data || data.length === 0) {
+                            const row = document.createElement('tr');
+                            row.innerHTML = '<td colspan="9">Nenhum dado disponível para esta competição.</td>';
+                            tbody.appendChild(row);
+                            return;
+                        }
+                        
+                        // Adicionar dados reais
+                        data.forEach(clube => {
+                            const row = document.createElement('tr');
+                            
+                            // Criar células para forma
+                            let formaHTML = '';
+                            if (clube.forma && clube.forma.length > 0) {
+                                clube.forma.forEach(f => {
+                                    let classeForma = '';
+                                    if (f === 'V') classeForma = 'form-v';
+                                    else if (f === 'E') classeForma = 'form-e';
+                                    else if (f === 'D') classeForma = 'form-d';
+                                    
+                                    formaHTML += `<span class="form-box ${classeForma}">${f}</span>`;
+                                });
+                            }
+                            
+                            row.innerHTML = `
+                                <td>${clube.posicao}</td>
+                                <td>${clube.nome}</td>
+                                <td>${clube.jogos}</td>
+                                <td>${clube.vitorias}</td>
+                                <td>${clube.empates}</td>
+                                <td>${clube.derrotas}</td>
+                                <td>${clube.frames}</td>
+                                <td>${clube.pontuacao}</td>
+                                <td>${formaHTML}</td>
+                            `;
+                            
+                            tbody.appendChild(row);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Erro ao carregar tabela classificativa:', error);
+                        tbody.innerHTML = '';
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td colspan="9">Não foi possível carregar a tabela classificativa: ${error.message}</td>`;
+                        tbody.appendChild(row);
+                    });
+            }
+            
+            // Chamar a função para carregar a tabela classificativa
+            carregarTabelaClassificativa();
+            
+            // Recarregar a tabela classificativa a cada 5 segundos para manter os dados atualizados
+            setInterval(carregarTabelaClassificativa, 5000);
 
             // Atualiza o título da secção
             const h2 = document.querySelector('.section h2');
-            h2.textContent = `Resultados – ${nomeCompeticao}`;
+            h2.textContent = `Resultados – ${competicaoNome}`;
 
             // Estado de data atual
-            let currentDate = new Date();
+            let currentDate;
+            
+            // Verificar se há uma data no URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            
+            if (dataParam) {
+                // Tentar converter a string para Date
+                const dataParts = dataParam.split('-');
+                if (dataParts.length === 3) {
+                    // Formato esperado: yyyy-MM-dd
+                    const year = parseInt(dataParts[0]);
+                    const month = parseInt(dataParts[1]) - 1; // Mês em JavaScript é 0-11
+                    const day = parseInt(dataParts[2]);
+                    
+                    currentDate = new Date(year, month, day);
+                    console.log('Data do URL:', dataParam, 'convertida para:', currentDate);
+                } else {
+                    currentDate = new Date();
+                }
+            } else {
+                currentDate = new Date();
+            }
 
             function formatDate(date) {
-                return date.toISOString().split('T')[0];
+                // Garantir que a data está no formato yyyy-MM-dd
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
             }
 
             function formatDisplayDate(date) {
@@ -358,152 +479,142 @@
             function updateDateDisplay() {
                 dateDisplay.textContent = formatDisplayDate(currentDate);
             }
-
-            function renderTableForDate(date) {
+            
+            function carregarResultados() {
                 // Limpa todas as linhas exceto o cabeçalho
                 const rows = tabelaResultados.querySelectorAll('tr');
                 rows.forEach((row, index) => { if (index > 0) row.remove(); });
-
-                const dataFiltrada = formatDate(date);
-                const jogosDoDia = agendamentos.filter(a => a.data === dataFiltrada);
-                // Carregar resultados do localStorage
-                let resultados = JSON.parse(localStorage.getItem(`resultados_${nomeCompeticao}_${dataFiltrada}`)) || [];
                 
-                // Verificar se os resultados estão no formato correto
-                if (resultados && !Array.isArray(resultados)) {
-                    console.warn("Formato de resultados inválido, convertendo para array");
-                    resultados = [];
-                }
-
-                if (jogosDoDia.length === 0) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td colspan="4">Nenhum jogo agendado para esta data.</td>`;
-                    tabelaResultados.appendChild(row);
-                    return;
-                }
-
-                jogosDoDia.forEach((a, idx) => {
-                    // Buscar resultado correspondente
-                    const resultado = resultados.find(r => {
-                        // Comparar jogadores considerando objetos ou strings
-                        let j1Match = false;
-                        let j2Match = false;
+                // Adicionar linha de carregamento
+                const loadingRow = document.createElement('tr');
+                loadingRow.innerHTML = `<td colspan="4">Carregando dados...</td>`;
+                tabelaResultados.appendChild(loadingRow);
+                
+                // Atualizar a data exibida
+                updateDateDisplay();
+                
+                const dataFiltrada = formatDate(currentDate);
+                
+                console.log(`Buscando resultados para competição ${competicaoId} na data ${dataFiltrada}`);
+                
+                // Buscar dados do servidor - Garantir que a data seja passada corretamente
+                fetch(`/Menu/ObterResultados?competicaoId=${competicaoId}&data=${encodeURIComponent(dataFiltrada)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Erro ao obter resultados: ${response.status} ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Dados de resultados recebidos:', data);
                         
-                        if (typeof r.jogador1 === 'object' && typeof a.jogador1 === 'object') {
-                            j1Match = r.jogador1.nome === a.jogador1.nome;
-                        } else if (typeof r.jogador1 === 'string' && typeof a.jogador1 === 'string') {
-                            j1Match = r.jogador1 === a.jogador1;
-                        } else if (typeof r.jogador1 === 'object' && typeof a.jogador1 === 'string') {
-                            j1Match = r.jogador1.nome === a.jogador1;
-                        } else if (typeof r.jogador1 === 'string' && typeof a.jogador1 === 'object') {
-                            j1Match = r.jogador1 === a.jogador1.nome;
+                        // Limpar tabela novamente
+                        const rows = tabelaResultados.querySelectorAll('tr');
+                        rows.forEach((row, index) => { if (index > 0) row.remove(); });
+                        
+                        if (!data.emparelhamentos || data.emparelhamentos.length === 0) {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="4">Nenhum jogo agendado para esta data.</td>`;
+                            tabelaResultados.appendChild(row);
+                            return;
                         }
                         
-                        if (typeof r.jogador2 === 'object' && typeof a.jogador2 === 'object') {
-                            j2Match = r.jogador2.nome === a.jogador2.nome;
-                        } else if (typeof r.jogador2 === 'string' && typeof a.jogador2 === 'string') {
-                            j2Match = r.jogador2 === a.jogador2;
-                        } else if (typeof r.jogador2 === 'object' && typeof a.jogador2 === 'string') {
-                            j2Match = r.jogador2.nome === a.jogador2;
-                        } else if (typeof r.jogador2 === 'string' && typeof a.jogador2 === 'object') {
-                            j2Match = r.jogador2 === a.jogador2.nome;
-                        }
+                        // Recarregar a tabela classificativa após carregar os resultados
+                        // para garantir que a tabela esteja atualizada com os últimos resultados
+                        carregarTabelaClassificativa();
                         
-                        return j1Match && j2Match;
-                    }) || {};
-                    
-                    // Formatar o texto do resultado
-                    let resultadoTexto = '-';
-                    if (resultado.pontuacao && resultado.pontuacao !== '0-0') {
-                        resultadoTexto = resultado.pontuacao;
-                        if (resultado.vencedor) {
-                            resultadoTexto += ` (${resultado.vencedor})`;
-                        }
-                    } else if (resultado.vencedor) {
-                        resultadoTexto = `Vitória de ${resultado.vencedor}`;
-                    }
-                    
-                    // Obter o motivo se existir
-                    const motivo = resultado.motivo || '';
-                    
-                    const row = document.createElement('tr');
-                    // Verificar se é um emparelhamento de clubes ou jogadores
-                    let jogador1Nome, jogador2Nome;
-                    
-                    if (a.isClube) {
-                        // É um emparelhamento de clubes
-                        jogador1Nome = a.jogador1.nome;
-                        jogador2Nome = a.jogador2.nome;
-                    } else {
-                        // É um emparelhamento de jogadores individual
-                        jogador1Nome = typeof a.jogador1 === 'object' ? a.jogador1.nome : a.jogador1;
-                        jogador2Nome = typeof a.jogador2 === 'object' ? a.jogador2.nome : a.jogador2;
-                    }
-                    
-                    row.innerHTML = `
-                        <td>${jogador1Nome} vs ${jogador2Nome}</td>
-                        <td>${a.hora}</td>
-                        <td>${resultadoTexto}</td>
-                        <td>${motivo}</td>
-                    `;
-                    tabelaResultados.appendChild(row);
-                });
+                        // Adicionar dados reais quando disponíveis
+                        data.emparelhamentos.forEach(jogo => {
+                            const row = document.createElement('tr');
+                            
+                            let resultado = 'Por definir';
+                            if (jogo.jogoRealizado) {
+                                resultado = `${jogo.pontuacaoClube1} - ${jogo.pontuacaoClube2}`;
+                            }
+                            
+                            // Verificar o tipo de competição
+                            const tipoCompeticao = localStorage.getItem('tipoCompeticao') || '';
+                            const isIndividual = tipoCompeticao !== 'equipas';
+                            
+                            // Criar células para cada coluna
+                            row.innerHTML = `
+                                <td>${jogo.clube1} vs ${jogo.clube2}</td>
+                                <td>${jogo.horario}</td>
+                                <td>${resultado}</td>
+                                <td>${jogo.motivo !== undefined ? jogo.motivo : ''}</td>
+                            `;
+                            
+                            // Adicionar classe para destacar jogos realizados
+                            if (jogo.jogoRealizado) {
+                                row.classList.add('jogo-realizado');
+                            }
+                            
+                            // Adicionar classe para diferenciar jogos individuais
+                            if (isIndividual) {
+                                row.classList.add('jogo-individual');
+                            }
+                            
+                            tabelaResultados.appendChild(row);
+                        });
+                        
+                        // Adicionar informações de depuração
+                        console.log(`Total de emparelhamentos na competição: ${data.totalEmparelhamentos}`);
+                        console.log(`Emparelhamentos para a data ${data.dataFormatada}: ${data.emparelhamentos.length}`);
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        // Limpar tabela novamente
+                        const rows = tabelaResultados.querySelectorAll('tr');
+                        rows.forEach((row, index) => { if (index > 0) row.remove(); });
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td colspan="4">Não foi possível carregar os resultados. Por favor, tente novamente mais tarde.</td>`;
+                        tabelaResultados.appendChild(row);
+                        
+                        // Registrar o erro no console para depuração
+                        console.error('Detalhes do erro:', error);
+                    });
             }
 
             // Botões para navegar entre dias
             prevBtn.addEventListener('click', () => {
                 currentDate.setDate(currentDate.getDate() - 1);
                 updateDateDisplay();
-                renderTableForDate(currentDate);
+                carregarResultados();
             });
 
             nextBtn.addEventListener('click', () => {
                 currentDate.setDate(currentDate.getDate() + 1);
                 updateDateDisplay();
-                renderTableForDate(currentDate);
+                carregarResultados();
             });
+
+            // Função para ir para a página de pontuações
+            window.irParaPontuacoes = function() {
+                const dataFormatada = formatDate(currentDate);
+                console.log('Indo para pontuações com data:', dataFormatada);
+                
+                // Armazenar o ID da competição no localStorage para persistência
+                localStorage.setItem('competicaoSelecionadaId', competicaoId);
+                
+                // Armazenar a data selecionada para persistência
+                localStorage.setItem('dataSelecionada', dataFormatada);
+                
+                // Redirecionar para a página de pontuações com a data no URL
+                window.location.href = `/Pontuacoes?competicaoId=${competicaoId}&data=${encodeURIComponent(dataFormatada)}`;
+            };
+            
+
 
             // Inicialização
             updateDateDisplay();
-            renderTableForDate(currentDate);
+            
+            // Primeiro carrega a tabela classificativa
+            carregarTabelaClassificativa();
+            
+            // Depois carrega os resultados
+            carregarResultados();
         });
-
-        function guardarDataEIrParaPontuacoes() {
-            var data = document.getElementById('selectedDateDisplay').textContent;
-            // Converter data para formato yyyy-mm-dd
-            if (data) {
-                // Verificar o formato da data (pode variar dependendo do locale)
-                let partes;
-                if (data.includes('/')) {
-                    partes = data.split('/'); // dd/mm/yyyy
-                } else if (data.includes(' de ')) {
-                    // Formato português: "dd de mmm de yyyy"
-                    const meses = {
-                        'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04', 
-                        'mai': '05', 'jun': '06', 'jul': '07', 'ago': '08', 
-                        'set': '09', 'out': '10', 'nov': '11', 'dez': '12'
-                    };
-                    const partesComplexas = data.split(' de ');
-                    if (partesComplexas.length === 3) {
-                        const dia = partesComplexas[0].trim();
-                        const mes = partesComplexas[1].trim().toLowerCase().substring(0, 3);
-                        const ano = partesComplexas[2].trim();
-                        partes = [dia, meses[mes] || '01', ano];
-                    }
-                }
-                
-                if (partes && partes.length === 3) {
-                    const dataFormatada = `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
-                    localStorage.setItem('dataSelecionadaMenu', dataFormatada);
-                } else {
-                    // Fallback para a data atual se não conseguir converter
-                    const hoje = new Date();
-                    const dataFormatada = hoje.toISOString().split('T')[0];
-                    localStorage.setItem('dataSelecionadaMenu', dataFormatada);
-                }
-            }
-            window.location.href = '/Pontuacoes';
-        }
     </script>
     <!-- Modal para motivo de vitória -->
     <div id="motivoModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:1000; align-items:center; justify-content:center;">

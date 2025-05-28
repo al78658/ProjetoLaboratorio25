@@ -88,8 +88,8 @@ namespace ProjetoLaboratorio25.Controllers
                 TempData["CompeticaoId"] = competicao.Id;
                 TempData["NumFases"] = numFasesPadrao;
 
-                // Redirecionar para configuração de formato
-                return RedirectToAction("Index", "FormatodaCompeticao");
+                // Redirecionar para configuração de formato com parâmetros explícitos
+                return RedirectToAction("Index", "FormatodaCompeticao", new { competicaoId = competicao.Id });
             }
             catch (Exception ex)
             {

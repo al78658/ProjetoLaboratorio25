@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿@{
+﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -545,34 +545,59 @@
             });
 
             // Notificações dinâmicas de vitórias
-            function carregarNotificacoesVitorias() {
+            async function carregarNotificacoesVitorias() {
                 const notificacoesDinamicas = document.getElementById('notificacoesDinamicas');
-                // Remove notificações dinâmicas antigas (mantém as fixas para exemplo)
-                const fixas = Array.from(notificacoesDinamicas.children).filter(li => li.innerHTML.includes('João Silva') || li.innerHTML.includes('Maria Lopes') || li.innerHTML.includes('Nova competição'));
-                notificacoesDinamicas.innerHTML = '';
-                fixas.forEach(f => notificacoesDinamicas.appendChild(f));
-                // Percorre todas as competições e datas no localStorage
-                for (let key in localStorage) {
-                    if (key.startsWith('resultados_')) {
-                        const partes = key.split('_');
-                        const nomeCompeticao = partes[1];
-                        const data = partes.slice(2).join('_');
-                        const resultados = JSON.parse(localStorage.getItem(key) || '[]');
-                        resultados.forEach(r => {
-                            if (r.vencedor && r.motivo) {
-                                // Data formatada para DD-MM-YYYY
-                                const dataFormatada = data.split('-').reverse().join('-');
-                                const jogador1Nome = typeof r.jogador1 === 'object' ? r.jogador1.nome : r.jogador1;
-                                const jogador2Nome = typeof r.jogador2 === 'object' ? r.jogador2.nome : r.jogador2;
-                                const vencedorNome = typeof r.vencedor === 'object' ? r.vencedor.nome : r.vencedor;
-                                const noticia = `<li><div style='font-size:13px; color:#888; margin-bottom:2px;'>${dataFormatada}</div><div><strong>${jogador1Nome} vs ${jogador2Nome}</strong></div>${vencedorNome} venceu o jogo.<br><span style='font-size:13px; color:#666;'>Motivo: ${r.motivo}</span></li>`;
-                                notificacoesDinamicas.insertAdjacentHTML('afterbegin', noticia);
-                            }
-                        });
+                if (!notificacoesDinamicas) {
+                    console.log('Elemento de notificações não encontrado');
+                    return;
+                }
+                
+                notificacoesDinamicas.innerHTML = '<li><div style="text-align:center;padding:10px;">Carregando notificações...</div></li>';
+                
+                try {
+                    const response = await fetch('/Home/ObterNotificacoes', {
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status}`);
                     }
+                    
+                    const notificacoes = await response.json();
+                    notificacoesDinamicas.innerHTML = '';
+                    
+                    if (!Array.isArray(notificacoes) || notificacoes.length === 0) {
+                        notificacoesDinamicas.innerHTML = '<li><div style="text-align:center;padding:10px;">Nenhuma notificação encontrada</div></li>';
+                        return;
+                    }
+                    
+                    notificacoes.forEach(n => {
+                        const noticia = `
+                            <li>
+                                <div style='font-size:13px; color:#888; margin-bottom:2px;'>${n.dataNotificacao}</div>
+                                <div><strong>${n.clube1} vs ${n.clube2}</strong></div>
+                                ${n.clubeVitorioso ? `<div>${n.clubeVitorioso} venceu o jogo.</div>` : ''}
+                                <span style='font-size:13px; color:#666;'>Motivo: ${n.motivo}</span>
+                            </li>`;
+                        notificacoesDinamicas.insertAdjacentHTML('afterbegin', noticia);
+                    });
+                } catch (error) {
+                    console.log('Erro ao carregar notificações:', error);
+                    notificacoesDinamicas.innerHTML = '<li><div style="text-align:center;padding:10px;color:#666;">Carregando notificações...</div></li>';
                 }
             }
-            carregarNotificacoesVitorias();
+            
+            // Carregar notificações inicialmente apenas se o elemento existir
+            const notificacoesDinamicas = document.getElementById('notificacoesDinamicas');
+            if (notificacoesDinamicas) {
+                carregarNotificacoesVitorias();
+                
+                // Recarregar notificações a cada 30 segundos
+                setInterval(carregarNotificacoesVitorias, 30000);
+            }
         </script>
     }
     else
@@ -643,34 +668,59 @@
             });
 
             // Notificações dinâmicas de vitórias
-            function carregarNotificacoesVitorias() {
+            async function carregarNotificacoesVitorias() {
                 const notificacoesDinamicas = document.getElementById('notificacoesDinamicas');
-                // Remove notificações dinâmicas antigas (mantém as fixas para exemplo)
-                const fixas = Array.from(notificacoesDinamicas.children).filter(li => li.innerHTML.includes('João Silva') || li.innerHTML.includes('Maria Lopes') || li.innerHTML.includes('Nova competição'));
-                notificacoesDinamicas.innerHTML = '';
-                fixas.forEach(f => notificacoesDinamicas.appendChild(f));
-                // Percorre todas as competições e datas no localStorage
-                for (let key in localStorage) {
-                    if (key.startsWith('resultados_')) {
-                        const partes = key.split('_');
-                        const nomeCompeticao = partes[1];
-                        const data = partes.slice(2).join('_');
-                        const resultados = JSON.parse(localStorage.getItem(key) || '[]');
-                        resultados.forEach(r => {
-                            if (r.vencedor && r.motivo) {
-                                // Data formatada para DD-MM-YYYY
-                                const dataFormatada = data.split('-').reverse().join('-');
-                                const jogador1Nome = typeof r.jogador1 === 'object' ? r.jogador1.nome : r.jogador1;
-                                const jogador2Nome = typeof r.jogador2 === 'object' ? r.jogador2.nome : r.jogador2;
-                                const vencedorNome = typeof r.vencedor === 'object' ? r.vencedor.nome : r.vencedor;
-                                const noticia = `<li><div style='font-size:13px; color:#888; margin-bottom:2px;'>${dataFormatada}</div><strong>${vencedorNome}</strong> venceu o jogo <strong>${jogador1Nome} vs ${jogador2Nome}</strong>.<br><span style='font-size:13px; color:#666;'>Motivo: ${r.motivo}</span></li>`;
-                                notificacoesDinamicas.insertAdjacentHTML('afterbegin', noticia);
-                            }
-                        });
+                if (!notificacoesDinamicas) {
+                    console.log('Elemento de notificações não encontrado');
+                    return;
+                }
+                
+                notificacoesDinamicas.innerHTML = '<li><div style="text-align:center;padding:10px;">Carregando notificações...</div></li>';
+                
+                try {
+                    const response = await fetch('/Home/ObterNotificacoes', {
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status}`);
                     }
+                    
+                    const notificacoes = await response.json();
+                    notificacoesDinamicas.innerHTML = '';
+                    
+                    if (!Array.isArray(notificacoes) || notificacoes.length === 0) {
+                        notificacoesDinamicas.innerHTML = '<li><div style="text-align:center;padding:10px;">Nenhuma notificação encontrada</div></li>';
+                        return;
+                    }
+                    
+                    notificacoes.forEach(n => {
+                        const noticia = `
+                            <li>
+                                <div style='font-size:13px; color:#888; margin-bottom:2px;'>${n.dataNotificacao}</div>
+                                <div><strong>${n.clube1} vs ${n.clube2}</strong></div>
+                                ${n.clubeVitorioso ? `<div>${n.clubeVitorioso} venceu o jogo.</div>` : ''}
+                                <span style='font-size:13px; color:#666;'>Motivo: ${n.motivo}</span>
+                            </li>`;
+                        notificacoesDinamicas.insertAdjacentHTML('afterbegin', noticia);
+                    });
+                } catch (error) {
+                    console.log('Erro ao carregar notificações:', error);
+                    notificacoesDinamicas.innerHTML = '<li><div style="text-align:center;padding:10px;color:#666;">Carregando notificações...</div></li>';
                 }
             }
-            carregarNotificacoesVitorias();
+            
+            // Carregar notificações inicialmente apenas se o elemento existir
+            const notificacoesDinamicas = document.getElementById('notificacoesDinamicas');
+            if (notificacoesDinamicas) {
+                carregarNotificacoesVitorias();
+                
+                // Recarregar notificações a cada 30 segundos
+                setInterval(carregarNotificacoesVitorias, 30000);
+            }
         </script>
         
 

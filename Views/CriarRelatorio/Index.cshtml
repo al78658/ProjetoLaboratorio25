@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -26,6 +26,10 @@
             justify-content: center;
             align-items: center;
             position: relative;
+        }
+
+        #nomeInputDiv {
+            display: block;
         }
 
         .top-left-logo {
@@ -74,9 +78,7 @@
             display: block;
         }
 
-        input[type="text"],
-        textarea,
-        select {
+        input[type="text"], textarea, select {
             width: 100%;
             padding: 8px 10px;
             font-size: 15px;
@@ -128,7 +130,7 @@
     <!-- Logotipo -->
     <div class="top-left-logo">
         <a href="/home">
-            <img src="img/logotipo.png" alt="Logotipo" />
+            <img src="@Url.Content("~/img/logotipo.png")" alt="Logotipo" />
         </a>
     </div>
 
@@ -138,22 +140,28 @@
             <h2>Criar Relatório</h2>
 
             <form id="formRelatorio">
-                <div>
-                    <label for="nomeRelatorio">Nome do Relatório:</label>
-                    <input type="text" id="nomeRelatorio" name="nomeRelatorio" />
+                <div id="jogadorDiv" style="display: none;">
+                    <label for="codigoJogador">Código do Jogador:</label>
+                    <input type="text" id="codigoJogador" name="codigoJogador" />
                 </div>
 
-                <div>
-                    <label for="descricao">Descrição (Opcional):</label>
-                    <textarea id="descricao" name="descricao"></textarea>
+
+                <div id="equipaDiv" style="display: none;">
+                    <label for="nomeEquipa">Nome da Equipa:</label>
+                    <input type="text" id="nomeEquipa" name="nomeEquipa" />
+                </div>
+
+                <div id="conteudoDiv">
+                    <label for="conteudo">Conteúdo do Relatório:</label>
+                    <textarea id="conteudo" name="conteudo"></textarea>
                 </div>
 
                 <div>
                     <label for="categoria">Categoria:</label>
-                    <select id="categoria" name="categoria">
-                        <option>Relatório de Equipas</option>
-                        <option>Relatório de Jogadores</option>
-                        <option>Relatório de Competição</option>
+                    <select id="categoria" name="categoria" required>
+                        <option value="competicao" selected>Relatório de Competição</option>
+                        <option value="equipa">Relatório de Equipas</option>
+                        <option value="jogador">Relatório de Jogadores</option>
                     </select>
                 </div>
 
@@ -163,41 +171,113 @@
     </div>
 
     <!-- Botão Voltar -->
-    <a href="/Menu" class="back-button">&lt;Voltar</a>
+    <a id="backButton" class="back-button">&lt;Voltar</a>
 
     <script>
-        function guardarDadosRelatorio() {
-            const nome = document.getElementById('nomeRelatorio').value;
-            const categoria = document.getElementById('categoria').value;
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
 
-            if (!nome || nome.trim() === '') {
-                alert('Por favor, insira um nome para o relatório.');
+        function atualizarCampos() {
+            const categoria = document.getElementById('categoria').value;
+            const jogadorDiv = document.getElementById('jogadorDiv');
+            const equipaDiv = document.getElementById('equipaDiv');
+            const conteudoDiv = document.getElementById('conteudoDiv');
+
+            jogadorDiv.style.display = 'none';
+            equipaDiv.style.display = 'none';
+
+            if (categoria === 'jogador') {
+                jogadorDiv.style.display = 'block';
+            } else if (categoria === 'equipa') {
+                equipaDiv.style.display = 'block';
+            }
+
+            conteudoDiv.style.display = 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            atualizarCampos();
+
+            const competicaoId = getQueryParam('competicaoId');
+            const backButton = document.getElementById('backButton');
+
+            if (backButton) {
+                backButton.href = competicaoId ? `/Menu?competicaoId=${competicaoId}` : `/Menu`;
+            }
+        });
+
+        document.getElementById('categoria').addEventListener('change', atualizarCampos);
+
+               async function guardarDadosRelatorio() {
+            const categoria = document.getElementById('categoria').value;
+            const conteudo = document.getElementById('conteudo').value.trim();
+            const codigoJogador = document.getElementById('codigoJogador')?.value.trim();
+            const nomeEquipa = document.getElementById('nomeEquipa')?.value.trim();
+            const competicaoId = getQueryParam('competicaoId');
+
+            let codigo = '';
+            let titulo = '';
+
+            if (!conteudo) {
+                alert('Por favor, insira o conteúdo do relatório.');
                 return;
             }
 
-            localStorage.setItem('nomeRelatorio', nome);
-            localStorage.setItem('categoriaRelatorio', categoria);
-            localStorage.setItem('ultimaAtualizacaoRelatorio', new Date().toISOString());
+            if (categoria === 'jogador') {
+                if (!codigoJogador) {
+                    alert('Por favor, insira o código do jogador.');
+                    return;
+                }
+                codigo = codigoJogador;
+                titulo = `Relatório do Jogador ${codigoJogador}`;
+            } else if (categoria === 'equipa') {
+                if (!nomeEquipa) {
+                    alert('Por favor, insira o nome da equipa.');
+                    return;
+                }
+                codigo = nomeEquipa;
+                titulo = `Relatório da Equipa ${nomeEquipa}`;
+            } else if (categoria === 'competicao') {
+                if (!competicaoId) {
+                    alert('ID da competição não encontrado.');
+                    return;
+                }
+                codigo = competicaoId;
+                titulo = 'Relatório de Competição';
+            }
 
-            console.log('Dados do relatório guardados:', { nome, categoria });
+            try {
+                const response = await fetch('/Relatorio/SalvarRelatorio', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        categoria,
+                        codigo,
+                        titulo,
+                        conteudo
+                    })
+                });
 
-            // Redirecionar
-            window.location.href = '/ConsultarRelatorio';
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Relatório salvo com sucesso!');
+                    const url = `/Relatorio/ConsultarRelatorio?categoria=${categoria}&codigo=${encodeURIComponent(codigo)}`;
+                    window.location.href = url;
+                } else {
+                    alert('Erro ao salvar o relatório: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao salvar o relatório. Por favor, tente novamente.');
+            }
         }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const nomeGuardado = localStorage.getItem('nomeRelatorio');
-            const categoriaGuardada = localStorage.getItem('categoriaRelatorio');
-
-            if (nomeGuardado) {
-                document.getElementById('nomeRelatorio').value = nomeGuardado;
-            }
-
-            if (categoriaGuardada) {
-                document.getElementById('categoria').value = categoriaGuardada;
-            }
-        });
     </script>
+
 
 </body>
 </html>

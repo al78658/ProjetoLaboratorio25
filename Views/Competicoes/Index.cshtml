@@ -205,7 +205,10 @@
             foreach (var competicao in Model)
             {
                 <text>
-                            competicoesServidor.push({ nome: '@competicao.Nome' });
+                            competicoesServidor.push({ 
+                                id: @competicao.Id, 
+                                nome: '@competicao.Nome' 
+                            });
                 </text>
             }
         }
@@ -228,7 +231,8 @@
                         div.className = 'competition';
                         div.onclick = function () {
                             localStorage.setItem('competicaoSelecionada', competicao.nome);
-                            window.location.href = '/Menu';
+                            localStorage.setItem('competicaoSelecionadaId', competicao.id);
+                            window.location.href = '/Menu?competicaoId=' + competicao.id;
                         };
                         div.innerHTML = `
                             <div class="thumb"></div>
