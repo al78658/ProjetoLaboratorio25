@@ -16,55 +16,72 @@ namespace ProjetoLaboratorio25.Controllers
             _context = context;
         }
 
-        public IActionResult Index(bool edicao = false)
+        public IActionResult Index(int? competicaoId = null, bool edicao = false)
         {
-            // Get the competition data from TempData
-            ViewBag.NomeCompeticao = TempData["NomeCompeticao"];
-            ViewBag.TipoCompeticao = TempData["TipoCompeticao"];
-            ViewBag.CompeticaoId = TempData["CompeticaoId"];
-
-            var competicaoId = TempData["CompeticaoId"]?.ToString();
-            
-            if (edicao && !string.IsNullOrEmpty(competicaoId) && int.TryParse(competicaoId, out int compId))
+            // Tenta obter o ID da competição do parâmetro, se não estiver disponível, tenta do TempData
+            int compId = 0;
+            if (competicaoId.HasValue && competicaoId.Value > 0)
             {
-                // Load configurations from database for edit mode
-                var configuracoes = _context.ConfiguracoesFase
-                    .Where(c => c.CompeticaoId == compId)
-                    .OrderBy(c => c.FaseNumero)
-                    .ToList();
+                compId = competicaoId.Value;
+                // Salva no TempData para uso futuro
+                TempData["CompeticaoId"] = compId;
+                TempData.Keep("CompeticaoId");
+            }
+            else if (TempData.ContainsKey("CompeticaoId") && TempData["CompeticaoId"] != null)
+            {
+                compId = Convert.ToInt32(TempData["CompeticaoId"]);
+                TempData.Keep("CompeticaoId");
+            }
 
-                if (configuracoes.Any())
-                {
-                    // Convert configurations to dictionary format
-                    var formatosDict = configuracoes.ToDictionary(c => c.FaseNumero, c => c.Formato);
-                    ViewBag.FormatosSelecionados = System.Text.Json.JsonSerializer.Serialize(formatosDict);
-                    ViewBag.NumFases = configuracoes.Count;
-                }
-                else
-                {
-                    ViewBag.FormatosSelecionados = "{}";
-                    ViewBag.NumFases = 2;
-                }
+            if (compId == 0)
+            {
+                // Se não encontrou o ID da competição, redireciona para a página de competições
+                return RedirectToAction("Index", "Competicoes");
+            }
+
+            // Busca a competição no banco de dados com suas configurações
+            var competicao = _context.Competicoes
+                .Include(c => c.ConfiguracoesFase)
+                .FirstOrDefault(c => c.Id == compId);
+
+            if (competicao == null)
+            {
+                return NotFound();
+            }
+
+            // Atualiza o ViewBag com os dados da competição
+            ViewBag.NomeCompeticao = competicao.Nome;
+            ViewBag.TipoCompeticao = competicao.TipoCompeticao;
+            ViewBag.CompeticaoId = compId;
+
+            // Carrega as configurações de fase do banco de dados
+            var configuracoes = competicao.ConfiguracoesFase
+                .OrderBy(c => c.FaseNumero)
+                .ToList();
+
+            if (configuracoes.Any())
+            {
+                // Converte configurações para formato de dicionário
+                var formatosDict = configuracoes.ToDictionary(c => c.FaseNumero, c => c.Formato);
+                ViewBag.FormatosSelecionados = System.Text.Json.JsonSerializer.Serialize(formatosDict);
+                ViewBag.NumFases = configuracoes.Count;
             }
             else
             {
-                // Default behavior for new competition
-                ViewBag.FormatosSelecionados = competicaoId != null ? (TempData[$"FormatosSelecionados_{competicaoId}"] as string ?? "{}") : "{}";
-                ViewBag.NumFases = TempData[$"NumFases_{competicaoId}"] ?? 2;
+                // Se não houver configurações, usa valores padrão
+                ViewBag.FormatosSelecionados = "{}";
+                ViewBag.NumFases = 2;
             }
 
-            // Pass the edit mode to the view
+            // Passa o modo de edição para a view
             ViewBag.Edicao = edicao;
 
-            // Preserve TempData for the next request
+            // Preserva TempData para a próxima requisição
             TempData.Keep("NomeCompeticao");
             TempData.Keep("TipoCompeticao");
             TempData.Keep("CompeticaoId");
-            if (competicaoId != null)
-            {
-                TempData.Keep($"FormatosSelecionados_{competicaoId}");
-                TempData.Keep($"NumFases_{competicaoId}");
-            }
+            TempData.Keep($"FormatosSelecionados_{compId}");
+            TempData.Keep($"NumFases_{compId}");
 
             return View();
         }

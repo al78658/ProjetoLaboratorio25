@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿@{
+﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -513,17 +513,24 @@
         }
         
         // Função para ir para uma etapa específica do processo de criação
-        function irParaEtapa(controller) {
+        async function irParaEtapa(controller) {
             // Verificar se há uma competição carregada
             if (!carregarDadosCompeticaoAtual()) {
                 return;
             }
+            
             // Estamos em modo de edição, permitir navegação livre
             localStorage.setItem('modoEdicao', 'true');
+            
             // Obter o ID da competição do localStorage
             const competicaoId = localStorage.getItem('competicaoId');
+            if (!competicaoId) {
+                alert('ID da competição não encontrado.');
+                return;
+            }
+            
             // Redirecionar para a etapa selecionada, incluindo edicao e id na URL
-            window.location.href = `/${controller}?edicao=true&id=${competicaoId}`;
+            window.location.href = `/${controller}?edicao=true&competicaoId=${competicaoId}`;
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -536,6 +543,19 @@
             // Inicializar o menu lateral de edição
             if (nomeCompeticao) {
                 document.getElementById('competicaoNomeDisplay').textContent = nomeCompeticao;
+                
+                // Buscar o ID da competição no servidor
+                fetch(`/Competicoes/ObterIdCompeticao?nome=${encodeURIComponent(nomeCompeticao)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.id) {
+                            // Armazenar o ID da competição
+                            localStorage.setItem('competicaoId', data.id);
+                            // Atualizar o TempData no servidor
+                            fetch(`/Competicoes/AtualizarTempData?competicaoId=${data.id}`, { method: 'POST' });
+                        }
+                    })
+                    .catch(error => console.error('Erro ao obter ID da competição:', error));
             }
 
             if (!nomeCompeticao) {
@@ -713,69 +733,6 @@
                 }
             }
             window.location.href = '/Pontuacoes';
-        }
-        
-        // Função para navegar para as etapas de edição da competição
-        async function irParaEtapa(controller) {
-            // Verificar se há uma competição selecionada
-            const nomeCompeticao = localStorage.getItem('competicaoSelecionada');
-            if (!nomeCompeticao) {
-                alert('Nenhuma competição selecionada.');
-                return false;
-            }
-            
-            // Obter o ID da competição
-            const competicaoId = localStorage.getItem('competicaoId');
-            if (!competicaoId) {
-                alert('ID da competição não encontrado.');
-                return false;
-            }
-            
-            // Marcar que estamos em modo de edição
-            localStorage.setItem('modoEdicao', 'true');
-            
-            // Apenas para o "Formato da Competição" permitir navegação real
-            if (controller === 'FormatodaCompeticao') {
-                try {
-                    // Carregar os dados da competição do servidor antes de navegar
-                    const response = await fetch(`/FormatodaCompeticao/ObterDadosCompeticao?competicaoId=${competicaoId}`);
-                    if (response.ok) {
-                        const dados = await response.json();
-                        
-                        // Salvar os dados no localStorage
-                        if (dados.numFases) {
-                            localStorage.setItem('numFases', dados.numFases);
-                        }
-                        
-                        if (dados.formatosSelecionados) {
-                            localStorage.setItem('formatosSelecionados', JSON.stringify(dados.formatosSelecionados));
-                        }
-                    }
-                } catch (error) {
-                    console.error('Erro ao carregar dados da competição:', error);
-                }
-                
-                // Navegar para a página de formato da competição
-                window.location.href = `/${controller}/Index?edicao=true&competicaoId=${competicaoId}`;
-            } else {
-                // Para outras opções, apenas destacar visualmente mas não navegar
-                // Isso faz com que o item apareça como selecionado mas não faz nada ao clicar
-                const links = document.querySelectorAll('.edit-sidebar-step');
-                links.forEach(link => {
-                    link.classList.remove('active');
-                });
-                
-                // Encontrar o link clicado e adicionar a classe active
-                const clickedLink = Array.from(links).find(link => 
-                    link.getAttribute('onclick').includes(controller)
-                );
-                
-                if (clickedLink) {
-                    clickedLink.classList.add('active');
-                }
-                
-                return false;
-            }
         }
     </script>
     <!-- Modal para motivo de vitória -->
