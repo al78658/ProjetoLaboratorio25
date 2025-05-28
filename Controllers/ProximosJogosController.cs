@@ -64,6 +64,18 @@ namespace ProjetoLaboratorio25.Controllers
                     return Ok(new { mensagem = "Não existem jogos para esta competição", totalJogos = 0 });
                 }
                 
+                // Verificar se é uma competição do tipo taça e se todos os jogos têm vencedor
+                var competicao = await _context.Competicoes
+                    .Include(c => c.ConfiguracoesFase)
+                    .FirstOrDefaultAsync(c => c.Id == competicaoId);
+
+                var isTaca = competicao?.ConfiguracoesFase
+                    .Any(cf => cf.Formato == "eliminacao") ?? false;
+
+                var todosJogosRealizados = await _context.EmparelhamentosFinal
+                    .Where(e => e.CompeticaoId == competicaoId)
+                    .AllAsync(e => e.JogoRealizado);
+
                 // Buscar todos os jogos emparelhados para a competição
                 var jogos = await _context.EmparelhamentosFinal
                     .Where(e => e.CompeticaoId == competicaoId)
@@ -92,7 +104,11 @@ namespace ProjetoLaboratorio25.Controllers
                     .OrderBy(g => g.Data)
                     .ToList();
 
-                return Ok(jogosPorData);
+                return Ok(new {
+                    jogosPorData,
+                    isTaca,
+                    todosJogosRealizados
+                });
             }
             catch (Exception ex)
             {

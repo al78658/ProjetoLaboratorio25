@@ -168,189 +168,160 @@
     <a href="/ListadeJogadores" class="back-button">&lt;Voltar</a>
 
     <script>
-        // Capturar o ID da competição do ViewBag (se disponível)
-        @if (ViewBag.CompeticaoIdJS != null)
-        {
-            <text>
-            const competicaoIdFromServer = @ViewBag.CompeticaoIdJS;
-            // Armazenar no localStorage para uso posterior
-            localStorage.setItem('competicaoId', competicaoIdFromServer);
-            </text>
-        }
-        
-        document.addEventListener('DOMContentLoaded', function () {
+        // Função de inicialização
+        function initializeEmparelhamento() {
+            // Inicialização
+            const titulo = document.getElementById('nomeCompeticao');
             const pairsTableBody = document.getElementById('pairsTableBody');
             const saveButton = document.getElementById('saveButton');
-            const titulo = document.getElementById('nomeCompeticao');
+            const nomeCompeticao = "@ViewBag.CompeticaoNome";
+            const competicaoId = @ViewBag.CompeticaoId;
+            const isFaseEliminatoria = @(ViewBag.IsFaseEliminatoria ? "true" : "false");
+            const tipoCompeticao = "@ViewBag.TipoCompeticao";
             
-            // Mover a declaração do nomeCompeticao para cá e garantir que está inicializado
-            let nomeCompeticao = localStorage.getItem('nomeCompeticao');
-            if (!nomeCompeticao || nomeCompeticao.trim() === '') {
-                nomeCompeticao = 'Competicao_' + new Date().toISOString().slice(0, 10);
-                localStorage.setItem('nomeCompeticao', nomeCompeticao);
+            // Verificar se os elementos foram encontrados
+            if (!titulo || !pairsTableBody || !saveButton) {
+                console.error('Elementos não encontrados:', {
+                    titulo: !!titulo,
+                    pairsTableBody: !!pairsTableBody,
+                    saveButton: !!saveButton
+                });
+                return;
             }
-
+            
             // Mostrar o nome da competição no título
             titulo.textContent = nomeCompeticao ? `Competição: ${nomeCompeticao}` : 'Emparelhamento';
             
-            // Obtem jogadores do localStorage - apenas se estivermos no mesmo processo de criação
+            // Obtem jogadores/clubes do ViewBag
             let jogadores = [];
             
-            // Verificar se estamos em um processo de criação de competição
-            const nomeCompeticaoExistente = localStorage.getItem('nomeCompeticao');
-            
-            if (nomeCompeticaoExistente) {
-                // Primeiro tenta jogadoresParaEmparelhar (enviados da página anterior)
-                jogadores = JSON.parse(localStorage.getItem('jogadoresParaEmparelhar')) || [];
-                
-                // Se não tiver jogadores do emparelhamento, tenta usar a lista específica desta competição
-                if (jogadores.length === 0) {
-                    const jogadoresKey = `jogadoresList_${nomeCompeticaoExistente}`;
-                    jogadores = JSON.parse(localStorage.getItem(jogadoresKey)) || [];
-                    
-                    // Se ainda não tiver, tenta a lista geral (para compatibilidade)
-                    if (jogadores.length === 0) {
-                        jogadores = JSON.parse(localStorage.getItem('jogadoresList')) || [];
-                    }
-                }
-                
-                // Atualizar o título com base no tipo de competição
-                const tipoCompeticao = localStorage.getItem('tipoCompeticao') || '';
-                const h1Title = document.querySelector('h1');
-                
+            // Se for fase eliminatória, usar os vencedores passados pelo controller
+            if (isFaseEliminatoria) {
+                jogadores = @Html.Raw(Json.Serialize(ViewBag.Vencedores ?? new string[] {}));
+            } else {
                 if (tipoCompeticao === 'equipas') {
-                    h1Title.textContent = 'Emparelhamento de Equipas';
-                    document.title = 'Emparelhamento de Equipas';
+                    // Para competições de equipes, usar os clubes
+                    jogadores = @Html.Raw(Json.Serialize(ViewBag.Clubes ?? new string[] {}))
+                        .map(clube => ({ nome: clube }));
                 } else {
-                    h1Title.textContent = 'Emparelhamento';
-                    document.title = 'Emparelhamento';
+                    // Para competições individuais, usar os jogadores
+                    jogadores = @Html.Raw(Json.Serialize(ViewBag.Jogadores ?? new object[] {}));
                 }
             }
-
-            if (jogadores.length < 2) {
-                alert("Erro: Nenhuma lista de jogadores disponível.");
-                return;
-            }
-
-            // Verificar o tipo de competição
-            const tipoCompeticao = localStorage.getItem('tipoCompeticao') || '';
+            
+            // Atualizar o título com base no tipo de competição
+            const h1Title = document.querySelector('h1');
             
             if (tipoCompeticao === 'equipas') {
-                // Lógica existente para competições por equipes
-                // Agrupar jogadores por clube
-                const clubes = {};
-                jogadores.forEach(jogador => {
-                    const clube = typeof jogador === 'object' ? jogador.clube : '';
-                    if (!clube) return;
-                    
-                    if (!clubes[clube]) {
-                        clubes[clube] = [];
-                    }
-                    clubes[clube].push(jogador);
-                });
+                h1Title.textContent = 'Emparelhamento de Equipas';
+                document.title = 'Emparelhamento de Equipas';
+            } else {
+                h1Title.textContent = 'Emparelhamento';
+                document.title = 'Emparelhamento';
+            }
 
-                // Converter objeto de clubes em array
-                const clubesArray = Object.keys(clubes).map(clube => ({
-                    nome: clube,
-                    jogadores: clubes[clube]
-                }));
+            // Limpar a tabela
+            pairsTableBody.innerHTML = '';
 
-                // Dividir clubes em dois lados
-                const meio = Math.ceil(clubesArray.length / 2);
-                const clubesEsquerdo = clubesArray.slice(0, meio);
-                const clubesDireito = clubesArray.slice(meio);
-
-                // Criar arrays de jogadores representando os clubes
-                const ladoEsquerdo = clubesEsquerdo.map(clube => ({
-                    nome: clube.nome,
-                    jogadores: clube.jogadores,
-                    isClube: true
-                }));
-                
-                const ladoDireito = clubesDireito.map(clube => ({
-                    nome: clube.nome,
-                    jogadores: clube.jogadores,
-                    isClube: true
-                }));
-
-                for (let i = 0; i < Math.max(ladoEsquerdo.length, ladoDireito.length); i++) {
-                    const clube1 = ladoEsquerdo[i] || '';
-                    const clube2 = ladoDireito[i] || '';
+            // Se for fase eliminatória, emparelhar os vencedores
+            if (isFaseEliminatoria) {
+                // Dividir os vencedores em pares
+                for (let i = 0; i < jogadores.length; i += 2) {
+                    const clube1 = jogadores[i];
+                    const clube2 = i + 1 < jogadores.length ? jogadores[i + 1] : '';
 
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${clube1 ? clube1.nome : ''}</td>
+                        <td>${clube1}</td>
                         <td>
                             <input type="date" class="date-input" required>
                             <input type="time" class="time-input" required>
                         </td>
-                        <td>${clube2 ? clube2.nome : ''}</td>
+                        <td>${clube2}</td>
                     `;
                     pairsTableBody.appendChild(row);
                 }
             } else {
-                // Lógica para competições individuais
-                // Dividir jogadores em dois lados
-                const meio = Math.ceil(jogadores.length / 2);
-                const jogadoresEsquerdo = jogadores.slice(0, meio);
-                const jogadoresDireito = jogadores.slice(meio);
+                // Lógica existente para emparelhamento normal
+                if (tipoCompeticao === 'equipas') {
+                    // Lógica para competições de equipes
+                    const meio = Math.ceil(jogadores.length / 2);
+                    const ladoEsquerdo = jogadores.slice(0, meio);
+                    const ladoDireito = jogadores.slice(meio);
 
-                for (let i = 0; i < Math.max(jogadoresEsquerdo.length, jogadoresDireito.length); i++) {
-                    const jogador1 = jogadoresEsquerdo[i] || '';
-                    const jogador2 = jogadoresDireito[i] || '';
+                    for (let i = 0; i < Math.max(ladoEsquerdo.length, ladoDireito.length); i++) {
+                        const clube1 = ladoEsquerdo[i] || '';
+                        const clube2 = ladoDireito[i] || '';
 
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${jogador1 ? (typeof jogador1 === 'object' ? jogador1.nome : jogador1) : ''}</td>
-                        <td>
-                            <input type="date" class="date-input" required>
-                            <input type="time" class="time-input" required>
-                        </td>
-                        <td>${jogador2 ? (typeof jogador2 === 'object' ? jogador2.nome : jogador2) : ''}</td>
-                    `;
-                    pairsTableBody.appendChild(row);
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${clube1 ? clube1.nome : ''}</td>
+                            <td>
+                                <input type="date" class="date-input" required>
+                                <input type="time" class="time-input" required>
+                            </td>
+                            <td>${clube2 ? clube2.nome : ''}</td>
+                        `;
+                        pairsTableBody.appendChild(row);
+                    }
+                } else {
+                    // Lógica para competições individuais
+                    // Dividir jogadores em dois lados
+                    const meio = Math.ceil(jogadores.length / 2);
+                    const jogadoresEsquerdo = jogadores.slice(0, meio);
+                    const jogadoresDireito = jogadores.slice(meio);
+
+                    for (let i = 0; i < Math.max(jogadoresEsquerdo.length, jogadoresDireito.length); i++) {
+                        const jogador1 = jogadoresEsquerdo[i] || '';
+                        const jogador2 = jogadoresDireito[i] || '';
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${jogador1 ? jogador1.nome : ''}</td>
+                            <td>
+                                <input type="date" class="date-input" required>
+                                <input type="time" class="time-input" required>
+                            </td>
+                            <td>${jogador2 ? jogador2.nome : ''}</td>
+                        `;
+                        pairsTableBody.appendChild(row);
+                    }
                 }
             }
 
-            // Botão de salvar
-            saveButton.addEventListener('click', function () {
+            // Salvar emparelhamentos
+            saveButton.addEventListener('click', async () => {
                 const rows = pairsTableBody.querySelectorAll('tr');
                 const agendamentos = [];
+                let hasError = false;
 
                 rows.forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    const dateInput = cells[1].querySelector('.date-input');
-                    const timeInput = cells[1].querySelector('.time-input');
+                    const clube1 = row.cells[0].textContent.trim();
+                    const clube2 = row.cells[2].textContent.trim();
+                    const dataInput = row.cells[1].querySelector('.date-input');
+                    const horaInput = row.cells[1].querySelector('.time-input');
 
-                    if (cells[0].textContent && cells[2].textContent && dateInput.value && timeInput.value) {
+                    if (!dataInput.value || !horaInput.value) {
+                        alert('Por favor, preencha a data e hora para todos os jogos.');
+                        hasError = true;
+                        return;
+                    }
+
+                    if (clube1 && clube2) {
                         agendamentos.push({
-                            jogador1: { nome: cells[0].textContent.trim() },
-                            jogador2: { nome: cells[2].textContent.trim() },
-                            data: dateInput.value,
-                            hora: timeInput.value,
-                            isClube: tipoCompeticao === 'equipas'
+                            jogador1: { nome: clube1 },
+                            jogador2: { nome: clube2 },
+                            data: dataInput.value,
+                            hora: horaInput.value,
+                            isClube: true
                         });
                     }
                 });
 
-                if (agendamentos.length === 0) {
-                    alert('Por favor, preencha todas as datas e horários antes de salvar.');
-                    return;
-                }
+                if (hasError) return;
 
-                // Salvar os agendamentos no localStorage
-                const agendamentosKey = `agendamentos_${nomeCompeticao}`;
-                localStorage.setItem(agendamentosKey, JSON.stringify(agendamentos));
-                
-                const timestamp = new Date().toISOString();
-                // Use the existing competicaoId from localStorage or generate a new one
-                let competicaoId = parseInt(localStorage.getItem('competicaoId')) || 0;
-                if (!competicaoId) {
-                    competicaoId = nomeCompeticao.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                }
-
-                // Guarda todos os dados
-                localStorage.setItem(`jogadores_${nomeCompeticao}`, JSON.stringify(jogadores));
+                // Preparar timestamp para o nome da competição
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
                 // Regista na lista geral de competições
                 const todas = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
@@ -372,9 +343,9 @@
                 agendamentos.forEach(agendamento => {
                     // Verificar se os objetos têm a estrutura esperada
                     const clube1 = agendamento.jogador1 && typeof agendamento.jogador1 === 'object' ? 
-                                  (agendamento.jogador1.nome || '') : '';
+                                (agendamento.jogador1.nome || '') : '';
                     const clube2 = agendamento.jogador2 && typeof agendamento.jogador2 === 'object' ? 
-                                  (agendamento.jogador2.nome || '') : '';
+                                (agendamento.jogador2.nome || '') : '';
                     
                     if (clube1 && clube2) {
                         emparelhamentosParaEnviar.push({
@@ -386,14 +357,6 @@
                         });
                     }
                 });
-                
-                // Obter o ID da competição (se disponível)
-                // Tenta várias fontes possíveis para o ID da competição
-                if (!competicaoId) {
-                    // Tenta obter da URL se estiver disponível
-                    const urlParams = new URLSearchParams(window.location.search);
-                    competicaoId = parseInt(urlParams.get('competicaoId')) || 0;
-                }
                 
                 // Log para depuração
                 console.log('Dados a enviar:', {
@@ -415,50 +378,45 @@
                     })
                 })
                 .then(response => {
-                  // Sempre tenta obter o JSON da resposta, mesmo em caso de erro
-                      return response.json().then(data => {
+                    // Sempre tenta obter o JSON da resposta, mesmo em caso de erro
+                    return response.json().then(data => {
                         // Adiciona o status à resposta para verificação posterior
                         return { status: response.status, data };
                     });
                 })
                 .then(result => {
-                    console.log('Resposta do servidor:', result);
-                    
-                    // Verifica se a resposta foi bem-sucedida (200 OK ou 207 Multi-Status)
-                    if (result.status === 200 || result.status === 207) {
-                        // Vai para o menu da competição específica
-                        localStorage.setItem('competicaoSelecionada', nomeCompeticao);
+                    if (result.status === 200) {
+                        alert('Emparelhamentos salvos com sucesso!');
                         
-                        // Se houver uma mensagem na resposta, mostra-a
-                        if (result.data && result.data.mensagem) {
-                            alert(result.data.mensagem);
-                        } else {
-                            alert('Emparelhamentos salvos com sucesso!');
-                        }
-                        
-                        // Armazenar o ID da competição para uso no Menu
+                        // Armazenar o ID da competição e redirecionar
                         localStorage.setItem('competicaoSelecionadaId', competicaoId);
                         window.location.href = '/Menu?competicaoId=' + competicaoId;
                     } else {
-                        // Se houver erro, mostra a mensagem de erro
-                        const mensagemErro = result.data && result.data.mensagem 
-                            ? result.data.mensagem 
-                            : 'Erro ao salvar emparelhamentos';
-                            
-                        throw new Error(mensagemErro);
+                        // Se houver falhas parciais (status 207) ou outros erros
+                        let mensagem = result.data.mensagem || 'Erro ao salvar emparelhamentos.';
+                        
+                        if (result.data.falhas && result.data.falhas.length > 0) {
+                            mensagem += '\n\nFalhas:\n' + result.data.falhas
+                                .map(f => `${f.clube1} vs ${f.clube2}`)
+                                .join('\n');
+                        }
+                        
+                        if (result.data.sucessos && result.data.sucessos.length > 0) {
+                            mensagem += '\n\nSucessos:\n' + result.data.sucessos.join('\n');
+                        }
+                        
+                        alert(mensagem);
                     }
                 })
                 .catch(error => {
                     console.error('Erro:', error);
                     alert('Erro ao salvar emparelhamentos: ' + error.message);
-                    
-                    // Mesmo com erro, salva localmente e continua para o menu
-                    localStorage.setItem('competicaoSelecionada', nomeCompeticao);
-                    localStorage.setItem('competicaoSelecionadaId', competicaoId);
-                    window.location.href = '/Menu?competicaoId=' + competicaoId;
                 });
             });
-        });
+        }
+
+        // Chamar a função de inicialização quando o documento estiver pronto
+        document.addEventListener('DOMContentLoaded', initializeEmparelhamento);
     </script>
 </body>
 </html>

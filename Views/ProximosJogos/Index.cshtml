@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@{
+﻿﻿﻿﻿﻿﻿﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -147,15 +147,14 @@
             <h2>Jogos Agendados (Equipas e Individuais)</h2>
 
             <!-- Botão no topo à direita -->
-            @*             <div class="button-top-right">
-                @if (User.Identity.IsAuthenticated)
-                {
-                    <button type="button" class="btn" onclick="window.location.href='/AgendarJogos'">
-                        Agendar Jogos
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="button-top-right">
+                    <button type="button" id="btnAdicionarEmparelhamentos" class="btn" style="display: none; margin-right: 10px;">
+                        Adicionar Emparelhamentos
                     </button>
-                }
-            </div> *@
-
+                </div>
+            }
 
             <!-- Tabela com scroll -->
             <div class="table-wrapper">
@@ -190,6 +189,7 @@
         const competicaoId = @ViewBag.CompeticaoId;
         const competicaoNome = "@ViewBag.CompeticaoNome";
         const tabela = document.getElementById('tabelaJogos').getElementsByTagName('tbody')[0];
+        const btnAdicionarEmparelhamentos = document.getElementById('btnAdicionarEmparelhamentos');
         
         // Atualizar o título
         document.querySelector('h2').textContent = `Jogos Agendados - ${competicaoNome}`;
@@ -212,7 +212,15 @@
                         console.log(data.mensagem);
                         tabela.innerHTML = `<tr><td colspan="3">${data.mensagem}</td></tr>`;
                     } else {
-                        renderJogos(data);
+                        // Verificar se é uma competição do tipo taça e se todos os jogos têm vencedor
+                        if (data.isTaca && data.todosJogosRealizados && btnAdicionarEmparelhamentos) {
+                            btnAdicionarEmparelhamentos.style.display = 'block';
+                            btnAdicionarEmparelhamentos.onclick = () => {
+                                // Redirecionar para a página de emparelhamento
+                                window.location.href = `/Emparelhamento?competicaoId=${competicaoId}&fase=proxima`;
+                            };
+                        }
+                        renderJogos(data.jogosPorData);
                     }
                 })
                 .catch(error => {

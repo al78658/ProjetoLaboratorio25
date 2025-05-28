@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ProjetoLaboratorio25.Controllers
 {
@@ -18,7 +20,7 @@ namespace ProjetoLaboratorio25.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int? competicaoId = null)
+        public async Task<IActionResult> Index(int? competicaoId = null, string? fase = null)
         {
             // Primeiro tenta obter o ID da competição da URL
             if (competicaoId == null)
@@ -45,7 +47,9 @@ namespace ProjetoLaboratorio25.Controllers
             }
             
             // Busca a competição pelo ID
-            var competition = await _context.Competicoes.FindAsync(competicaoId);
+            var competition = await _context.Competicoes
+                .Include(c => c.ConfiguracoesFase)
+                .FirstOrDefaultAsync(c => c.Id == competicaoId);
 
             if (competition == null)
             {
@@ -53,17 +57,100 @@ namespace ProjetoLaboratorio25.Controllers
                 ViewBag.ErrorMessage = "Competição não encontrada.";
                 return View();
             }
+
+            // Verificar se é uma competição do tipo taça
+            var isTaca = competition.ConfiguracoesFase.Any(cf => cf.Formato == "eliminacao");
             
-            // Fetch clubs associated with the competition
-            var clubes = await _context.Jogadores
-                .Where(j => j.CompeticaoId == competition.Id && !string.IsNullOrEmpty(j.Clube))
-                .Select(j => j.Clube != null ? j.Clube.Trim().ToLower() : "")
-                .Distinct()
-                .ToListAsync();
+            // Se for taça e estivermos na próxima fase, buscar apenas os vencedores
+            if (isTaca && fase == "proxima")
+            {
+                // Buscar todos os jogos realizados
+                var jogosRealizados = await _context.EmparelhamentosFinal
+                    .Where(e => e.CompeticaoId == competition.Id && e.JogoRealizado)
+                    .ToListAsync();
+
+                // Obter os vencedores
+                var vencedores = jogosRealizados
+                    .Select(j => {
+                        if (j.PontuacaoClube1 > j.PontuacaoClube2)
+                            return j.Clube1;
+                        else if (j.PontuacaoClube2 > j.PontuacaoClube1)
+                            return j.Clube2;
+                        return null;
+                    })
+                    .Where(v => v != null)
+                    .ToList();
+
+                // Ordenar vencedores por número de vitórias
+                var vencedoresComVitorias = vencedores
+                    .GroupBy(v => v)
+                    .Select(g => new { Nome = g.Key, Vitorias = g.Count() })
+                    .OrderByDescending(v => v.Vitorias)
+                    .ToList();
+
+                // Passar os vencedores para a view
+                ViewBag.Vencedores = vencedoresComVitorias.Select(v => v.Nome).ToList();
+                ViewBag.IsFaseEliminatoria = true;
+            }
+            else
+            {
+                // Verificar se temos jogadores no TempData
+                var jogadoresJson = TempData["JogadoresParaEmparelhar"] as string;
+                if (!string.IsNullOrEmpty(jogadoresJson))
+                {
+                    // Deserializar os jogadores
+                    var options = new JsonSerializerOptions
+                    {
+                        ReferenceHandler = ReferenceHandler.IgnoreCycles
+                    };
+                    var jogadores = JsonSerializer.Deserialize<List<dynamic>>(jogadoresJson, options);
+                    
+                    // Se for competição por equipes, agrupar jogadores por clube
+                    if (competition.TipoCompeticao == "equipas")
+                    {
+                        var clubes = jogadores
+                            .Select(j => (string)j.GetProperty("Clube").GetString())
+                            .Where(c => !string.IsNullOrEmpty(c))
+                            .Distinct()
+                            .ToList();
+                            
+                        ViewBag.Clubes = clubes;
+                    }
+                    else
+                    {
+                        // Para competição individual, passar os jogadores diretamente
+                        ViewBag.Jogadores = jogadores.Select(j => new { nome = j.GetProperty("Nome").GetString() }).ToList();
+                    }
+                }
+                else
+                {
+                    // Se não tiver jogadores no TempData, buscar do banco de dados
+                    var jogadores = await _context.Jogadores
+                        .Where(j => j.CompeticaoId == competition.Id)
+                        .ToListAsync();
+                        
+                    if (competition.TipoCompeticao == "equipas")
+                    {
+                        var clubes = jogadores
+                            .Where(j => !string.IsNullOrEmpty(j.Clube))
+                            .Select(j => j.Clube)
+                            .Distinct()
+                            .ToList();
+                            
+                        ViewBag.Clubes = clubes;
+                    }
+                    else
+                    {
+                        ViewBag.Jogadores = jogadores.Select(j => new { nome = j.Nome }).ToList();
+                    }
+                }
+                
+                ViewBag.IsFaseEliminatoria = false;
+            }
 
             ViewBag.CompeticaoId = competition.Id;
             ViewBag.CompeticaoNome = competition.Nome;
-            ViewBag.Clubes = clubes;
+            ViewBag.TipoCompeticao = competition.TipoCompeticao;
             
             // Passar o ID da competição para o JavaScript
             ViewBag.CompeticaoIdJS = competition.Id;

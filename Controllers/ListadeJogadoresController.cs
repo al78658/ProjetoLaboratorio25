@@ -1,4 +1,4 @@
-﻿﻿﻿﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,6 +10,7 @@ using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ProjetoLaboratorio25.Controllers
 {
@@ -144,12 +145,38 @@ namespace ProjetoLaboratorio25.Controllers
         }
         
         [HttpPost]
-        public IActionResult Emparelhar(int competicaoId)
+        public async Task<IActionResult> Emparelhar(int competicaoId)
         {
             // Armazenar o ID da competição no TempData para persistência
             TempData["CompeticaoId"] = competicaoId;
             
-            // Redirect directly to the Emparelhamento page with the competition ID
+            // Buscar a competição
+            var competicao = await _context.Competicoes
+                .FirstOrDefaultAsync(c => c.Id == competicaoId);
+                
+            if (competicao == null)
+            {
+                return NotFound("Competição não encontrada");
+            }
+            
+            // Buscar jogadores associados a esta competição, evitando referências circulares
+            var jogadores = await _context.Jogadores
+                .Where(j => j.CompeticaoId == competicaoId)
+                .Select(j => new
+                {
+                    Nome = j.Nome,
+                    Clube = j.Clube
+                })
+                .ToListAsync();
+                
+            // Armazenar os jogadores no TempData
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.IgnoreCycles
+            };
+            TempData["JogadoresParaEmparelhar"] = JsonSerializer.Serialize(jogadores, options);
+            
+            // Redirect to the Emparelhamento page with the competition ID
             return RedirectToAction("Index", "Emparelhamento", new { competicaoId });
         }
     }
