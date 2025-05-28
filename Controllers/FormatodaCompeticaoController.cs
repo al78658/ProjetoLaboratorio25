@@ -3,8 +3,7 @@ using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-
-
+using System.Linq;
 
 namespace ProjetoLaboratorio25.Controllers
 {
@@ -17,26 +16,72 @@ namespace ProjetoLaboratorio25.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int? competicaoId = null, bool edicao = false)
         {
-            // Get the competition data from TempData
-            ViewBag.NomeCompeticao = TempData["NomeCompeticao"];
-            ViewBag.TipoCompeticao = TempData["TipoCompeticao"];
-            ViewBag.CompeticaoId = TempData["CompeticaoId"];
+            // Tenta obter o ID da competição do parâmetro, se não estiver disponível, tenta do TempData
+            int compId = 0;
+            if (competicaoId.HasValue && competicaoId.Value > 0)
+            {
+                compId = competicaoId.Value;
+                // Salva no TempData para uso futuro
+                TempData["CompeticaoId"] = compId;
+                TempData.Keep("CompeticaoId");
+            }
+            else if (TempData.ContainsKey("CompeticaoId") && TempData["CompeticaoId"] != null)
+            {
+                compId = Convert.ToInt32(TempData["CompeticaoId"]);
+                TempData.Keep("CompeticaoId");
+            }
 
-            var competicaoId = TempData["CompeticaoId"]?.ToString();
-            ViewBag.FormatosSelecionados = competicaoId != null ? (TempData[$"FormatosSelecionados_{competicaoId}"] as string ?? "{}") : "{}";
-            ViewBag.NumFases = TempData[$"NumFases_{competicaoId}"] ?? 2;
+            if (compId == 0)
+            {
+                // Se não encontrou o ID da competição, redireciona para a página de competições
+                return RedirectToAction("Index", "Competicoes");
+            }
 
-            // Preserve TempData for the next request
+            // Busca a competição no banco de dados com suas configurações
+            var competicao = _context.Competicoes
+                .Include(c => c.ConfiguracoesFase)
+                .FirstOrDefault(c => c.Id == compId);
+
+            if (competicao == null)
+            {
+                return NotFound();
+            }
+
+            // Atualiza o ViewBag com os dados da competição
+            ViewBag.NomeCompeticao = competicao.Nome;
+            ViewBag.TipoCompeticao = competicao.TipoCompeticao;
+            ViewBag.CompeticaoId = compId;
+
+            // Carrega as configurações de fase do banco de dados
+            var configuracoes = competicao.ConfiguracoesFase
+                .OrderBy(c => c.FaseNumero)
+                .ToList();
+
+            if (configuracoes.Any())
+            {
+                // Converte configurações para formato de dicionário
+                var formatosDict = configuracoes.ToDictionary(c => c.FaseNumero, c => c.Formato);
+                ViewBag.FormatosSelecionados = System.Text.Json.JsonSerializer.Serialize(formatosDict);
+                ViewBag.NumFases = configuracoes.Count;
+            }
+            else
+            {
+                // Se não houver configurações, usa valores padrão
+                ViewBag.FormatosSelecionados = "{}";
+                ViewBag.NumFases = 2;
+            }
+
+            // Passa o modo de edição para a view
+            ViewBag.Edicao = edicao;
+
+            // Preserva TempData para a próxima requisição
             TempData.Keep("NomeCompeticao");
             TempData.Keep("TipoCompeticao");
             TempData.Keep("CompeticaoId");
-            if (competicaoId != null)
-            {
-                TempData.Keep($"FormatosSelecionados_{competicaoId}");
-                TempData.Keep($"NumFases_{competicaoId}");
-            }
+            TempData.Keep($"FormatosSelecionados_{compId}");
+            TempData.Keep($"NumFases_{compId}");
 
             return View();
         }
@@ -108,7 +153,7 @@ namespace ProjetoLaboratorio25.Controllers
                 else
                 {
                     // Determinar o formato a ser usado
-                    string formato = "round-robin"; // Formato padrão
+                    string formato = ""; // Formato padrão
                     if (formatos.ContainsKey(i))
                     {
                         formato = formatos[i];
@@ -230,7 +275,7 @@ namespace ProjetoLaboratorio25.Controllers
                                 CompeticaoId = compId,
                                 FaseNumero = i,
                                 NumJogosPorFase = 1, // Valor padrão
-                                Formato = "round-robin", // Formato padrão
+                                Formato = "", // Formato padrão
                                 PontosVitoria = competicao.PontosVitoria,
                                 PontosEmpate = competicao.PontosEmpate,
                                 PontosDerrota = 0,
@@ -260,6 +305,12 @@ namespace ProjetoLaboratorio25.Controllers
                 _context.SaveChanges();
             }
             return Ok();
+        }
+        [HttpPost]
+        public IActionResult ConfirmarAlteracao()
+        {
+            // Aqui pode salvar alterações, se necessário
+            return RedirectToAction("Index", "Menu");
         }
     }
 }

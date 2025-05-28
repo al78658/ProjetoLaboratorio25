@@ -78,5 +78,50 @@ namespace ProjetoLaboratorio25.Controllers
             }
             return Ok();
         }
+
+        [HttpGet]
+        public IActionResult ObterIdCompeticao(string nome)
+        {
+            var competicao = _context.Competicoes
+                .FirstOrDefault(c => c.Nome == nome);
+            
+            if (competicao == null)
+            {
+                return Json(new { id = 0 });
+            }
+            
+            return Json(new { id = competicao.Id });
+        }
+
+        [HttpPost]
+        public IActionResult AtualizarTempData(int competicaoId)
+        {
+            var competicao = _context.Competicoes
+                .Include(c => c.ConfiguracoesFase)
+                .FirstOrDefault(c => c.Id == competicaoId);
+            
+            if (competicao == null)
+            {
+                return NotFound();
+            }
+            
+            // Atualiza o TempData com os dados da competição
+            TempData["CompeticaoId"] = competicao.Id;
+            TempData["NomeCompeticao"] = competicao.Nome;
+            TempData["TipoCompeticao"] = competicao.TipoCompeticao;
+            
+            // Se houver configurações de fase, atualiza também
+            if (competicao.ConfiguracoesFase.Any())
+            {
+                var formatosDict = competicao.ConfiguracoesFase
+                    .OrderBy(c => c.FaseNumero)
+                    .ToDictionary(c => c.FaseNumero, c => c.Formato);
+                
+                TempData[$"FormatosSelecionados_{competicaoId}"] = System.Text.Json.JsonSerializer.Serialize(formatosDict);
+                TempData[$"NumFases_{competicaoId}"] = competicao.ConfiguracoesFase.Count;
+            }
+            
+            return Ok();
+        }
     }
 }

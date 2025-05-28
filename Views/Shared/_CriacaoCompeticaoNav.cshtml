@@ -1,6 +1,8 @@
-@model string
+@model dynamic
 
 @{
+    string etapaAtual = Model.etapaAtual as string;
+    bool edicao = Model.edicao != null && (bool)Model.edicao;
     var etapas = new List<(string Nome, string Controller, string Action, string Icone)>
     {
         ("Definir Competição", "CriarCompeticao", "Index", "📝"),
@@ -8,8 +10,6 @@
         ("Lista de Jogadores", "ListadeJogadores", "Index", "👥"),
         ("Emparelhamento", "Emparelhamento", "Index", "🔄")
     };
-
-    var etapaAtual = Model;
 }
 
 <div class="criacao-nav">
@@ -18,9 +18,11 @@
         @foreach (var etapa in etapas)
         {
             var isActive = etapa.Nome == etapaAtual;
-            <a href="/@etapa.Controller" class="criacao-nav-step @(isActive ? "active" : "")" 
+            // Agora desabilita TODAS as etapas (inclusive "Formato da Competição") em modo edição
+            var isDisabled = edicao;
+            <a href="/@etapa.Controller" class="criacao-nav-step @(isActive ? "active" : "") @(isDisabled ? "disabled" : "")" 
                data-controller="@etapa.Controller" data-action="@etapa.Action"
-               onclick="return verificarNavegacao('@etapa.Controller')">
+               @(isDisabled ? "tabindex='-1' onclick='event.preventDefault(); this.classList.add(\"active\"); return false;' style='opacity:0.5;'" : "onclick=\"return verificarNavegacao('" + etapa.Controller + "')\"")>
                 <span class="criacao-nav-icon">@etapa.Icone</span>
                 <span class="criacao-nav-text">@etapa.Nome</span>
             </a>
@@ -70,6 +72,12 @@
     }
 
     .criacao-nav-step.active {
+}
+.criacao-nav-step.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
         background-color: #4CAF50;
         color: white;
         font-weight: bold;
@@ -120,16 +128,47 @@
     // Função para verificar navegação entre etapas
     function verificarNavegacao(controller) {
         const nomeCompeticao = localStorage.getItem('nomeCompeticao');
+        const modoEdicao = '@edicao' === 'True' || localStorage.getItem('modoEdicao') === 'true';
+        
+        // Se estamos em modo de edição, permitir navegação apenas para Formato da Competição
+        if (modoEdicao === true || modoEdicao === 'true') {
+            if (controller === 'FormatodaCompeticao') {
+                // Salvar o estado atual antes de navegar
+                return true;
+            } else {
+                // Para outras etapas, apenas destacar visualmente
+                event.preventDefault();
+                const links = document.querySelectorAll('.criacao-nav-step');
+                links.forEach(link => {
+                    link.classList.remove('active');
+                });
+                event.currentTarget.classList.add('active');
+                return false;
+            }
+        }
+        
         // Sempre permitir voltar para a primeira etapa
         if (controller === 'CriarCompeticao') {
             return true;
         }
+        
         // Para outras etapas, verificar se temos nome de competição
         if (!nomeCompeticao) {
             alert('Você precisa definir uma competição primeiro.');
             window.location.href = '/CriarCompeticao';
             return false;
         }
+        
+        // Verificar requisitos para cada etapa
+        if (controller === 'ListadeJogadores' || controller === 'Emparelhamento') {
+            const formatosSelecionados = localStorage.getItem('formatosSelecionados');
+            if (!formatosSelecionados) {
+                alert('Você precisa definir o formato da competição primeiro.');
+                window.location.href = '/FormatodaCompeticao';
+                return false;
+            }
+        }
+        
         // Bloquear acesso ao emparelhamento se não houver lista de jogadores/equipas
         if (controller === 'Emparelhamento') {
             const tipoCompeticao = localStorage.getItem('tipoCompeticao');

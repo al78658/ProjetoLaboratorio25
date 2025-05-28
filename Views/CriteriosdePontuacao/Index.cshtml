@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
     var configuracao = ViewBag.Configuracao as ProjetoLaboratorio25.Models.ConfiguracaoFase;
 }
@@ -210,12 +210,13 @@
     <div class="main-container">
         <h2>Configurar Fase @ViewBag.FaseNumero</h2>
 
+
         <form method="post">
+            <input type="hidden" name="edicao" value="@(ViewBag.Edicao != null && (bool)ViewBag.Edicao ? "true" : "false")" />
             <input type="hidden" name="faseNumero" value="@ViewBag.FaseNumero" />
             <input type="hidden" name="formato" value="@ViewBag.FormatoSelecionado" />
-
+            <input type="hidden" name="competicaoId" value="@ViewBag.CompeticaoId" />
             @{
-
             var formatos = new Dictionary<string, string>
             {
                 { "round-robin", "Round Robin (Todos contra todos)" },
@@ -285,7 +286,7 @@
             </div>
 
 
-            @if (formatoSelecionado == "campeonato" || formatoSelecionado == "round-robin")
+            @if (formatoSelecionado == "campeonato" || formatoSelecionado == "round-robin" || formatoSelecionado == "duplo-ko")
             {
                 <div class="form-row">
                     <div class="form-section"> 
@@ -314,7 +315,7 @@
                     </div>
                 </div>
             }
-            else if (formatoSelecionado != "eliminacao" && formatoSelecionado != "duplo-ko")
+            else if (formatoSelecionado != "eliminacao")
             {
                 <div class="form-row">
                     <div class="form-section">
@@ -348,8 +349,14 @@
     </div>
 
     <!-- Botão Voltar -->
-    <a href="/FormatodaCompeticao" class="back-button">&lt;Voltar</a>
-
+    @if (ViewBag.Edicao != null && (bool)ViewBag.Edicao)
+    {
+        <a href="/FormatodaCompeticao?edicao=true" class="back-button">&lt;Voltar</a>
+    }
+    else
+    {
+        <a href="/FormatodaCompeticao" class="back-button">&lt;Voltar</a>
+    }
     <script>
         const formatosConfig = {
             'round-robin': {
