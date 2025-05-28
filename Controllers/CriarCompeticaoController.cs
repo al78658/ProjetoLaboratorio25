@@ -103,7 +103,7 @@ namespace ProjetoLaboratorio25.Controllers
                         CompeticaoId = competicao.Id,
                         FaseNumero = i,
                         NumJogosPorFase = 1, // Valor padrão
-                        Formato = "round-robin", // Formato padrão
+                        Formato = "", // Formato padrão
                         PontosVitoria = competicao.PontosVitoria,
                         PontosEmpate = competicao.PontosEmpate,
                         PontosDerrota = 0,
