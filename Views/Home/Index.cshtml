@@ -574,15 +574,15 @@
                         return;
                     }
                     
-                    notificacoes.forEach(n => {
+                    notificacoes.reverse().forEach(n => {
                         const noticia = `
                             <li>
                                 <div style='font-size:13px; color:#888; margin-bottom:2px;'>${n.dataNotificacao}</div>
                                 <div><strong>${n.clube1} vs ${n.clube2}</strong></div>
-                                ${n.clubeVitorioso ? `<div>${n.clubeVitorioso} venceu o jogo.</div>` : ''}
+                                ${n.clubeVitorioso ? `<div>${n.clubeVitorioso} venceu o jogo (${n.pontuacao1}-${n.pontuacao2}).</div>` : ''}
                                 <span style='font-size:13px; color:#666;'>Motivo: ${n.motivo}</span>
                             </li>`;
-                        notificacoesDinamicas.insertAdjacentHTML('afterbegin', noticia);
+                        notificacoesDinamicas.insertAdjacentHTML('beforeend', noticia);
                     });
                 } catch (error) {
                     console.log('Erro ao carregar notificações:', error);
@@ -697,15 +697,15 @@
                         return;
                     }
                     
-                    notificacoes.forEach(n => {
+                    notificacoes.reverse().forEach(n => {
                         const noticia = `
                             <li>
                                 <div style='font-size:13px; color:#888; margin-bottom:2px;'>${n.dataNotificacao}</div>
                                 <div><strong>${n.clube1} vs ${n.clube2}</strong></div>
-                                ${n.clubeVitorioso ? `<div>${n.clubeVitorioso} venceu o jogo.</div>` : ''}
+                                ${n.clubeVitorioso ? `<div>${n.clubeVitorioso} venceu o jogo (${n.pontuacao1}-${n.pontuacao2}).</div>` : ''}
                                 <span style='font-size:13px; color:#666;'>Motivo: ${n.motivo}</span>
                             </li>`;
-                        notificacoesDinamicas.insertAdjacentHTML('afterbegin', noticia);
+                        notificacoesDinamicas.insertAdjacentHTML('beforeend', noticia);
                     });
                 } catch (error) {
                     console.log('Erro ao carregar notificações:', error);

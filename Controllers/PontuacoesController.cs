@@ -167,6 +167,16 @@ namespace ProjetoLaboratorio25.Controllers
                 emparelhamento.PontuacaoClube2 = model.PontuacaoClube2;
                 emparelhamento.JogoRealizado = true;
                 
+                // Garantir que as pontuações não sejam nulas
+                if (!emparelhamento.PontuacaoClube1.HasValue)
+                {
+                    emparelhamento.PontuacaoClube1 = 0;
+                }
+                if (!emparelhamento.PontuacaoClube2.HasValue)
+                {
+                    emparelhamento.PontuacaoClube2 = 0;
+                }
+                
                 // Atualizar motivo se fornecido
                 if (!string.IsNullOrWhiteSpace(model.Motivo))
                 {
@@ -180,14 +190,14 @@ namespace ProjetoLaboratorio25.Controllers
                 
                 // Determinar o clube vitorioso e o motivo
                 string? clubeVitorioso = null;
-                string motivo = "";
+                string motivo = model.Motivo ?? "";
 
-                // Determinar o vencedor apenas uma vez, priorizando o motivo manual
+                Console.WriteLine($"Verificando vitória - Pontuações: {model.PontuacaoClube1}-{model.PontuacaoClube2}, Motivo: {motivo}");
+
+                // Se houver um motivo fornecido, usar isso para determinar o vencedor
                 if (!string.IsNullOrWhiteSpace(model.Motivo))
                 {
-                    // Se há motivo fornecido, usar ele
-                    motivo = model.Motivo;
-                    // Determinar o vencedor com base nas pontuações atuais
+                    Console.WriteLine("Motivo fornecido, determinando vencedor com base nas pontuações");
                     if (model.PontuacaoClube1 > model.PontuacaoClube2)
                     {
                         clubeVitorioso = emparelhamento.Clube1;
@@ -196,49 +206,76 @@ namespace ProjetoLaboratorio25.Controllers
                     {
                         clubeVitorioso = emparelhamento.Clube2;
                     }
+                    else
+                    {
+                        // Se as pontuações são iguais, tentar determinar o vencedor pelo motivo
+                        if (motivo.Contains(emparelhamento.Clube1))
+                        {
+                            clubeVitorioso = emparelhamento.Clube1;
+                        }
+                        else if (motivo.Contains(emparelhamento.Clube2))
+                        {
+                            clubeVitorioso = emparelhamento.Clube2;
+                        }
+                    }
                 }
+                // Se não houver motivo, verificar vitória por pontuação
                 else if (model.PontuacaoClube1 >= 11 && model.PontuacaoClube1 > model.PontuacaoClube2)
                 {
-                    // Vitória normal por pontuação para Clube1
                     clubeVitorioso = emparelhamento.Clube1;
                     motivo = $"{emparelhamento.Clube1} venceu por {model.PontuacaoClube1}-{model.PontuacaoClube2}";
                 }
                 else if (model.PontuacaoClube2 >= 11 && model.PontuacaoClube2 > model.PontuacaoClube1)
                 {
-                    // Vitória normal por pontuação para Clube2
                     clubeVitorioso = emparelhamento.Clube2;
                     motivo = $"{emparelhamento.Clube2} venceu por {model.PontuacaoClube1}-{model.PontuacaoClube2}";
                 }
 
-                // Se houver um vencedor, criar UMA ÚNICA notificação
-                if (clubeVitorioso != null)
+                Console.WriteLine($"Resultado da verificação - Clube Vitorioso: {clubeVitorioso}, Motivo Final: {motivo}");
+
+                // Criar notificação se houver motivo ou vencedor
+                if (!string.IsNullOrWhiteSpace(motivo) || clubeVitorioso != null)
                 {
-                    // Verificar se já existe uma notificação para este emparelhamento
+                    Console.WriteLine("Criando nova notificação");
+                    
+                    // Verificar se já existe uma notificação para este jogo hoje
                     var notificacaoExistente = await _context.Notificacoes
-                        .Where(n => 
-                            n.Clube1 == emparelhamento.Clube1 && 
-                            n.Clube2 == emparelhamento.Clube2 &&
-                            n.Pontuacao1 == model.PontuacaoClube1 &&
-                            n.Pontuacao2 == model.PontuacaoClube2)
-                        .OrderByDescending(n => n.DataNotificacao)
+                        .Where(n => n.Clube1 == emparelhamento.Clube1 
+                               && n.Clube2 == emparelhamento.Clube2
+                               && n.DataNotificacao.Date == DateTime.Today
+                               && n.Pontuacao1 == model.PontuacaoClube1
+                               && n.Pontuacao2 == model.PontuacaoClube2)
                         .FirstOrDefaultAsync();
 
-                    // Só criar nova notificação se não existir uma com as mesmas pontuações
                     if (notificacaoExistente == null)
                     {
+                        // Criar a notificação com timestamp atual apenas se não existir
+                        var agora = DateTime.Now;
                         var notificacao = new Notificacao
                         {
                             Clube1 = emparelhamento.Clube1,
                             Clube2 = emparelhamento.Clube2,
                             ClubeVitorioso = clubeVitorioso,
                             Motivo = motivo,
-                            DataNotificacao = DateTime.Now,
+                            DataNotificacao = agora,
                             Pontuacao1 = model.PontuacaoClube1,
                             Pontuacao2 = model.PontuacaoClube2
                         };
 
-                        _context.Notificacoes.Add(notificacao);
+                        // Adicionar a nova notificação
+                        await _context.Notificacoes.AddAsync(notificacao);
+                        
+                        // Forçar o contexto a salvar imediatamente
                         await _context.SaveChangesAsync();
+                        
+                        // Limpar o tracking do contexto para evitar problemas de cache
+                        _context.ChangeTracker.Clear();
+                        
+                        Console.WriteLine($"Notificação criada com sucesso - ID: {notificacao.Id}, Data: {agora}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Notificação já existe para este jogo hoje - ID: {notificacaoExistente.Id}");
                     }
                 }
                 

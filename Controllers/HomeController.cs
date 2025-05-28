@@ -61,9 +61,10 @@ namespace ProjetoLaboratorio25.Controllers
         {
             try
             {
-                // Obter as 10 notificações mais recentes
+                // Obter as 10 notificações mais recentes, ordenadas por ID decrescente e data
                 var notificacoes = await _context.Notificacoes
                     .OrderByDescending(n => n.DataNotificacao)
+                    .ThenByDescending(n => n.Id)
                     .Take(10)
                     .Select(n => new
                     {
@@ -72,7 +73,9 @@ namespace ProjetoLaboratorio25.Controllers
                         n.Clube2,
                         n.ClubeVitorioso,
                         n.Motivo,
-                        DataNotificacao = n.DataNotificacao.ToString("dd/MM/yyyy HH:mm"),
+                        DataNotificacao = n.DataNotificacao.ToString("dd/MM/yyyy HH:mm:ss"),
+                        n.Pontuacao1,
+                        n.Pontuacao2
                     })
                     .ToListAsync();
                 
