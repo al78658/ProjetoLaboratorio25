@@ -295,19 +295,23 @@
             dados.forEach(grupo => {
                 // Adicionar cabeçalho da data
                 const headerRow = document.createElement('tr');
-                headerRow.innerHTML = `<td colspan="3" style="background-color: #e0e0e0; font-weight: bold;">${grupo.dataFormatada}</td>`;
+                const headerText = grupo.data === "0001-01-01" ? "Jogos por Agendar" : grupo.dataFormatada;
+                headerRow.innerHTML = `<td colspan="3" style="background-color: #e0e0e0; font-weight: bold;">${headerText}</td>`;
                 tabela.appendChild(headerRow);
                 
                 // Adicionar jogos da data
                 grupo.jogos.forEach(jogo => {
                     const row = document.createElement('tr');
+                    const dataValue = grupo.data === "0001-01-01" ? "" : grupo.data;
+                    const horaValue = jogo.horario === "00:00" ? "" : jogo.horario;
+                    
                     row.innerHTML = `
                         <td>${jogo.clube1} vs ${jogo.clube2}</td>
                         <td>
-                            <input type="date" class="edit-date" data-jogo-id="${jogo.id}" value="${grupo.data}" style="padding: 5px; width: 140px;">
+                            <input type="date" class="edit-date" data-jogo-id="${jogo.id}" value="${dataValue}" style="padding: 5px; width: 140px;">
                         </td>
                         <td>
-                            <input type="time" class="edit-time" data-jogo-id="${jogo.id}" value="${jogo.horario}" style="padding: 5px; width: 100px;">
+                            <input type="time" class="edit-time" data-jogo-id="${jogo.id}" value="${horaValue}" style="padding: 5px; width: 100px;">
                         </td>
                     `;
                     tabela.appendChild(row);

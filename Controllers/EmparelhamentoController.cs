@@ -474,8 +474,8 @@ namespace ProjetoLaboratorio25.Controllers
                                         CompeticaoId = competicaoId,
                                         Clube1 = clube1,
                                         Clube2 = clube2,
-                                        DataJogo = DateTime.Now.AddDays(1), // Data padrão, pode ser ajustada
-                                        HoraJogo = new TimeSpan(10, 0, 0), // Hora padrão, pode ser ajustada
+                                        DataJogo = new DateTime(1, 1, 1), // Data padrão não definida
+                                        HoraJogo = TimeSpan.Zero, // Hora padrão não definida
                                         JogoRealizado = false
                                     };
 
@@ -623,8 +623,8 @@ namespace ProjetoLaboratorio25.Controllers
                                     CompeticaoId = competicaoId,
                                     Clube1 = clube1,
                                     Clube2 = clube2,
-                                    DataJogo = DateTime.Now.AddDays(1), // Data padrão, pode ser ajustada
-                                    HoraJogo = new TimeSpan(10, 0, 0), // Hora padrão, pode ser ajustada
+                                    DataJogo = new DateTime(1, 1, 1), // Data padrão não definida
+                                    HoraJogo = TimeSpan.Zero, // Hora padrão não definida
                                     JogoRealizado = false
                                 };
 
