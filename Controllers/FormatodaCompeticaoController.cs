@@ -18,72 +18,105 @@ namespace ProjetoLaboratorio25.Controllers
 
         public IActionResult Index(int? competicaoId = null, bool edicao = false)
         {
-            // Tenta obter o ID da competição do parâmetro, se não estiver disponível, tenta do TempData
-            int compId = 0;
-            if (competicaoId.HasValue && competicaoId.Value > 0)
+            try
             {
-                compId = competicaoId.Value;
-                // Salva no TempData para uso futuro
-                TempData["CompeticaoId"] = compId;
-                TempData.Keep("CompeticaoId");
-            }
-            else if (TempData.ContainsKey("CompeticaoId") && TempData["CompeticaoId"] != null)
-            {
-                compId = Convert.ToInt32(TempData["CompeticaoId"]);
-                TempData.Keep("CompeticaoId");
-            }
+                // Tenta obter o ID da competição do parâmetro, se não estiver disponível, tenta do TempData
+                int compId = 0;
+                if (competicaoId.HasValue && competicaoId.Value > 0)
+                {
+                    compId = competicaoId.Value;
+                    // Salva no TempData para uso futuro
+                    TempData["CompeticaoId"] = compId;
+                    TempData.Keep("CompeticaoId");
+                }
+                else if (TempData.ContainsKey("CompeticaoId") && TempData["CompeticaoId"] != null)
+                {
+                    compId = Convert.ToInt32(TempData["CompeticaoId"]);
+                    TempData.Keep("CompeticaoId");
+                }
 
-            if (compId == 0)
+                if (compId == 0)
+                {
+                    // Se não encontrou o ID da competição, redireciona para a página de competições
+                    TempData["Erro"] = "ID da competição não encontrado. Por favor, selecione uma competição primeiro.";
+                    return RedirectToAction("Index", "Competicoes");
+                }
+
+                // Busca a competição no banco de dados com suas configurações
+                var competicao = _context.Competicoes
+                    .Include(c => c.ConfiguracoesFase)
+                    .FirstOrDefault(c => c.Id == compId);
+
+                if (competicao == null)
+                {
+                    TempData["Erro"] = "Competição não encontrada no banco de dados.";
+                    return RedirectToAction("Index", "Competicoes");
+                }
+
+                // Verifica se a competição tem configurações de fase
+                if (!competicao.ConfiguracoesFase.Any())
+                {
+                    // Se não tiver configurações, cria as configurações padrão
+                    var configuracaoPadrao = new ConfiguracaoFase
+                    {
+                        CompeticaoId = compId,
+                        FaseNumero = 1,
+                        NumJogosPorFase = 1,
+                        Formato = "",
+                        PontosVitoria = competicao.PontosVitoria,
+                        PontosEmpate = competicao.PontosEmpate,
+                        PontosDerrota = 0,
+                        PontosFaltaComparencia = 0,
+                        PontosDesclassificacao = 0,
+                        PontosExtra = 0,
+                        CriteriosDesempate = new List<string>() { "confronto" }
+                    };
+                    _context.ConfiguracoesFase.Add(configuracaoPadrao);
+                    _context.SaveChanges();
+                }
+
+                // Atualiza o ViewBag com os dados da competição
+                ViewBag.NomeCompeticao = competicao.Nome;
+                ViewBag.TipoCompeticao = competicao.TipoCompeticao;
+                ViewBag.CompeticaoId = compId;
+
+                // Carrega as configurações de fase do banco de dados
+                var configuracoes = competicao.ConfiguracoesFase
+                    .OrderBy(c => c.FaseNumero)
+                    .ToList();
+
+                if (configuracoes.Any())
+                {
+                    // Converte configurações para formato de dicionário
+                    var formatosDict = configuracoes.ToDictionary(c => c.FaseNumero, c => c.Formato);
+                    ViewBag.FormatosSelecionados = System.Text.Json.JsonSerializer.Serialize(formatosDict);
+                    ViewBag.NumFases = configuracoes.Count;
+                }
+                else
+                {
+                    // Se não houver configurações, usa valores padrão
+                    ViewBag.FormatosSelecionados = "{}";
+                    ViewBag.NumFases = 2;
+                }
+
+                // Passa o modo de edição para a view
+                ViewBag.Edicao = edicao;
+
+                // Preserva TempData para a próxima requisição
+                TempData.Keep("NomeCompeticao");
+                TempData.Keep("TipoCompeticao");
+                TempData.Keep("CompeticaoId");
+                TempData.Keep($"FormatosSelecionados_{compId}");
+                TempData.Keep($"NumFases_{compId}");
+
+                return View();
+            }
+            catch (Exception ex)
             {
-                // Se não encontrou o ID da competição, redireciona para a página de competições
+                // Log the error (you should implement proper logging)
+                TempData["Erro"] = "Ocorreu um erro ao carregar a competição. Por favor, tente novamente.";
                 return RedirectToAction("Index", "Competicoes");
             }
-
-            // Busca a competição no banco de dados com suas configurações
-            var competicao = _context.Competicoes
-                .Include(c => c.ConfiguracoesFase)
-                .FirstOrDefault(c => c.Id == compId);
-
-            if (competicao == null)
-            {
-                return NotFound();
-            }
-
-            // Atualiza o ViewBag com os dados da competição
-            ViewBag.NomeCompeticao = competicao.Nome;
-            ViewBag.TipoCompeticao = competicao.TipoCompeticao;
-            ViewBag.CompeticaoId = compId;
-
-            // Carrega as configurações de fase do banco de dados
-            var configuracoes = competicao.ConfiguracoesFase
-                .OrderBy(c => c.FaseNumero)
-                .ToList();
-
-            if (configuracoes.Any())
-            {
-                // Converte configurações para formato de dicionário
-                var formatosDict = configuracoes.ToDictionary(c => c.FaseNumero, c => c.Formato);
-                ViewBag.FormatosSelecionados = System.Text.Json.JsonSerializer.Serialize(formatosDict);
-                ViewBag.NumFases = configuracoes.Count;
-            }
-            else
-            {
-                // Se não houver configurações, usa valores padrão
-                ViewBag.FormatosSelecionados = "{}";
-                ViewBag.NumFases = 2;
-            }
-
-            // Passa o modo de edição para a view
-            ViewBag.Edicao = edicao;
-
-            // Preserva TempData para a próxima requisição
-            TempData.Keep("NomeCompeticao");
-            TempData.Keep("TipoCompeticao");
-            TempData.Keep("CompeticaoId");
-            TempData.Keep($"FormatosSelecionados_{compId}");
-            TempData.Keep($"NumFases_{compId}");
-
-            return View();
         }
 
         [HttpPost]
@@ -309,8 +342,16 @@ namespace ProjetoLaboratorio25.Controllers
         [HttpPost]
         public IActionResult ConfirmarAlteracao()
         {
-            // Aqui pode salvar alterações, se necessário
-            return RedirectToAction("Index", "Menu");
+            // Obter o ID da competição do TempData
+            if (TempData.ContainsKey("CompeticaoId") && TempData["CompeticaoId"] != null)
+            {
+                int competicaoId = Convert.ToInt32(TempData["CompeticaoId"]);
+                // Redirecionar para o Menu mantendo o ID da competição
+                return RedirectToAction("Index", "Menu", new { competicaoId = competicaoId });
+            }
+            
+            // Se não encontrar o ID, redireciona para a página de competições
+            return RedirectToAction("Index", "Competicoes");
         }
     }
 }
