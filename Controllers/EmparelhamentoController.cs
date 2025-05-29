@@ -399,13 +399,14 @@ namespace ProjetoLaboratorio25.Controllers
                 int competicaoId = competicao.Id;
                 string nomeCompeticao = competicao.Nome ?? "";
 
-                // Verificar se é um formato Round-Robin
+                // Verificar se é um formato Round-Robin ou Campeonato
                 var configuracaoFase = await _context.ConfiguracoesFase
                     .Where(cf => cf.CompeticaoId == competicaoId)
                     .OrderByDescending(cf => cf.FaseNumero)
                     .FirstOrDefaultAsync();
 
                 bool isRoundRobin = configuracaoFase?.Formato?.ToLower() == "round-robin";
+                bool isCampeonato = configuracaoFase?.Formato?.ToLower() == "campeonato";
 
                 if (isRoundRobin)
                 {
@@ -438,16 +439,12 @@ namespace ProjetoLaboratorio25.Controllers
                             }
 
                             // Criar matriz de jogos já realizados
-                            var jogosJaRealizados = new Dictionary<string, HashSet<string>>();
+                            var jogosJaRealizados = new HashSet<string>();
                             foreach (var jogo in request.Emparelhamentos)
                             {
-                                if (!jogosJaRealizados.ContainsKey(jogo.Clube1))
-                                    jogosJaRealizados[jogo.Clube1] = new HashSet<string>();
-                                if (!jogosJaRealizados.ContainsKey(jogo.Clube2))
-                                    jogosJaRealizados[jogo.Clube2] = new HashSet<string>();
-
-                                jogosJaRealizados[jogo.Clube1].Add(jogo.Clube2);
-                                jogosJaRealizados[jogo.Clube2].Add(jogo.Clube1);
+                                // Criar uma chave única para o par de equipas
+                                var chaveJogo = $"{jogo.Clube1}-{jogo.Clube2}";
+                                jogosJaRealizados.Add(chaveJogo);
                             }
 
                             // Gerar novos emparelhamentos
@@ -462,8 +459,8 @@ namespace ProjetoLaboratorio25.Controllers
                                     var clube2 = participantesList[j];
 
                                     // Verificar se este jogo já foi realizado
-                                    if (jogosJaRealizados.ContainsKey(clube1) && 
-                                        jogosJaRealizados[clube1].Contains(clube2))
+                                    var chaveJogo = $"{clube1}-{clube2}";
+                                    if (jogosJaRealizados.Contains(chaveJogo))
                                     {
                                         continue;
                                     }
@@ -545,103 +542,156 @@ namespace ProjetoLaboratorio25.Controllers
                             });
                         }
                     }
-                    else
+                }
+                else if (isCampeonato)
+                {
+                    // Se estamos na página inicial de emparelhamento, permitir o emparelhamento normal
+                    if (request.Emparelhamentos != null && request.Emparelhamentos.Any())
                     {
-                        // Verificar jogos já realizados e com resultados registrados apenas quando gerando novos emparelhamentos
-                        var jogosRealizados = await _context.EmparelhamentosFinal
-                            .Where(e => e.CompeticaoId == competicaoId && 
-                                      e.JogoRealizado && 
-                                      e.PontuacaoClube1.HasValue && 
-                                      e.PontuacaoClube2.HasValue)
-                            .ToListAsync();
+                        // Verificar se é uma solicitação para gerar novos emparelhamentos
+                        var todosJogosRealizados = request.Emparelhamentos.All(e => 
+                            e.JogoRealizado && 
+                            e.PontuacaoClube1.HasValue && 
+                            e.PontuacaoClube2.HasValue);
 
-                        // Obter todos os participantes únicos
-                        var participantes = new HashSet<string>();
-                        foreach (var jogo in jogosRealizados)
+                        if (todosJogosRealizados)
                         {
-                            participantes.Add(jogo.Clube1);
-                            participantes.Add(jogo.Clube2);
-                        }
-
-                        // Se não houver participantes ainda, buscar todos os jogos para obter os participantes
-                        if (!participantes.Any())
-                        {
-                            var todosJogos = await _context.EmparelhamentosFinal
-                                .Where(e => e.CompeticaoId == competicaoId)
-                                .ToListAsync();
-                                
-                            foreach (var jogo in todosJogos)
+                            // Obter todos os participantes únicos dos jogos existentes
+                            var participantes = new HashSet<string>();
+                            foreach (var jogo in request.Emparelhamentos)
                             {
                                 participantes.Add(jogo.Clube1);
                                 participantes.Add(jogo.Clube2);
                             }
-                        }
 
-                        // Verificar se já existem todos os emparelhamentos possíveis
-                        var totalParticipantes = participantes.Count;
-                        var totalJogosPossiveis = (totalParticipantes * (totalParticipantes - 1)) / 2;
+                            // Verificar se já existem todos os emparelhamentos possíveis
+                            var totalParticipantes = participantes.Count;
+                            var totalJogosPossiveis = totalParticipantes * (totalParticipantes - 1); // Cada time joga duas vezes com cada outro
 
-                        if (jogosRealizados.Count >= totalJogosPossiveis)
-                        {
-                            return BadRequest(new { mensagem = "Todos os jogos do Round-Robin já foram realizados e registrados." });
-                        }
-
-                        // Criar matriz de jogos já realizados
-                        var jogosJaRealizados = new Dictionary<string, HashSet<string>>();
-                        foreach (var jogo in jogosRealizados)
-                        {
-                            if (!jogosJaRealizados.ContainsKey(jogo.Clube1))
-                                jogosJaRealizados[jogo.Clube1] = new HashSet<string>();
-                            if (!jogosJaRealizados.ContainsKey(jogo.Clube2))
-                                jogosJaRealizados[jogo.Clube2] = new HashSet<string>();
-
-                            jogosJaRealizados[jogo.Clube1].Add(jogo.Clube2);
-                            jogosJaRealizados[jogo.Clube2].Add(jogo.Clube1);
-                        }
-
-                        // Gerar novos emparelhamentos
-                        var novosEmparelhamentos = new List<EmparelhamentoFinal>();
-                        var participantesList = participantes.ToList();
-
-                        for (int i = 0; i < participantesList.Count; i++)
-                        {
-                            for (int j = i + 1; j < participantesList.Count; j++)
+                            if (request.Emparelhamentos.Count >= totalJogosPossiveis)
                             {
-                                var clube1 = participantesList[i];
-                                var clube2 = participantesList[j];
-
-                                // Verificar se este jogo já foi realizado
-                                if (jogosJaRealizados.ContainsKey(clube1) && 
-                                    jogosJaRealizados[clube1].Contains(clube2))
-                                {
-                                    continue;
-                                }
-
-                                // Criar novo emparelhamento
-                                var novoEmparelhamento = new EmparelhamentoFinal
-                                {
-                                    CompeticaoId = competicaoId,
-                                    Clube1 = clube1,
-                                    Clube2 = clube2,
-                                    DataJogo = new DateTime(1, 1, 1), // Data padrão não definida
-                                    HoraJogo = TimeSpan.Zero, // Hora padrão não definida
-                                    JogoRealizado = false
-                                };
-
-                                novosEmparelhamentos.Add(novoEmparelhamento);
+                                return BadRequest(new { mensagem = "Todos os jogos do Campeonato já foram realizados e registrados." });
                             }
+
+                            // Criar matriz de jogos já realizados
+                            var jogosJaRealizados = new Dictionary<string, Dictionary<string, int>>();
+                            foreach (var jogo in request.Emparelhamentos)
+                            {
+                                if (!jogosJaRealizados.ContainsKey(jogo.Clube1))
+                                    jogosJaRealizados[jogo.Clube1] = new Dictionary<string, int>();
+                                if (!jogosJaRealizados.ContainsKey(jogo.Clube2))
+                                    jogosJaRealizados[jogo.Clube2] = new Dictionary<string, int>();
+
+                                // Incrementar o contador de jogos entre as equipes
+                                if (!jogosJaRealizados[jogo.Clube1].ContainsKey(jogo.Clube2))
+                                    jogosJaRealizados[jogo.Clube1][jogo.Clube2] = 0;
+                                if (!jogosJaRealizados[jogo.Clube2].ContainsKey(jogo.Clube1))
+                                    jogosJaRealizados[jogo.Clube2][jogo.Clube1] = 0;
+
+                                jogosJaRealizados[jogo.Clube1][jogo.Clube2]++;
+                                jogosJaRealizados[jogo.Clube2][jogo.Clube1]++;
+                            }
+
+                            // Gerar novos emparelhamentos
+                            var novosEmparelhamentos = new List<EmparelhamentoFinal>();
+                            var participantesList = participantes.ToList();
+
+                            // Primeiro, gerar jogos de ida para todos os pares que ainda não jogaram
+                            for (int i = 0; i < participantesList.Count; i++)
+                            {
+                                for (int j = 0; j < participantesList.Count; j++)
+                                {
+                                    if (i == j) continue; // Pular jogos da mesma equipa
+
+                                    var clube1 = participantesList[i];
+                                    var clube2 = participantesList[j];
+
+                                    // Verificar quantas vezes estes times já jogaram entre si
+                                    var jogosEntreTimes = jogosJaRealizados.ContainsKey(clube1) && 
+                                                        jogosJaRealizados[clube1].ContainsKey(clube2) 
+                                                        ? jogosJaRealizados[clube1][clube2] 
+                                                        : 0;
+
+                                    // Se ainda não jogaram duas vezes, criar novo emparelhamento
+                                    if (jogosEntreTimes < 2)
+                                    {
+                                        // Criar novo emparelhamento
+                                        var novoEmparelhamento = new EmparelhamentoFinal
+                                        {
+                                            CompeticaoId = competicaoId,
+                                            Clube1 = clube1,
+                                            Clube2 = clube2,
+                                            DataJogo = new DateTime(1, 1, 1), // Data padrão não definida
+                                            HoraJogo = TimeSpan.Zero, // Hora padrão não definida
+                                            JogoRealizado = false
+                                        };
+
+                                        novosEmparelhamentos.Add(novoEmparelhamento);
+                                    }
+                                }
+                            }
+
+                            // Adicionar novos emparelhamentos ao contexto
+                            _context.EmparelhamentosFinal.AddRange(novosEmparelhamentos);
+                            await _context.SaveChangesAsync();
+
+                            return Ok(new { 
+                                mensagem = "Novos emparelhamentos de Campeonato gerados com sucesso.",
+                                competicaoId = competicaoId,
+                                nomeCompeticao = nomeCompeticao,
+                                novosEmparelhamentos = novosEmparelhamentos.Count
+                            });
                         }
+                        else
+                        {
+                            // Lógica existente para salvar emparelhamentos iniciais
+                            var falhas = new List<EmparelhamentoViewModel>();
+                            var sucessos = new List<string>();
 
-                        // Adicionar novos emparelhamentos ao contexto
-                        _context.EmparelhamentosFinal.AddRange(novosEmparelhamentos);
-                        await _context.SaveChangesAsync();
+                            foreach (var e in request.Emparelhamentos)
+                            {
+                                try
+                                {
+                                    var novoEmparelhamento = new EmparelhamentoFinal
+                                    {
+                                        CompeticaoId = competicaoId,
+                                        Clube1 = e.Clube1 ?? "",
+                                        Clube2 = e.Clube2 ?? "",
+                                        DataJogo = DateTime.TryParse(e.DataJogo, out var data) ? data : DateTime.Now,
+                                        HoraJogo = TimeSpan.TryParse(e.HoraJogo, out var hora) ? hora : TimeSpan.Zero,
+                                        PontuacaoClube1 = e.PontuacaoClube1,
+                                        PontuacaoClube2 = e.PontuacaoClube2,
+                                        JogoRealizado = e.JogoRealizado
+                                    };
 
-                        return Ok(new { 
-                            mensagem = "Novos emparelhamentos Round-Robin gerados com sucesso.",
-                            competicaoId = competicaoId,
-                            nomeCompeticao = nomeCompeticao,
-                            novosEmparelhamentos = novosEmparelhamentos.Count
-                        });
+                                    _context.EmparelhamentosFinal.Add(novoEmparelhamento);
+                                    sucessos.Add($"Emparelhamento entre {e.Clube1} e {e.Clube2} salvo com sucesso.");
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Erro ao processar emparelhamento: {ex.Message}");
+                                    falhas.Add(e);
+                                }
+                            }
+
+                            await _context.SaveChangesAsync();
+
+                            if (falhas.Any())
+                            {
+                                return StatusCode(207, new { 
+                                    mensagem = "Alguns emparelhamentos foram salvos com sucesso, mas outros falharam.", 
+                                    sucessos = sucessos,
+                                    falhas = falhas 
+                                });
+                            }
+
+                            return Ok(new { 
+                                mensagem = "Emparelhamentos salvos com sucesso.", 
+                                competicaoId = competicaoId,
+                                nomeCompeticao = nomeCompeticao,
+                                sucessos = sucessos
+                            });
+                        }
                     }
                 }
                 else
@@ -707,6 +757,9 @@ namespace ProjetoLaboratorio25.Controllers
                 
                 return StatusCode(500, new { mensagem = $"Erro ao salvar emparelhamentos: {ex.Message}" });
             }
+
+            // Default return for any unhandled cases
+            return BadRequest(new { mensagem = "Operação inválida ou não suportada." });
         }
     }
 

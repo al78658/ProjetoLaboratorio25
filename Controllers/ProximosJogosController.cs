@@ -69,6 +69,7 @@ namespace ProjetoLaboratorio25.Controllers
 
                 bool isTaca = configuracaoFase?.Formato?.ToLower() == "taça";
                 bool isRoundRobin = configuracaoFase?.Formato?.ToLower() == "round-robin";
+                bool isCampeonato = configuracaoFase?.Formato?.ToLower() == "campeonato";
 
                 // Verificar se todos os jogos foram realizados
                 var todosJogosRealizados = await _context.EmparelhamentosFinal
@@ -107,6 +108,7 @@ namespace ProjetoLaboratorio25.Controllers
                     jogosPorData,
                     isTaca,
                     isRoundRobin,
+                    isCampeonato,
                     todosJogosRealizados
                 });
             }
