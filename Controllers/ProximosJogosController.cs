@@ -67,7 +67,7 @@ namespace ProjetoLaboratorio25.Controllers
                     .OrderByDescending(cf => cf.FaseNumero)
                     .FirstOrDefaultAsync();
 
-                bool isTaca = configuracaoFase?.Formato?.ToLower() == "taça";
+                bool isTaca = configuracaoFase?.Formato?.ToLower() == "eliminacao";
                 bool isRoundRobin = configuracaoFase?.Formato?.ToLower() == "round-robin";
                 bool isCampeonato = configuracaoFase?.Formato?.ToLower() == "campeonato";
 
