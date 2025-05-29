@@ -53,25 +53,24 @@ namespace ProjetoLaboratorio25.Controllers
         {
             try
             {
-                // Verificar se existem jogos para esta competição
-                var totalJogos = await _context.EmparelhamentosFinal
-                    .Where(e => e.CompeticaoId == competicaoId)
-                    .CountAsync();
-                
-                if (totalJogos == 0)
-                {
-                    // Se não houver jogos, retornar uma mensagem específica
-                    return Ok(new { mensagem = "Não existem jogos para esta competição", totalJogos = 0 });
-                }
-                
-                // Verificar se é uma competição do tipo taça e se todos os jogos têm vencedor
                 var competicao = await _context.Competicoes
-                    .Include(c => c.ConfiguracoesFase)
                     .FirstOrDefaultAsync(c => c.Id == competicaoId);
 
-                var isTaca = competicao?.ConfiguracoesFase
-                    .Any(cf => cf.Formato == "eliminacao") ?? false;
+                if (competicao == null)
+                {
+                    return NotFound(new { mensagem = "Competição não encontrada." });
+                }
 
+                // Verificar se é uma competição do tipo taça
+                var configuracaoFase = await _context.ConfiguracoesFase
+                    .Where(cf => cf.CompeticaoId == competicaoId)
+                    .OrderByDescending(cf => cf.FaseNumero)
+                    .FirstOrDefaultAsync();
+
+                bool isTaca = configuracaoFase?.Formato?.ToLower() == "taça";
+                bool isRoundRobin = configuracaoFase?.Formato?.ToLower() == "round-robin";
+
+                // Verificar se todos os jogos foram realizados
                 var todosJogosRealizados = await _context.EmparelhamentosFinal
                     .Where(e => e.CompeticaoId == competicaoId)
                     .AllAsync(e => e.JogoRealizado);
@@ -107,6 +106,7 @@ namespace ProjetoLaboratorio25.Controllers
                 return Ok(new {
                     jogosPorData,
                     isTaca,
+                    isRoundRobin,
                     todosJogosRealizados
                 });
             }

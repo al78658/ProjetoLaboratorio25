@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿@{
+﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -153,6 +153,9 @@
                     <button type="button" id="btnAdicionarEmparelhamentos" class="btn" style="display: none; margin-right: 10px;">
                         Adicionar Emparelhamentos
                     </button>
+                    <button type="button" id="btnGerarRoundRobin" class="btn" style="display: none; margin-right: 10px;">
+                        Gerar Próximos Jogos Round-Robin
+                    </button>
                 </div>
             }
 
@@ -190,6 +193,7 @@
         const competicaoNome = "@ViewBag.CompeticaoNome";
         const tabela = document.getElementById('tabelaJogos').getElementsByTagName('tbody')[0];
         const btnAdicionarEmparelhamentos = document.getElementById('btnAdicionarEmparelhamentos');
+        const btnGerarRoundRobin = document.getElementById('btnGerarRoundRobin');
         
         // Atualizar o título
         document.querySelector('h2').textContent = `Jogos Agendados - ${competicaoNome}`;
@@ -220,6 +224,54 @@
                                 window.location.href = `/Emparelhamento?competicaoId=${competicaoId}&fase=proxima`;
                             };
                         }
+
+                        // Verificar se é um formato Round-Robin
+                        if (data.isRoundRobin && btnGerarRoundRobin) {
+                            btnGerarRoundRobin.style.display = 'block';
+                            btnGerarRoundRobin.onclick = async () => {
+                                try {
+                                    // Primeiro, obter os jogos já realizados
+                                    const response = await fetch(`/Emparelhamento/ObterEmparelhamentos?competicaoId=${competicaoId}`);
+                                    const jogosExistentes = await response.json();
+                                    
+                                    // Preparar os dados para gerar novos emparelhamentos
+                                    const requestData = {
+                                        competicaoId: competicaoId,
+                                        nomeCompeticao: competicaoNome,
+                                        emparelhamentos: jogosExistentes.map(jogo => ({
+                                            clube1: jogo.clube1,
+                                            clube2: jogo.clube2,
+                                            dataJogo: jogo.dataJogo,
+                                            horaJogo: jogo.horaJogo,
+                                            pontuacaoClube1: jogo.pontuacaoClube1,
+                                            pontuacaoClube2: jogo.pontuacaoClube2,
+                                            jogoRealizado: jogo.jogoRealizado
+                                        }))
+                                    };
+
+                                    const saveResponse = await fetch('/Emparelhamento/SalvarEmparelhamentos', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify(requestData)
+                                    });
+
+                                    const result = await saveResponse.json();
+                                    
+                                    if (saveResponse.ok) {
+                                        alert(result.mensagem);
+                                        carregarJogos(); // Recarregar a lista de jogos
+                                    } else {
+                                        alert(result.mensagem || 'Erro ao gerar novos emparelhamentos');
+                                    }
+                                } catch (error) {
+                                    console.error('Erro:', error);
+                                    alert('Erro ao gerar novos emparelhamentos');
+                                }
+                            };
+                        }
+
                         renderJogos(data.jogosPorData);
                     }
                 })
