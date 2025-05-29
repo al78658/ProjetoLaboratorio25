@@ -61,36 +61,85 @@ namespace ProjetoLaboratorio25.Controllers
             // Verificar se é uma competição do tipo taça
             var isTaca = competition.ConfiguracoesFase.Any(cf => cf.Formato == "eliminacao");
             
+            // Buscar todos os jogos anteriores
+            var jogosAnteriores = await _context.EmparelhamentosFinal
+                .Where(e => e.CompeticaoId == competition.Id)
+                .OrderBy(e => e.DataJogo)
+                .ThenBy(e => e.HoraJogo)
+                .Select(e => new
+                {
+                    e.Clube1,
+                    e.Clube2,
+                    DataJogo = e.DataJogo.ToString("dd/MM/yyyy"),
+                    HoraJogo = e.HoraJogo.ToString(@"hh\:mm"),
+                    e.PontuacaoClube1,
+                    e.PontuacaoClube2,
+                    e.JogoRealizado,
+                    e.Motivo
+                })
+                .ToListAsync();
+            
+            ViewBag.JogosAnteriores = jogosAnteriores;
+            
             // Se for taça e estivermos na próxima fase, buscar apenas os vencedores
             if (isTaca && fase == "proxima")
             {
                 // Buscar todos os jogos realizados
                 var jogosRealizados = await _context.EmparelhamentosFinal
                     .Where(e => e.CompeticaoId == competition.Id && e.JogoRealizado)
+                    .OrderBy(e => e.DataJogo)
+                    .ThenBy(e => e.HoraJogo)
                     .ToListAsync();
 
-                // Obter os vencedores
-                var vencedores = jogosRealizados
-                    .Select(j => {
-                        if (j.PontuacaoClube1 > j.PontuacaoClube2)
-                            return j.Clube1;
-                        else if (j.PontuacaoClube2 > j.PontuacaoClube1)
-                            return j.Clube2;
-                        return null;
-                    })
-                    .Where(v => v != null)
+                // Contar vitórias para cada clube
+                var vitoriasDict = new Dictionary<string, int>();
+                foreach (var jogo in jogosRealizados)
+                {
+                    if (jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
+                    {
+                        if (!vitoriasDict.ContainsKey(jogo.Clube1))
+                            vitoriasDict[jogo.Clube1] = 0;
+                        vitoriasDict[jogo.Clube1]++;
+                    }
+                    else if (jogo.PontuacaoClube2 > jogo.PontuacaoClube1)
+                    {
+                        if (!vitoriasDict.ContainsKey(jogo.Clube2))
+                            vitoriasDict[jogo.Clube2] = 0;
+                        vitoriasDict[jogo.Clube2]++;
+                    }
+                }
+
+                // Encontrar o maior número de vitórias
+                var maxVitorias = vitoriasDict.Any() ? vitoriasDict.Max(x => x.Value) : 0;
+
+                // Pegar apenas os clubes com o maior número de vitórias
+                var clubesComMaisVitorias = vitoriasDict
+                    .Where(x => x.Value == maxVitorias)
+                    .Select(x => x.Key)
                     .ToList();
 
-                // Ordenar vencedores por número de vitórias
-                var vencedoresComVitorias = vencedores
-                    .GroupBy(v => v)
-                    .Select(g => new { Nome = g.Key, Vitorias = g.Count() })
-                    .OrderByDescending(v => v.Vitorias)
-                    .ToList();
+                // Se tivermos apenas um clube com o máximo de vitórias, ele é o vencedor absoluto
+                if (clubesComMaisVitorias.Count == 1)
+                {
+                    ViewBag.VencedorAbsoluto = clubesComMaisVitorias[0];
+                    ViewBag.Vencedores = new List<string>();
+                }
+                else
+                {
+                    // Se tivermos um número ímpar de clubes com o máximo de vitórias,
+                    // o primeiro clube recebe um "bye"
+                    if (clubesComMaisVitorias.Count % 2 != 0)
+                    {
+                        var clubeComBye = clubesComMaisVitorias[0];
+                        clubesComMaisVitorias.RemoveAt(0);
+                        clubesComMaisVitorias.Add($"{clubeComBye} (bye)");
+                    }
 
-                // Passar os vencedores para a view
-                ViewBag.Vencedores = vencedoresComVitorias.Select(v => v.Nome).ToList();
+                    ViewBag.Vencedores = clubesComMaisVitorias;
+                }
+
                 ViewBag.IsFaseEliminatoria = true;
+                ViewBag.NumeroVitorias = vitoriasDict;
             }
             else
             {
@@ -362,17 +411,8 @@ namespace ProjetoLaboratorio25.Controllers
                 int competicaoId = competicao.Id;
                 string nomeCompeticao = competicao.Nome ?? "";
 
-                // Remover emparelhamentos existentes para a competição (EmparelhamentoFinal)
-                var emparelhamentosExistentes = await _context.EmparelhamentosFinal
-                    .Where(e => e.CompeticaoId == competicaoId)
-                    .ToListAsync();
-                
-                if (emparelhamentosExistentes.Any())
-                {
-                    _context.EmparelhamentosFinal.RemoveRange(emparelhamentosExistentes);
-                    await _context.SaveChangesAsync();
-                }
-
+                // Não vamos mais remover os emparelhamentos existentes
+                // Em vez disso, vamos apenas adicionar os novos
                 var falhas = new List<EmparelhamentoViewModel>();
                 var sucessos = new List<string>();
 

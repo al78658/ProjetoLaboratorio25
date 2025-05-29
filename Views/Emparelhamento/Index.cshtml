@@ -148,7 +148,24 @@
     <h1>Emparelhamento</h1>
     <h2 id="nomeCompeticao"></h2>
 
+    <!-- Tabela de jogos anteriores - escondida -->
+    <div class="table-wrapper" style="display: none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Equipa 1</th>
+                    <th>Data e Horário</th>
+                    <th>Equipa 2</th>
+                    <th>Resultado</th>
+                </tr>
+            </thead>
+            <tbody id="previousGamesTableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Tabela de novos emparelhamentos -->
     <div class="table-wrapper">
+        <h3 style="color: white; margin-bottom: 15px;">Novos Emparelhamentos</h3>
         <table>
             <thead>
                 <tr>
@@ -173,17 +190,37 @@
             // Inicialização
             const titulo = document.getElementById('nomeCompeticao');
             const pairsTableBody = document.getElementById('pairsTableBody');
+            const previousGamesTableBody = document.getElementById('previousGamesTableBody');
             const saveButton = document.getElementById('saveButton');
             const nomeCompeticao = "@ViewBag.CompeticaoNome";
             const competicaoId = @ViewBag.CompeticaoId;
             const isFaseEliminatoria = @(ViewBag.IsFaseEliminatoria ? "true" : "false");
             const tipoCompeticao = "@ViewBag.TipoCompeticao";
+            const vencedorAbsoluto = "@ViewBag.VencedorAbsoluto";
+            
+            // Verificar se temos um vencedor absoluto
+            if (vencedorAbsoluto && vencedorAbsoluto !== "") {
+                // Mostrar mensagem de vencedor absoluto
+                const container = document.querySelector('.table-wrapper');
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h2 style="color: white; margin-bottom: 20px;">🏆 Vencedor do Torneio 🏆</h2>
+                        <div style="font-size: 24px; color: white; background-color: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px;">
+                            ${vencedorAbsoluto}
+                        </div>
+                    </div>
+                `;
+                // Esconder o botão de salvar
+                if (saveButton) saveButton.style.display = 'none';
+                return;
+            }
             
             // Verificar se os elementos foram encontrados
-            if (!titulo || !pairsTableBody || !saveButton) {
+            if (!titulo || !pairsTableBody || !previousGamesTableBody || !saveButton) {
                 console.error('Elementos não encontrados:', {
                     titulo: !!titulo,
                     pairsTableBody: !!pairsTableBody,
+                    previousGamesTableBody: !!previousGamesTableBody,
                     saveButton: !!saveButton
                 });
                 return;
@@ -191,6 +228,25 @@
             
             // Mostrar o nome da competição no título
             titulo.textContent = nomeCompeticao ? `Competição: ${nomeCompeticao}` : 'Emparelhamento';
+            
+            // Carregar jogos anteriores
+            const jogosAnteriores = @Html.Raw(Json.Serialize(ViewBag.JogosAnteriores ?? new object[] {}));
+            
+            // Limpar e preencher a tabela de jogos anteriores
+            previousGamesTableBody.innerHTML = '';
+            jogosAnteriores.forEach(jogo => {
+                const row = document.createElement('tr');
+                const resultado = jogo.jogoRealizado 
+                    ? `${jogo.pontuacaoClube1}-${jogo.pontuacaoClube2}`
+                    : 'Não realizado';
+                row.innerHTML = `
+                    <td>${jogo.clube1}</td>
+                    <td>${jogo.dataJogo} ${jogo.horaJogo}</td>
+                    <td>${jogo.clube2}</td>
+                    <td>${resultado}</td>
+                `;
+                previousGamesTableBody.appendChild(row);
+            });
             
             // Obtem jogadores/clubes do ViewBag
             let jogadores = [];
@@ -200,11 +256,9 @@
                 jogadores = @Html.Raw(Json.Serialize(ViewBag.Vencedores ?? new string[] {}));
             } else {
                 if (tipoCompeticao === 'equipas') {
-                    // Para competições de equipes, usar os clubes
                     jogadores = @Html.Raw(Json.Serialize(ViewBag.Clubes ?? new string[] {}))
                         .map(clube => ({ nome: clube }));
                 } else {
-                    // Para competições individuais, usar os jogadores
                     jogadores = @Html.Raw(Json.Serialize(ViewBag.Jogadores ?? new object[] {}));
                 }
             }
