@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@{
+﻿﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -318,12 +318,40 @@
 
                     // Guardar o ID da competição
                     const competicaoId = getQueryParam('competicaoId');
+                    
+                    // Salvar o ID no localStorage se existir
+                    if (competicaoId) {
+                        localStorage.setItem('competicaoId', competicaoId);
+                    }
+
+                    // Função para editar competição atual
+                    function editarCompeticaoAtual() {
+                        // Primeiro tenta obter do localStorage
+                        let id = localStorage.getItem('competicaoId');
+                        
+                        // Se não encontrar no localStorage, tenta da URL
+                        if (!id) {
+                            id = getQueryParam('competicaoId');
+                            if (id) {
+                                localStorage.setItem('competicaoId', id);
+                            }
+                        }
+                        
+                        if (!id) {
+                            alert('ID da competição não encontrado. Por favor, selecione uma competição primeiro.');
+                            return;
+                        }
+                        
+                        window.location.href = `/FormatodaCompeticao?edicao=true&competicaoId=${id}`;
+                    }
                 </script>
 
                 <button type="button" class="login-button" onclick="window.location.href = `/CriarRelatorio?competicaoId=${competicaoId}`;">
                     Criar Relatório
                 </button>
-                <button type="button" class="login-button" onclick="window.location.href='@Url.Action("Index", "FormatodaCompeticao", new { edicao = true })'">Editar Competição</button>
+                <button type="button" class="login-button" onclick="editarCompeticaoAtual()">
+                    Editar Competição
+                </button>
             }
             <button type="button" class="login-button" onclick="consultarRelatorios()">
                 Consultar Relatórios
