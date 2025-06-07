@@ -159,6 +159,9 @@
                     <button type="button" id="btnGerarCampeonato" class="btn" style="display: none; margin-right: 10px;">
                         Gerar Próximos Jogos de Campeonato
                     </button>
+                    <button type="button" id="btnGerarSistemaAve" class="btn" style="display: none; margin-right: 10px;">
+                        Gerar Próximo Jogo Sistema AVE
+                    </button>
                 </div>
             }
 
@@ -198,6 +201,7 @@
         const btnAdicionarEmparelhamentos = document.getElementById('btnAdicionarEmparelhamentos');
         const btnGerarRoundRobin = document.getElementById('btnGerarRoundRobin');
         const btnGerarCampeonato = document.getElementById('btnGerarCampeonato');
+        const btnGerarSistemaAve = document.getElementById('btnGerarSistemaAve');
         
         // Atualizar o título
         document.querySelector('h2').textContent = `Jogos Agendados - ${competicaoNome}`;
@@ -322,6 +326,27 @@
                                     }
                                 };
                             }
+                        }
+
+                        // Verificar se é um formato Sistema Ave
+                        if (data.isSistemaAve && btnGerarSistemaAve) {
+                            btnGerarSistemaAve.style.display = 'block';
+                            btnGerarSistemaAve.onclick = async () => {
+                                try {
+                                    const response = await fetch(`/ProximosJogos/GerarSistemaAve?competicaoId=${competicaoId}`);
+                                    const result = await response.json();
+                                    
+                                    if (result.success) {
+                                        alert('Emparelhamentos gerados com sucesso!');
+                                        carregarJogos(); // Recarregar a tabela
+                                    } else {
+                                        alert(result.mensagem || 'Erro ao gerar emparelhamentos');
+                                    }
+                                } catch (error) {
+                                    console.error('Erro:', error);
+                                    alert('Erro ao gerar emparelhamentos');
+                                }
+                            };
                         }
 
                         renderJogos(data.jogosPorData);
