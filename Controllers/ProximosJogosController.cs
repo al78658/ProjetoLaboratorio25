@@ -105,7 +105,8 @@ namespace ProjetoLaboratorio25.Controllers
                     .OrderBy(g => g.Data)
                     .ToList();
 
-                return Ok(new {
+                return Ok(new
+                {
                     jogosPorData,
                     isTaca,
                     isRoundRobin,
@@ -119,7 +120,7 @@ namespace ProjetoLaboratorio25.Controllers
                 return StatusCode(500, new { mensagem = $"Erro ao obter próximos jogos: {ex.Message}" });
             }
         }
-        
+
         [HttpGet]
         public async Task<IActionResult> VerificarJogos(int competicaoId)
         {
@@ -129,11 +130,12 @@ namespace ProjetoLaboratorio25.Controllers
                 var jogosCount = await _context.EmparelhamentosFinal
                     .Where(e => e.CompeticaoId == competicaoId)
                     .CountAsync();
-                
+
                 // Obter todas as competições
                 var competicoes = await _context.Competicoes.ToListAsync();
-                
-                return Ok(new { 
+
+                return Ok(new
+                {
                     jogosParaCompeticao = jogosCount,
                     totalCompetições = competicoes.Count,
                     competicoes = competicoes.Select(c => new { c.Id, c.Nome }).ToList()
@@ -144,7 +146,7 @@ namespace ProjetoLaboratorio25.Controllers
                 return StatusCode(500, new { mensagem = $"Erro ao verificar jogos: {ex.Message}" });
             }
         }
-        
+
         [HttpGet]
         public async Task<IActionResult> CriarJogosExemplo(int competicaoId)
         {
@@ -154,15 +156,15 @@ namespace ProjetoLaboratorio25.Controllers
                 var jogosExistentes = await _context.EmparelhamentosFinal
                     .Where(e => e.CompeticaoId == competicaoId)
                     .CountAsync();
-                
+
                 if (jogosExistentes > 0)
                 {
                     return Ok(new { mensagem = $"Já existem {jogosExistentes} jogos para esta competição." });
                 }
-                
+
                 // Criar jogos de exemplo
                 var jogosExemplo = new List<EmparelhamentoFinal>();
-                
+
                 // Criar 10 jogos de exemplo
                 for (int i = 1; i <= 10; i++)
                 {
@@ -175,13 +177,13 @@ namespace ProjetoLaboratorio25.Controllers
                         HoraJogo = new TimeSpan(14 + (i % 8), 0, 0), // Horários entre 14:00 e 21:00
                         JogoRealizado = false
                     };
-                    
+
                     jogosExemplo.Add(jogo);
                 }
-                
+
                 _context.EmparelhamentosFinal.AddRange(jogosExemplo);
                 await _context.SaveChangesAsync();
-                
+
                 return Ok(new { mensagem = $"Foram criados {jogosExemplo.Count} jogos de exemplo para a competição." });
             }
             catch (Exception ex)
@@ -189,7 +191,7 @@ namespace ProjetoLaboratorio25.Controllers
                 return StatusCode(500, new { mensagem = $"Erro ao criar jogos de exemplo: {ex.Message}" });
             }
         }
-        
+
         [HttpPost]
         public async Task<IActionResult> AtualizarDatasHoras([FromBody] List<JogoAtualizacao> alteracoes)
         {
@@ -199,7 +201,7 @@ namespace ProjetoLaboratorio25.Controllers
                 {
                     return BadRequest(new { mensagem = "Nenhuma alteração fornecida" });
                 }
-                
+
                 foreach (var alteracao in alteracoes)
                 {
                     var jogo = await _context.EmparelhamentosFinal.FindAsync(alteracao.Id);
@@ -210,7 +212,7 @@ namespace ProjetoLaboratorio25.Controllers
                         {
                             jogo.DataJogo = novaData;
                         }
-                        
+
                         // Converter string para TimeSpan
                         if (TimeSpan.TryParse(alteracao.Hora, out TimeSpan novaHora))
                         {
@@ -218,7 +220,7 @@ namespace ProjetoLaboratorio25.Controllers
                         }
                     }
                 }
-                
+
                 await _context.SaveChangesAsync();
                 return Ok(new { mensagem = "Datas e horas atualizadas com sucesso" });
             }
@@ -330,12 +332,12 @@ namespace ProjetoLaboratorio25.Controllers
                     for (int i = participantesOrdenados.Count - 1; i >= 0; i--)
                     {
                         var possivelOponente = participantesOrdenados[i];
-                        
+
                         // Verificar se:
                         // 1. Não é o mesmo participante
                         // 2. Ainda não foi usado
                         // 3. Ainda não jogou contra o participante1
-                        if (possivelOponente != participante1 && 
+                        if (possivelOponente != participante1 &&
                             !participantesUsados.Contains(possivelOponente) &&
                             !jogosEntreParticipantes[participante1].Contains(possivelOponente))
                         {
@@ -381,7 +383,7 @@ namespace ProjetoLaboratorio25.Controllers
             }
         }
     }
-    
+
     // Classe para receber os dados de atualização
     public class JogoAtualizacao
     {

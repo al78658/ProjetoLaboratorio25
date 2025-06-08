@@ -1,4 +1,4 @@
-﻿﻿@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -449,8 +449,75 @@
             });
         }
         
+        // Mostrar o botão apropriado baseado no formato da competição
+        fetch(`/Emparelhamento/VerificarEmparelhamentos?competicaoId=${competicaoId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.formato === 'round-robin') {
+                    btnGerarRoundRobin.style.display = 'inline-block';
+                } else if (data.formato === 'campeonato') {
+                    btnGerarCampeonato.style.display = 'inline-block';
+                }
+            });
 
-        
+        // Handler para o botão de gerar próximos jogos Round-Robin
+        if (btnGerarRoundRobin) {
+            btnGerarRoundRobin.addEventListener('click', async function() {
+                try {
+                    const response = await fetch('/Emparelhamento/GerarEmparelhamentosRoundRobin', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            competicaoId: competicaoId
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        alert(result.mensagem);
+                        carregarJogos(); // Recarregar a lista de jogos
+                    } else {
+                        alert(result.mensagem || 'Erro ao gerar novos emparelhamentos');
+                    }
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao gerar novos emparelhamentos');
+                }
+            });
+        }
+
+        // Handler para o botão de gerar próximos jogos Campeonato
+        if (btnGerarCampeonato) {
+            btnGerarCampeonato.addEventListener('click', async function() {
+                try {
+                    const response = await fetch('/Emparelhamento/GerarEmparelhamentosCampeonato', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            competicaoId: competicaoId
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        alert(result.mensagem);
+                        carregarJogos(); // Recarregar a lista de jogos
+                    } else {
+                        alert(result.mensagem || 'Erro ao gerar novos emparelhamentos');
+                    }
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao gerar novos emparelhamentos');
+                }
+            });
+        }
+
         // Inicializar
         carregarJogos();
     });
