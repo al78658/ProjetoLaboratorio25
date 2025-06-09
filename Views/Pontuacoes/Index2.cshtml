@@ -220,6 +220,28 @@
             border-color: #4CAF50;
             box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
         }
+
+        .homologar-btn {
+            padding: 8px 16px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease-in-out;
+            width: 100%;
+            min-width: 120px;
+        }
+
+        .homologar-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .homologar-btn[data-homologado="true"] {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #45a049;
+        }
         
         /* Loading spinner */
         .loading-spinner {
@@ -295,6 +317,7 @@
                     <th>Pontuação</th>
                     <th>Vitória</th>
                     <th>Motivo</th>
+                    <th>Homologação</th>
                 </tr>
             </thead>
             <tbody>
@@ -331,7 +354,7 @@
             if (!agendamentos || agendamentos.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="4" style="text-align: center; padding: 30px;">
+                    <td colspan="5" style="text-align: center; padding: 30px;">
                         <p style="font-size: 16px; color: #666;">Nenhum jogo agendado para esta competição.</p>
                         <p style="margin-top: 10px; font-size: 14px; color: #888;">Verifique se a competição está configurada corretamente.</p>
                     </td>`;
@@ -339,97 +362,78 @@
                 return;
             }
 
-            // Agrupar jogos por data
-            const jogosPorData = {};
-            agendamentos.forEach(jogo => {
-                // Usar a data formatada retornada pelo controller
-                const dataFormatada = jogo.DataFormatada || 'Data não definida';
-                if (!jogosPorData[dataFormatada]) {
-                    jogosPorData[dataFormatada] = [];
-                }
-                jogosPorData[dataFormatada].push(jogo);
-            });
+            // Renderizar cada jogo diretamente, sem agrupamento por data
+            agendamentos.forEach((jogo, idx) => {
+                const globalIdx = idx;
+                const resultado = resultados[globalIdx] || {};
 
-            // Ordenar as datas
-            const datasOrdenadas = Object.keys(jogosPorData).sort((a, b) => {
-                // Converter para formato ISO para comparação
-                const dataA = new Date(a.split('/').reverse().join('-'));
-                const dataB = new Date(b.split('/').reverse().join('-'));
-                return dataA - dataB;
-            });
+                // Nomes dos jogadores/clubes
+                const clube1 = jogo.clube1;
+                const clube2 = jogo.clube2;
 
-            // Renderizar jogos agrupados por data
-            datasOrdenadas.forEach(data => {
-                // Adicionar cabeçalho da data
-                const headerRow = document.createElement('tr');
-                headerRow.innerHTML = `<td colspan="4" style="background-color: #e0e0e0; font-weight: bold; text-align: center;">${data}</td>`;
-                tabela.appendChild(headerRow);
+                // Verificar o tipo de competição
+                const tipoCompeticao = localStorage.getItem('tipoCompeticao') || '';
+                const isIndividual = tipoCompeticao !== 'equipas';
 
-                // Renderizar jogos desta data
-                jogosPorData[data].forEach((jogo, idx) => {
-                    const globalIdx = agendamentos.findIndex(a => a.id === jogo.id);
-                    const resultado = resultados[globalIdx] || {};
+                // Criar a linha do jogo
+                const row = document.createElement('tr');
+                row.className = isIndividual ? 'jogo-individual' : 'jogo-equipe';
 
-                    // Nomes dos jogadores/clubes
-                    const clube1 = jogo.clube1;
-                    const clube2 = jogo.clube2;
+                // Coluna de partidas
+                const partidasCell = document.createElement('td');
+                partidasCell.innerHTML = `${clube1} vs ${clube2}`;
+                row.appendChild(partidasCell);
 
-                    // Verificar o tipo de competição
-                    const tipoCompeticao = localStorage.getItem('tipoCompeticao') || '';
-                    const isIndividual = tipoCompeticao !== 'equipas';
+                // Coluna de pontuação
+                const pontuacaoCell = document.createElement('td');
+                pontuacaoCell.innerHTML = `
+                    <div class="pontuacao-flex">
+                        <button class="score-arrow" onclick="incrementScore(${globalIdx}, 0)">▲</button>
+                        <input type="number" min="0" max="99" class="score-input" 
+                               value="${jogo.pontuacaoClube1 || 0}" 
+                               onchange="updateScore(${globalIdx})" 
+                               data-player="0" 
+                               style="width: 60px; text-align: center;">
+                        <span style="margin: 0 10px;">-</span>
+                        <input type="number" min="0" max="99" class="score-input" 
+                               value="${jogo.pontuacaoClube2 || 0}" 
+                               onchange="updateScore(${globalIdx})" 
+                               data-player="1" 
+                               style="width: 60px; text-align: center;">
+                        <button class="score-arrow" onclick="incrementScore(${globalIdx}, 1)">▲</button>
+                    </div>
+                `;
+                row.appendChild(pontuacaoCell);
 
-                    console.log(`Renderizando jogo ${globalIdx}: ${clube1} vs ${clube2}, pontuação: ${jogo.pontuacaoClube1}-${jogo.pontuacaoClube2}`);
+                // Coluna de vitória
+                const vitoriaCell = document.createElement('td');
+                vitoriaCell.innerHTML = `
+                    <div class="victory-buttons">
+                        <button class="victory-btn ${jogo.motivo && jogo.pontuacaoClube1 > jogo.pontuacaoClube2 ? 'active' : ''}" onclick="declararVencedor(${globalIdx}, '${clube1}')">${clube1}</button>
+                        <button class="victory-btn ${jogo.motivo && jogo.pontuacaoClube2 > jogo.pontuacaoClube1 ? 'active' : ''}" onclick="declararVencedor(${globalIdx}, '${clube2}')">${clube2}</button>
+                    </div>
+                `;
+                row.appendChild(vitoriaCell);
 
-                    // Criar a linha do jogo
-                    const row = document.createElement('tr');
-                    row.className = isIndividual ? 'jogo-individual' : 'jogo-equipe';
+                // Coluna de motivo
+                const motivoCell = document.createElement('td');
+                motivoCell.innerHTML = `
+                    <input type="text" class="motivo-input" data-idx="${globalIdx}" 
+                           value="${jogo.motivo || ''}" placeholder="Motivo da vitória">
+                `;
+                row.appendChild(motivoCell);
 
-                    // Coluna de partidas
-                    const partidasCell = document.createElement('td');
-                    partidasCell.innerHTML = `${clube1} vs ${clube2}`;
-                    row.appendChild(partidasCell);
+                // Coluna de homologação
+                const homologacaoCell = document.createElement('td');
+                homologacaoCell.innerHTML = `
+                    <button class="homologar-btn" onclick="homologarPartida(${globalIdx})" 
+                            data-idx="${globalIdx}">
+                        ${resultados[globalIdx]?.homologado ? '✓ Homologado' : 'Homologar'}
+                    </button>
+                `;
+                row.appendChild(homologacaoCell);
 
-                    // Coluna de pontuação
-                    const pontuacaoCell = document.createElement('td');
-                    pontuacaoCell.innerHTML = `
-                        <div class="pontuacao-flex">
-                            <button class="score-arrow" onclick="incrementScore(${globalIdx}, 0)">▲</button>
-                            <input type="number" min="0" max="99" class="score-input" 
-                                   value="${jogo.pontuacaoClube1 || 0}" 
-                                   onchange="updateScore(${globalIdx})" 
-                                   data-player="0" 
-                                   style="width: 60px; text-align: center;">
-                            <span style="margin: 0 10px;">-</span>
-                            <input type="number" min="0" max="99" class="score-input" 
-                                   value="${jogo.pontuacaoClube2 || 0}" 
-                                   onchange="updateScore(${globalIdx})" 
-                                   data-player="1" 
-                                   style="width: 60px; text-align: center;">
-                            <button class="score-arrow" onclick="incrementScore(${globalIdx}, 1)">▲</button>
-                        </div>
-                    `;
-                    row.appendChild(pontuacaoCell);
-
-                    // Coluna de vitória
-                    const vitoriaCell = document.createElement('td');
-                    vitoriaCell.innerHTML = `
-                        <div class="victory-buttons">
-                            <button class="victory-btn ${jogo.motivo && jogo.pontuacaoClube1 > jogo.pontuacaoClube2 ? 'active' : ''}" onclick="declararVencedor(${globalIdx}, '${clube1}')">${clube1}</button>
-                            <button class="victory-btn ${jogo.motivo && jogo.pontuacaoClube2 > jogo.pontuacaoClube1 ? 'active' : ''}" onclick="declararVencedor(${globalIdx}, '${clube2}')">${clube2}</button>
-                        </div>
-                    `;
-                    row.appendChild(vitoriaCell);
-
-                    // Coluna de motivo
-                    const motivoCell = document.createElement('td');
-                    motivoCell.innerHTML = `
-                        <input type="text" class="motivo-input" data-idx="${globalIdx}" 
-                               value="${jogo.motivo || ''}" placeholder="Motivo da vitória">
-                    `;
-                    row.appendChild(motivoCell);
-
-                    tabela.appendChild(row);
-                });
+                tabela.appendChild(row);
             });
         }
 
@@ -491,11 +495,26 @@
             }
         }
 
+        // Adicionar função para homologar partida
+        window.homologarPartida = function(idx) {
+            resultados[idx] = resultados[idx] || {};
+            resultados[idx].homologado = !resultados[idx].homologado;
+            
+            // Atualizar o texto do botão
+            const btn = document.querySelector(`.homologar-btn[data-idx="${idx}"]`);
+            if (btn) {
+                btn.textContent = resultados[idx].homologado ? '✓ Homologado' : 'Homologar';
+                btn.style.backgroundColor = resultados[idx].homologado ? '#4CAF50' : '';
+                btn.style.color = resultados[idx].homologado ? 'white' : '';
+            }
+        }
+
         const btnRegistar = document.getElementById('btnRegistar');
         btnRegistar.addEventListener('click', function () {
             console.log('Botão Registar clicado');
             
             let erro = false;
+            let temPartidaHomologada = false;
 
             // Verificar se há motivo apenas quando uma vitória foi atribuída manualmente
             const rows = document.querySelectorAll('#tabelaPontuacoes tbody tr');
@@ -508,16 +527,25 @@
                 const vitoriaBotoes = row.querySelectorAll('.victory-btn');
                 const vitoriaAtribuida = Array.from(vitoriaBotoes).some(btn => btn.classList.contains('active'));
                 const motivoInput = row.querySelector('.motivo-input');
+                const resultado = resultados[currentGameIndex] || {};
 
-                if (vitoriaAtribuida && (!motivoInput || !motivoInput.value.trim())) {
-                    const jogo = agendamentos[currentGameIndex];
-                    if (jogo) {
-                        alert(`Por favor, forneça um motivo para a vitória atribuída no jogo entre ${jogo.clube1} e ${jogo.clube2}.`);
-                        erro = true;
+                if (resultado.homologado) {
+                    temPartidaHomologada = true;
+                    if (vitoriaAtribuida && (!motivoInput || !motivoInput.value.trim())) {
+                        const jogo = agendamentos[currentGameIndex];
+                        if (jogo) {
+                            alert(`Por favor, forneça um motivo para a vitória atribuída no jogo entre ${jogo.clube1} e ${jogo.clube2}.`);
+                            erro = true;
+                        }
                     }
                 }
                 currentGameIndex++;
             });
+
+            if (!temPartidaHomologada) {
+                alert('Por favor, homologe pelo menos uma partida antes de registrar.');
+                return;
+            }
 
             if (erro) return;
 
@@ -540,6 +568,12 @@
                     const jogo = agendamentos[currentGameIndex];
                     if (!jogo) return;
 
+                    const resultado = resultados[currentGameIndex] || {};
+                    if (!resultado.homologado) {
+                        currentGameIndex++;
+                        return;
+                    }
+
                     const inputs = row.querySelectorAll('.score-input');
                     const motivoInput = row.querySelector('.motivo-input');
                     const vitoriaBotoes = row.querySelectorAll('.victory-btn');
@@ -549,38 +583,52 @@
                         const pontuacao1 = parseInt(inputs[0].value) || 0;
                         const pontuacao2 = parseInt(inputs[1].value) || 0;
                         
-                        const updateData = {
-                            emparelhamentoId: jogo.id,
-                            pontuacaoClube1: pontuacao1,
-                            pontuacaoClube2: pontuacao2,
-                            motivo: motivoInput ? motivoInput.value.trim() : ''
-                        };
+                        // Verificar se houve alteração na pontuação ou no motivo
+                        const pontuacaoAlterada = pontuacao1 !== jogo.pontuacaoClube1 || pontuacao2 !== jogo.pontuacaoClube2;
+                        const motivoAlterado = motivoInput && motivoInput.value.trim() !== (jogo.motivo || '');
                         
-                        console.log('Enviando dados para atualização:', updateData);
-                        
-                        const promise = fetch('/Pontuacoes/AtualizarPontuacao', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(updateData)
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Erro ao atualizar pontuação: ' + response.statusText);
-                            }
-                            return response.json();
-                        })
-                        .catch(error => {
-                            console.error('Erro ao atualizar pontuação:', error);
-                            throw error;
-                        });
-                        
-                        promises.push(promise);
+                        // Só enviar para atualização se houve alteração
+                        if (pontuacaoAlterada || motivoAlterado) {
+                            const updateData = {
+                                emparelhamentoId: jogo.id,
+                                pontuacaoClube1: pontuacao1,
+                                pontuacaoClube2: pontuacao2,
+                                motivo: motivoInput ? motivoInput.value.trim() : ''
+                            };
+                            
+                            console.log('Enviando dados para atualização:', updateData);
+                            
+                            const promise = fetch('/Pontuacoes/AtualizarPontuacao', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(updateData)
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Erro ao atualizar pontuação: ' + response.statusText);
+                                }
+                                return response.json();
+                            })
+                            .catch(error => {
+                                console.error('Erro ao atualizar pontuação:', error);
+                                throw error;
+                            });
+                            
+                            promises.push(promise);
+                        }
                     }
                     
                     currentGameIndex++;
                 });
+                
+                // Se não houver promessas (nenhuma alteração), mostrar mensagem e redirecionar
+                if (promises.length === 0) {
+                    alert('Nenhuma alteração foi feita nos resultados homologados.');
+                    window.location.href = '/Menu?competicaoId=' + competicaoId;
+                    return;
+                }
                 
                 // Aguardar todas as atualizações
                 Promise.all(promises)
@@ -704,7 +752,8 @@
                                    : jogo.pontuacaoClube2 > jogo.pontuacaoClube1 ? jogo.clube2 
                                    : '')
                                 : '',
-                            motivo: jogo.motivo || ''
+                            motivo: jogo.motivo || '',
+                            homologado: false
                         };
                     });
 

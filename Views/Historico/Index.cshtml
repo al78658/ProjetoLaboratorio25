@@ -1,4 +1,5 @@
-﻿@{
+﻿@model IEnumerable<dynamic>
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -48,9 +49,62 @@
 
         h2 {
             font-size: 42px;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             color: black;
             text-align: center;
+        }
+
+        h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+
+        .date-input {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            width: 150px;
+        }
+
+        .search-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .search-button:hover {
+            background-color: #e0e0e0;
         }
 
         .table-container {
@@ -94,6 +148,13 @@
             .back-button:hover {
                 background-color: #dcdcdc;
             }
+
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -109,6 +170,35 @@
         <div>
             <!-- Título -->
             <h2>Histórico</h2>
+            <h3>@ViewBag.CompeticaoNome</h3>
+
+            <!-- Campo de pesquisa -->
+            <div class="search-container">
+                <form method="get" action="/Historico">
+                    <input type="hidden" name="competicaoId" value="@ViewBag.CompeticaoId" />
+                    <div class="search-row">
+                        <input type="text" 
+                               name="searchTerm" 
+                               class="search-input" 
+                               placeholder="@(ViewBag.TipoCompeticao?.ToLower() == "equipas" ? "Buscar por equipa ou motivo..." : "Buscar por jogador ou motivo...")" 
+                               value="@ViewBag.SearchTerm" />
+                        <button type="submit" class="search-button">Pesquisar</button>
+                    </div>
+                    <div class="search-row">
+                        <input type="date" 
+                               name="dataInicio" 
+                               class="date-input" 
+                               placeholder="Data Início"
+                               value="@ViewBag.DataInicio" />
+                        <input type="date" 
+                               name="dataFim" 
+                               class="date-input" 
+                               placeholder="Data Fim"
+                               value="@ViewBag.DataFim" />
+                        <button type="submit" class="search-button">Filtrar por Data</button>
+                    </div>
+                </form>
+            </div>
 
             <!-- Tabela com scroll -->
             <div class="table-container">
@@ -122,36 +212,33 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Time A vs Time B</td>
-                            <td>01/01/2023 - 15:00</td>
-                            <td>2 - 1</td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td>Time C vs Time D</td>
-                            <td>02/01/2023 - 18:00</td>
-                            <td>1 - 1</td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td>Time E vs Time F</td>
-                            <td>03/01/2023 - 20:00</td>
-                            <td>3 - 0</td>
-                            <td>Falta de Comparência</td>
-                        </tr>
-                        <tr>
-                            <td>Time E vs Time F</td>
-                            <td>03/01/2023 - 20:00</td>
-                            <td>3 - 0</td>
-                            <td>Falta de Comparência</td>
-                        </tr>
-                        <tr>
-                            <td>Time E vs Time F</td>
-                            <td>03/01/2023 - 20:00</td>
-                            <td>3 - 0</td>
-                            <td>Falta de Comparência</td>
-                        </tr>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var partida in Model)
+                            {
+                                <tr>
+                                    <td>@partida.Partidas</td>
+                                    <td>@partida.DataHora</td>
+                                    <td>@partida.Resultado</td>
+                                    <td>@(partida.Motivo ?? "")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="no-data">
+                                    @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                                    {
+                                        <text>Nenhuma partida encontrada para a pesquisa.</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Nenhuma partida registada</text>
+                                    }
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
@@ -159,7 +246,7 @@
     </div>
 
     <!-- Botão Voltar -->
-    <a href="/Menu" class="back-button">&lt;Voltar</a>
+    <a href="/Menu?competicaoId=@ViewBag.CompeticaoId" class="back-button">&lt;Voltar</a>
 
 </body>
 </html>
