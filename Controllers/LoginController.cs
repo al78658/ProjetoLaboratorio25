@@ -45,7 +45,8 @@ namespace ProjetoLaboratorio25.Controllers
             // Criar claims
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.UtilizadorNome),
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim("FullName", user.UtilizadorNome),
                 new Claim(ClaimTypes.Email, user.Email)
             };
 

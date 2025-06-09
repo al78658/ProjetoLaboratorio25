@@ -6,25 +6,55 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace ProjetoLaboratorio25.Controllers
 {
     public class MenuController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<MenuController> _logger;
 
-        public MenuController(ApplicationDbContext context)
+        public MenuController(ApplicationDbContext context, ILogger<MenuController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index(int? competicaoId = null)
         {
+            // Log detalhado do estado de autenticação
+            _logger.LogInformation("=== Verificação de Autenticação ===");
+            _logger.LogInformation($"User.Identity.IsAuthenticated: {User.Identity?.IsAuthenticated}");
+            _logger.LogInformation($"User.Identity.Name: {User.Identity?.Name}");
+            _logger.LogInformation($"User.Identity.AuthenticationType: {User.Identity?.AuthenticationType}");
+
+            // Log de todas as claims do usuário
+            _logger.LogInformation("=== Claims do Usuário ===");
+            foreach (var claim in User.Claims)
+            {
+                _logger.LogInformation($"Claim Type: {claim.Type}, Value: {claim.Value}");
+            }
+
+            // Verificar se o usuário está logado e é admin
+            var userEmail = User.Identity?.Name;
+            _logger.LogInformation($"Email do usuário extraído: {userEmail}");
+            
+            // Verificação exata do email do admin
+            var isAdmin = userEmail == "admin@admin.com";
+            _logger.LogInformation($"É admin? {isAdmin} (comparação exata com 'admin@admin.com')");
+
+            ViewBag.IsAdmin = isAdmin;
+            ViewBag.Debug = new
+            {
+                IsAuthenticated = User.Identity?.IsAuthenticated,
+                UserEmail = userEmail,
+                IsAdmin = isAdmin
+            };
+
             // Se não for fornecido um ID de competição, não buscar automaticamente a mais recente
-            // Isso permitirá que o JavaScript lide com a seleção da competição
             if (!competicaoId.HasValue)
             {
-                // Não definimos um ID padrão aqui, deixamos o JavaScript lidar com isso
                 return View();
             }
 

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using ProjetoLaboratorio25.Models;
 using System.Collections.Generic;
@@ -39,8 +40,8 @@ namespace ProjetoLaboratorio25.Controllers
         
         public async Task<IActionResult> Logout()
         {
-            // Limpar todos os cookies de autenticação
-            await HttpContext.SignOutAsync("CookieAuth");
+            // Limpar todos os cookies de autenticação usando o esquema correto
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             // Limpar a sessão
             HttpContext.Session.Clear();

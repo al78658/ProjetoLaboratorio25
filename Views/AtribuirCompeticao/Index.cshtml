@@ -1,0 +1,165 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atribuir Competição a Organizador</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #808080;
+            position: relative;
+            padding: 20px;
+        }
+
+        .top-left-logo {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+        }
+
+            .top-left-logo img {
+                width: 160px;
+            }
+
+        .container {
+            max-width: 800px;
+            margin: 120px auto 40px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 22px;
+            margin: 25px 0 15px;
+            color: #444;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+        }
+
+        .card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+            .card h3 {
+                font-size: 18px;
+                margin-bottom: 15px;
+                color: #555;
+            }
+
+        label {
+            font-size: 16px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background-color: #4a6da7;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            .btn-primary:hover {
+                background-color: #3a5a8f;
+            }
+
+        .back-button {
+            position: absolute;
+            right: 30px;
+            bottom: 30px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: 2px solid #000;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+
+            .back-button:hover {
+                background-color: #dcdcdc;
+            }
+
+        .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Logotipo -->
+    <div class="top-left-logo">
+        <a href="/menu">
+            <img src="/img/logotipo.png" alt="Logotipo" />
+        </a>
+    </div>
+
+    <div class="container">
+        <h1>Atribuir Competição</h1>
+        <div class="card">
+            <h3>Definir Responsável</h3>
+            @if (TempData["Erro"] != null)
+            {
+                <div class="error-message">
+                    @TempData["Erro"]
+                </div>
+            }
+            <form method="post" action="/AtribuirCompeticao/Guardar">
+                <label for="organizadorSelect">A quem pretende atribuir a competição?</label>
+                <select id="organizadorSelect" name="organizadorId" required>
+                    <option value="">-- Selecione um organizador --</option>
+                    @foreach (var organizador in ViewBag.Organizadores)
+                    {
+                        <option value="@organizador.Id">@organizador.Email</option>
+                    }
+                </select>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Botão Voltar -->
+    <a href="/menu" class="back-button">&lt;Voltar</a>
+</body>
+</html>
