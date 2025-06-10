@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProjetoLaboratorio25.Models
 {
@@ -31,6 +32,11 @@ namespace ProjetoLaboratorio25.Models
         [Required(ErrorMessage = "Os pontos por empate são obrigatórios")]
         [Range(0, int.MaxValue, ErrorMessage = "Os pontos por empate não podem ser negativos")]
         public int PontosEmpate { get; set; }
+
+        public int? OrganizadorId { get; set; }
+
+        [ForeignKey("OrganizadorId")]
+        public virtual Utilizador? Organizador { get; set; }
 
         // Navigation properties
         public virtual ICollection<Jogador> Jogadores { get; set; } = new List<Jogador>();

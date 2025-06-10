@@ -1,4 +1,4 @@
-﻿﻿@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -416,7 +416,7 @@
                     {
                         @if (ViewBag.IsAdmin == true)
                         {
-                            <button type="button" class="login-button" onclick="window.location.href='/AtribuirCompeticao'">
+                            <button type="button" class="login-button" onclick="window.location.href='/AtribuirCompeticao?competicaoId=' + competicaoId">
                                 Atribuir Competicao
                             </button>
                         }

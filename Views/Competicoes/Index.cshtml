@@ -1,4 +1,4 @@
-﻿@model List<ProjetoLaboratorio25.Models.Competicao>
+﻿@model ProjetoLaboratorio25.Controllers.CompeticoesViewModel
 @{
     Layout = null;
 }
@@ -90,6 +90,8 @@
             box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.25);
             cursor: pointer;
             transition: transform 0.2s ease;
+            text-decoration: none;
+            color: inherit;
         }
 
             .competition:hover {
@@ -139,15 +141,58 @@
             cursor: pointer;
             box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
             margin-top: 30px;
+            color: black;
         }
 
             .action-button:hover {
                 background-color: #dcdcdc;
             }
+
+        .no-competitions {
+            text-align: center;
+            padding: 40px;
+            font-size: 20px;
+            color: #666;
+            grid-column: span 4;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 8px;
+            border: 2px solid black;
+            font-size: 14px;
+        }
+
+        .error-message {
+            color: red;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .competition-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .competition-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .competition-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .competition-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
     </style>
 </head>
 <body>
-
     <!-- Logotipo -->
     <div class="top-left-logo">
         <a href="/home">
@@ -155,9 +200,32 @@
         </a>
     </div>
 
+    <!-- Informação do usuário -->
+    @if (!string.IsNullOrEmpty(Model.UserEmail))
+    {
+        <div class="user-info">
+            <p>Logado como: @Model.UserEmail</p>
+            @if (Model.IsAdmin)
+            {
+                <p>(Administrador)</p>
+            }
+            else if (Model.UserId.HasValue)
+            {
+                <p>(Organizador)</p>
+            }
+        </div>
+    }
+
     <!-- Conteúdo central vertical -->
     <div class="content-wrapper">
         <h2>Competições a decorrer</h2>
+
+        @if (TempData["Erro"] != null)
+        {
+            <div class="error-message">
+                @TempData["Erro"]
+            </div>
+        }
         
         <!-- Barra de pesquisa -->
         <div style="margin-bottom: 20px; display: flex; justify-content: center; width: 80%;">
@@ -172,10 +240,40 @@
         </div>
 
         <!-- Lista de Competições -->
-        <div class="competition-container" id="competicaoList"></div>
+        <div class="competition-container" id="competicaoList">
+            @if (Model.Competicoes != null && Model.Competicoes.Any())
+            {
+                @foreach (var competicao in Model.Competicoes)
+                {
+                    <a href="@Url.Action("Index", "Menu", new { competicaoId = competicao.Id })" class="competition">
+                        <div class="thumb">
+                            <!-- Ícone ou imagem da competição -->
+                        </div>
+                        <p>@competicao.Nome</p>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="no-competitions">
+                    @if (!string.IsNullOrEmpty(Model.UserEmail) && !Model.IsAdmin && Model.UserId.HasValue)
+                    {
+                        <p>Você não tem nenhuma competição atribuída.</p>
+                    }
+                    else if (!string.IsNullOrEmpty(Model.UserEmail) && !Model.IsAdmin && !Model.UserId.HasValue)
+                    {
+                        <p>Você não tem permissão para ver competições.</p>
+                    }
+                    else
+                    {
+                        <p>Não há competições disponíveis no momento.</p>
+                    }
+                </div>
+            }
+        </div>
 
-        <!-- Botão visível apenas se estiver autenticado -->
-        @if (User.Identity.IsAuthenticated)
+        <!-- Botão visível apenas se estiver autenticado e for admin ou organizador -->
+        @if (!string.IsNullOrEmpty(Model.UserEmail) && (Model.IsAdmin || Model.UserId.HasValue))
         {
             <div style="margin-top: 50px;">
                 <a href="/CriarCompeticao" class="action-button">Criar Nova Competição</a>
@@ -188,116 +286,26 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const container = document.getElementById('competicaoList');
             const searchInput = document.getElementById('searchInput');
             const searchButton = document.getElementById('searchButton');
-            
-            // Carregar competições do localStorage
-            let competicoesLocal = [];
-            try {
-                competicoesLocal = JSON.parse(localStorage.getItem('todasCompeticoes')) || [];
-            } catch (e) { competicoesLocal = []; }
+            const competicaoList = document.getElementById('competicaoList');
+            const competitions = competicaoList.getElementsByClassName('competition');
 
-            // Carregar competições do servidor (Model)
-            let competicoesServidor = [];
-        @if (Model != null && Model.Any())
-        {
-            foreach (var competicao in Model)
-            {
-                <text>
-                            competicoesServidor.push({ 
-                                id: @competicao.Id, 
-                                nome: '@competicao.Nome' 
-                            });
-                </text>
-            }
-        }
+            function filterCompetitions() {
+                const searchTerm = searchInput.value.toLowerCase();
 
-            // Unir e remover duplicados por nome
-            let todas = [...competicoesServidor];
-            competicoesLocal.forEach(loc => {
-                if (!todas.some(c => c.nome === loc.nome)) {
-                    todas.push(loc);
-                }
-            });
-            
-            // Função para renderizar as competições
-            function renderizarCompeticoes(listaCompeticoes) {
-                container.innerHTML = '';
-                
-                if (listaCompeticoes.length > 0) {
-                    listaCompeticoes.forEach(competicao => {
-                        let div = document.createElement('div');
-                        div.className = 'competition';
-                        div.onclick = function () {
-                            localStorage.setItem('competicaoSelecionada', competicao.nome);
-                            localStorage.setItem('competicaoSelecionadaId', competicao.id);
-                            window.location.href = '/Menu?competicaoId=' + competicao.id;
-                        };
-                        div.innerHTML = `
-                            <div class="thumb"></div>
-                            <p>${competicao.nome}</p>
-                        `;
-                        container.appendChild(div);
-                    });
-                } else {
-                    container.innerHTML = '<p style="grid-column: span 4; padding: 20px; font-size: 18px;">Nenhuma competição encontrada. Crie uma nova competição.</p>';
-                }
+                Array.from(competitions).forEach(competition => {
+                    const name = competition.querySelector('p').textContent.toLowerCase();
+                    if (name.includes(searchTerm)) {
+                        competition.style.display = '';
+                    } else {
+                        competition.style.display = 'none';
+                    }
+                });
             }
-            
-            // Função para pesquisar competições
-            function pesquisarCompeticoes() {
-                const termoPesquisa = searchInput.value.trim().toLowerCase();
-                
-                if (termoPesquisa === '') {
-                    // Se o campo de pesquisa estiver vazio, mostrar todas as competições
-                    renderizarCompeticoes(todas);
-                } else {
-                    // Filtrar competições pelo nome
-                    const competicoesFiltradas = todas.filter(comp => 
-                        comp.nome.toLowerCase().includes(termoPesquisa)
-                    );
-                    renderizarCompeticoes(competicoesFiltradas);
-                }
-            }
-            
-            // Adicionar evento de clique ao botão de pesquisa
-            searchButton.addEventListener('click', pesquisarCompeticoes);
-            
-            // Adicionar evento de tecla Enter ao campo de pesquisa
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    pesquisarCompeticoes();
-                }
-            });
-            
-            // Renderizar todas as competições inicialmente
-            renderizarCompeticoes(todas);
-            
-            // Adicionar botão para limpar todos os dados do localStorage
-            const limparDadosButton = document.createElement('button');
-            limparDadosButton.textContent = 'Limpar Todos os Dados';
-            limparDadosButton.style.position = 'absolute';
-            limparDadosButton.style.left = '30px';
-            limparDadosButton.style.bottom = '30px';
-            limparDadosButton.style.padding = '10px 20px';
-            limparDadosButton.style.fontSize = '16px';
-            limparDadosButton.style.border = '2px solid #c00';
-            limparDadosButton.style.background = 'white';
-            limparDadosButton.style.borderRadius = '8px';
-            limparDadosButton.style.cursor = 'pointer';
-            limparDadosButton.style.color = '#c00';
-            
-            limparDadosButton.addEventListener('click', function() {
-                if (confirm('Tem certeza que deseja limpar TODOS os dados de competições, jogadores e agendamentos? Esta ação não pode ser desfeita.')) {
-                    // Limpar todo o localStorage
-                    localStorage.clear();
-                    alert('Todos os dados foram limpos com sucesso. A página será recarregada.');
-                    window.location.reload();
-                }
-            });
-            
-            document.body.appendChild(limparDadosButton);
+
+            searchInput.addEventListener('input', filterCompetitions);
+            searchButton.addEventListener('click', filterCompetitions);
         });
     </script>
 </body>

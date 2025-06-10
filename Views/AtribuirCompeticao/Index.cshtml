@@ -125,6 +125,23 @@
             padding: 10px;
             margin-bottom: 20px;
         }
+
+        .competition-name {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .success-message {
+            color: #28a745;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -137,6 +154,12 @@
 
     <div class="container">
         <h1>Atribuir Competição</h1>
+        @if (!string.IsNullOrEmpty(ViewBag.NomeCompeticao))
+        {
+            <div class="competition-name">
+                Competição: @ViewBag.NomeCompeticao
+            </div>
+        }
         <div class="card">
             <h3>Definir Responsável</h3>
             @if (TempData["Erro"] != null)
@@ -145,7 +168,9 @@
                     @TempData["Erro"]
                 </div>
             }
-            <form method="post" action="/AtribuirCompeticao/Guardar">
+            <div id="successMessage" class="success-message"></div>
+            <form id="atribuirForm" method="post" action="/AtribuirCompeticao/Guardar" onsubmit="return confirmarAtribuicao()">
+                <input type="hidden" name="competicaoId" value="@ViewBag.CompeticaoId" />
                 <label for="organizadorSelect">A quem pretende atribuir a competição?</label>
                 <select id="organizadorSelect" name="organizadorId" required>
                     <option value="">-- Selecione um organizador --</option>
@@ -161,5 +186,28 @@
 
     <!-- Botão Voltar -->
     <a href="/menu" class="back-button">&lt;Voltar</a>
+
+    <script>
+        function confirmarAtribuicao() {
+            var select = document.getElementById('organizadorSelect');
+            var organizadorEmail = select.options[select.selectedIndex].text;
+            var competicaoNome = '@ViewBag.NomeCompeticao';
+            
+            if (select.value === "") {
+                alert("Por favor, selecione um organizador.");
+                return false;
+            }
+
+            var confirmacao = confirm(`Tem certeza que deseja atribuir a competição "${competicaoNome}" ao organizador ${organizadorEmail}?\n\nDepois de atribuída, apenas este organizador e o admin terão acesso a esta competição.`);
+            
+            if (confirmacao) {
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('successMessage').textContent = `Atribuindo competição "${competicaoNome}" ao organizador ${organizadorEmail}...`;
+                return true;
+            }
+            
+            return false;
+        }
+    </script>
 </body>
 </html>
