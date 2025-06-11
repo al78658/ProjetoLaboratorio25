@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
@@ -67,8 +67,9 @@ namespace ProjetoLaboratorio25.Controllers
                     .OrderByDescending(cf => cf.FaseNumero)
                     .FirstOrDefaultAsync();
 
-                bool isTaca = configuracaoFase?.Formato?.ToLower() == "taça";
+                bool isTaca = configuracaoFase?.Formato?.ToLower() == "eliminacao";
                 bool isRoundRobin = configuracaoFase?.Formato?.ToLower() == "round-robin";
+                bool isDuploKO = configuracaoFase?.Formato?.ToLower() == "duplo-ko";
 
                 // Verificar se todos os jogos foram realizados
                 var todosJogosRealizados = await _context.EmparelhamentosFinal
@@ -103,10 +104,12 @@ namespace ProjetoLaboratorio25.Controllers
                     .OrderBy(g => g.Data)
                     .ToList();
 
-                return Ok(new {
+                return Ok(new
+                {
                     jogosPorData,
                     isTaca,
                     isRoundRobin,
+                    isDuploKO,
                     todosJogosRealizados
                 });
             }

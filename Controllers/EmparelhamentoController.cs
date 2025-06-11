@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
@@ -247,7 +247,9 @@ namespace ProjetoLaboratorio25.Controllers
                         HoraJogo = e.HoraJogo.ToString(@"hh\:mm"),
                         e.PontuacaoClube1,
                         e.PontuacaoClube2,
-                        e.JogoRealizado
+                        e.JogoRealizado,
+                        e.Bracket,
+                        e.RondaBracket
                     })
                     .ToListAsync();
                     
@@ -476,7 +478,9 @@ namespace ProjetoLaboratorio25.Controllers
                                         Clube2 = clube2,
                                         DataJogo = new DateTime(1, 1, 1), // Data padrão não definida
                                         HoraJogo = TimeSpan.Zero, // Hora padrão não definida
-                                        JogoRealizado = false
+                                        JogoRealizado = false,
+                                        Bracket = null,
+                                        RondaBracket = null
                                     };
 
                                     novosEmparelhamentos.Add(novoEmparelhamento);
@@ -513,7 +517,9 @@ namespace ProjetoLaboratorio25.Controllers
                                         HoraJogo = TimeSpan.TryParse(e.HoraJogo, out var hora) ? hora : TimeSpan.Zero,
                                         PontuacaoClube1 = e.PontuacaoClube1,
                                         PontuacaoClube2 = e.PontuacaoClube2,
-                                        JogoRealizado = e.JogoRealizado
+                                        JogoRealizado = e.JogoRealizado,
+                                        Bracket = e.Bracket,
+                                        RondaBracket = e.RondaBracket
                                     };
 
                                     _context.EmparelhamentosFinal.Add(novoEmparelhamento);
@@ -625,7 +631,9 @@ namespace ProjetoLaboratorio25.Controllers
                                     Clube2 = clube2,
                                     DataJogo = new DateTime(1, 1, 1), // Data padrão não definida
                                     HoraJogo = TimeSpan.Zero, // Hora padrão não definida
-                                    JogoRealizado = false
+                                    JogoRealizado = false,
+                                    Bracket = null,
+                                    RondaBracket = null
                                 };
 
                                 novosEmparelhamentos.Add(novoEmparelhamento);
@@ -663,7 +671,9 @@ namespace ProjetoLaboratorio25.Controllers
                                 HoraJogo = TimeSpan.TryParse(e.HoraJogo, out var hora) ? hora : TimeSpan.Zero,
                                 PontuacaoClube1 = e.PontuacaoClube1,
                                 PontuacaoClube2 = e.PontuacaoClube2,
-                                JogoRealizado = e.JogoRealizado
+                                JogoRealizado = e.JogoRealizado,
+                                Bracket = e.Bracket,
+                                RondaBracket = e.RondaBracket
                             };
 
                             _context.EmparelhamentosFinal.Add(novoEmparelhamento);
@@ -708,6 +718,163 @@ namespace ProjetoLaboratorio25.Controllers
                 return StatusCode(500, new { mensagem = $"Erro ao salvar emparelhamentos: {ex.Message}" });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> GerarEmparelhamentosDuploKO([FromBody] EmparelhamentoRequestModel request)
+        {
+            try
+            {
+                var competicaoId = request.CompeticaoId;
+                var nomeCompeticao = request.NomeCompeticao;
+
+                // Verificar se é um formato Duplo KO
+                var configuracaoFase = await _context.ConfiguracoesFase
+                    .Where(cf => cf.CompeticaoId == competicaoId)
+                    .OrderByDescending(cf => cf.FaseNumero)
+                    .FirstOrDefaultAsync();
+
+                if (configuracaoFase?.Formato?.ToLower() != "duplo-ko")
+                {
+                    return BadRequest(new { mensagem = "Esta competição não está configurada como Duplo KO." });
+                }
+
+                // Buscar todos os jogos da competição
+                var todosJogos = await _context.EmparelhamentosFinal
+                    .Where(e => e.CompeticaoId == competicaoId)
+                    .ToListAsync();
+
+                // Criar dicionário para rastrear derrotas por equipe
+                var derrotasPorEquipe = new Dictionary<string, int>();
+                var vitoriasPorEquipe = new Dictionary<string, int>();
+
+                // Contar derrotas e vitórias para cada equipe
+                foreach (var jogo in todosJogos.Where(j => j.JogoRealizado))
+                {
+                    if (jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
+                    {
+                        IncrementarVitorias(vitoriasPorEquipe, jogo.Clube1);
+                        IncrementarDerrotas(derrotasPorEquipe, jogo.Clube2);
+                    }
+                    else if (jogo.PontuacaoClube2 > jogo.PontuacaoClube1)
+                    {
+                        IncrementarVitorias(vitoriasPorEquipe, jogo.Clube2);
+                        IncrementarDerrotas(derrotasPorEquipe, jogo.Clube1);
+                    }
+                }
+
+                // Separar equipes por bracket
+                var equipesWinners = new List<string>();
+                var equipesLosers = new List<string>();
+                var equipesEliminadas = new List<string>();
+
+                foreach (var equipe in vitoriasPorEquipe.Keys.Union(derrotasPorEquipe.Keys))
+                {
+                    var numDerrotas = derrotasPorEquipe.GetValueOrDefault(equipe, 0);
+                    if (numDerrotas == 0)
+                    {
+                        equipesWinners.Add(equipe);
+                    }
+                    else if (numDerrotas == 1)
+                    {
+                        equipesLosers.Add(equipe);
+                    }
+                    else
+                    {
+                        equipesEliminadas.Add(equipe);
+                    }
+                }
+
+                // Determinar a ronda atual
+                var rondaAtual = todosJogos
+                    .Where(e => e.RondaBracket.HasValue)
+                    .Max(e => e.RondaBracket) ?? 0;
+
+                var novosEmparelhamentos = new List<EmparelhamentoFinal>();
+
+                // Gerar emparelhamentos para o bracket de Winners
+                for (int i = 0; i < equipesWinners.Count - 1; i += 2)
+                {
+                    novosEmparelhamentos.Add(new EmparelhamentoFinal
+                    {
+                        CompeticaoId = competicaoId,
+                        Clube1 = equipesWinners[i],
+                        Clube2 = equipesWinners[i + 1],
+                        DataJogo = DateTime.Now,
+                        HoraJogo = TimeSpan.Zero,
+                        JogoRealizado = false,
+                        Bracket = "Winners",
+                        RondaBracket = rondaAtual + 1
+                    });
+                }
+
+                // Gerar emparelhamentos para o bracket de Losers
+                for (int i = 0; i < equipesLosers.Count - 1; i += 2)
+                {
+                    novosEmparelhamentos.Add(new EmparelhamentoFinal
+                    {
+                        CompeticaoId = competicaoId,
+                        Clube1 = equipesLosers[i],
+                        Clube2 = equipesLosers[i + 1],
+                        DataJogo = DateTime.Now,
+                        HoraJogo = TimeSpan.Zero,
+                        JogoRealizado = false,
+                        Bracket = "Losers",
+                        RondaBracket = rondaAtual + 1
+                    });
+                }
+
+                // Se houver um número ímpar de equipes em algum bracket,
+                // e houver equipes em ambos os brackets, fazer um emparelhamento entre brackets
+                if (equipesWinners.Count % 2 == 1 && equipesLosers.Count > 0)
+                {
+                    novosEmparelhamentos.Add(new EmparelhamentoFinal
+                    {
+                        CompeticaoId = competicaoId,
+                        Clube1 = equipesWinners.Last(),
+                        Clube2 = equipesLosers.First(),
+                        DataJogo = DateTime.Now,
+                        HoraJogo = TimeSpan.Zero,
+                        JogoRealizado = false,
+                        Bracket = "Cross",
+                        RondaBracket = rondaAtual + 1
+                    });
+                }
+
+                // Adicionar novos emparelhamentos ao contexto
+                _context.EmparelhamentosFinal.AddRange(novosEmparelhamentos);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { 
+                    mensagem = "Novos emparelhamentos Duplo KO gerados com sucesso.",
+                    competicaoId = competicaoId,
+                    nomeCompeticao = nomeCompeticao,
+                    novosEmparelhamentos = novosEmparelhamentos.Count,
+                    equipesEliminadas = equipesEliminadas
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensagem = $"Erro ao gerar emparelhamentos: {ex.Message}" });
+            }
+        }
+
+        private void IncrementarDerrotas(Dictionary<string, int> derrotasPorEquipe, string equipe)
+        {
+            if (!derrotasPorEquipe.ContainsKey(equipe))
+            {
+                derrotasPorEquipe[equipe] = 0;
+            }
+            derrotasPorEquipe[equipe]++;
+        }
+
+        private void IncrementarVitorias(Dictionary<string, int> vitoriasPorEquipe, string equipe)
+        {
+            if (!vitoriasPorEquipe.ContainsKey(equipe))
+            {
+                vitoriasPorEquipe[equipe] = 0;
+            }
+            vitoriasPorEquipe[equipe]++;
+        }
     }
 
     public class EmparelhamentoViewModel
@@ -722,6 +889,8 @@ namespace ProjetoLaboratorio25.Controllers
         public int? PontuacaoClube1 { get; set; }
         public int? PontuacaoClube2 { get; set; }
         public bool JogoRealizado { get; set; }
+        public string? Bracket { get; set; }  // "Winners" ou "Losers", null para outros formatos
+        public int? RondaBracket { get; set; }  // Número da ronda dentro do bracket, null para outros formatos
     }
 
     public class EmparelhamentoRequestModel

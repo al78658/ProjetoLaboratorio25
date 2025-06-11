@@ -34,5 +34,10 @@ namespace ProjetoLaboratorio25.Models
         public bool JogoRealizado { get; set; } = false;
         
         public string? Motivo { get; set; }
+
+        // Campos para suporte ao formato Duplo KO
+        public string? Bracket { get; set; }  // "Winners" ou "Losers", null para outros formatos
+        
+        public int? RondaBracket { get; set; }  // Número da ronda dentro do bracket, null para outros formatos
     }
 } 

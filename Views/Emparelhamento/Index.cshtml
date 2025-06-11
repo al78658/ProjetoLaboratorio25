@@ -1,4 +1,4 @@
-﻿﻿@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -148,21 +148,6 @@
     <h1>Emparelhamento</h1>
     <h2 id="nomeCompeticao"></h2>
 
-    <!-- Tabela de jogos anteriores - escondida -->
-    <div class="table-wrapper" style="display: none;">
-        <table>
-            <thead>
-                <tr>
-                    <th>Equipa 1</th>
-                    <th>Data e Horário</th>
-                    <th>Equipa 2</th>
-                    <th>Resultado</th>
-                </tr>
-            </thead>
-            <tbody id="previousGamesTableBody"></tbody>
-        </table>
-    </div>
-
     <!-- Tabela de novos emparelhamentos -->
     <div class="table-wrapper">
         <h3 style="color: white; margin-bottom: 15px;">Novos Emparelhamentos</h3>
@@ -190,9 +175,8 @@
             // Inicialização
             const titulo = document.getElementById('nomeCompeticao');
             const pairsTableBody = document.getElementById('pairsTableBody');
-            const previousGamesTableBody = document.getElementById('previousGamesTableBody');
             const saveButton = document.getElementById('saveButton');
-            const nomeCompeticao = "@ViewBag.CompeticaoNome";
+            const nomeCompeticao = "@ViewBag.NomeCompeticao";
             const competicaoId = @ViewBag.CompeticaoId;
             const isFaseEliminatoria = @(ViewBag.IsFaseEliminatoria ? "true" : "false");
             const tipoCompeticao = "@ViewBag.TipoCompeticao";
@@ -216,11 +200,10 @@
             }
             
             // Verificar se os elementos foram encontrados
-            if (!titulo || !pairsTableBody || !previousGamesTableBody || !saveButton) {
+            if (!titulo || !pairsTableBody || !saveButton) {
                 console.error('Elementos não encontrados:', {
                     titulo: !!titulo,
                     pairsTableBody: !!pairsTableBody,
-                    previousGamesTableBody: !!previousGamesTableBody,
                     saveButton: !!saveButton
                 });
                 return;
@@ -228,25 +211,6 @@
             
             // Mostrar o nome da competição no título
             titulo.textContent = nomeCompeticao ? `Competição: ${nomeCompeticao}` : 'Emparelhamento';
-            
-            // Carregar jogos anteriores
-            const jogosAnteriores = @Html.Raw(Json.Serialize(ViewBag.JogosAnteriores ?? new object[] {}));
-            
-            // Limpar e preencher a tabela de jogos anteriores
-            previousGamesTableBody.innerHTML = '';
-            jogosAnteriores.forEach(jogo => {
-                const row = document.createElement('tr');
-                const resultado = jogo.jogoRealizado 
-                    ? `${jogo.pontuacaoClube1}-${jogo.pontuacaoClube2}`
-                    : 'Não realizado';
-                row.innerHTML = `
-                    <td>${jogo.clube1}</td>
-                    <td>${jogo.dataJogo} ${jogo.horaJogo}</td>
-                    <td>${jogo.clube2}</td>
-                    <td>${resultado}</td>
-                `;
-                previousGamesTableBody.appendChild(row);
-            });
             
             // Obtem jogadores/clubes do ViewBag
             let jogadores = [];
@@ -277,73 +241,33 @@
             // Limpar a tabela
             pairsTableBody.innerHTML = '';
 
-            // Se for fase eliminatória, emparelhar os vencedores
-            if (isFaseEliminatoria) {
-                // Dividir os vencedores em pares
-                for (let i = 0; i < jogadores.length; i += 2) {
-                    const clube1 = jogadores[i];
-                    const clube2 = i + 1 < jogadores.length ? jogadores[i + 1] : '';
+            // Função para criar uma célula de data/hora
+            function createDateTimeCell() {
+                const cell = document.createElement('td');
+                cell.innerHTML = `
+                    <input type="date" class="date-input" style="margin-right: 10px;">
+                    <input type="time" class="time-input">
+                `;
+                return cell;
+            }
 
+            // Emparelhar jogadores
+            for (let i = 0; i < jogadores.length; i += 2) {
+                if (i + 1 < jogadores.length) {
                     const row = document.createElement('tr');
+                    const clube1 = jogadores[i].nome;
+                    const clube2 = jogadores[i + 1].nome;
+                    
                     row.innerHTML = `
                         <td>${clube1}</td>
-                        <td>
-                            <input type="date" class="date-input" required>
-                            <input type="time" class="time-input" required>
-                        </td>
+                        ${createDateTimeCell().outerHTML}
                         <td>${clube2}</td>
                     `;
                     pairsTableBody.appendChild(row);
                 }
-            } else {
-                // Lógica existente para emparelhamento normal
-                if (tipoCompeticao === 'equipas') {
-                    // Lógica para competições de equipes
-                    const meio = Math.ceil(jogadores.length / 2);
-                    const ladoEsquerdo = jogadores.slice(0, meio);
-                    const ladoDireito = jogadores.slice(meio);
-
-                    for (let i = 0; i < Math.max(ladoEsquerdo.length, ladoDireito.length); i++) {
-                        const clube1 = ladoEsquerdo[i] || '';
-                        const clube2 = ladoDireito[i] || '';
-
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${clube1 ? clube1.nome : ''}</td>
-                            <td>
-                                <input type="date" class="date-input" required>
-                                <input type="time" class="time-input" required>
-                            </td>
-                            <td>${clube2 ? clube2.nome : ''}</td>
-                        `;
-                        pairsTableBody.appendChild(row);
-                    }
-                } else {
-                    // Lógica para competições individuais
-                    // Dividir jogadores em dois lados
-                    const meio = Math.ceil(jogadores.length / 2);
-                    const jogadoresEsquerdo = jogadores.slice(0, meio);
-                    const jogadoresDireito = jogadores.slice(meio);
-
-                    for (let i = 0; i < Math.max(jogadoresEsquerdo.length, jogadoresDireito.length); i++) {
-                        const jogador1 = jogadoresEsquerdo[i] || '';
-                        const jogador2 = jogadoresDireito[i] || '';
-
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${jogador1 ? jogador1.nome : ''}</td>
-                            <td>
-                                <input type="date" class="date-input" required>
-                                <input type="time" class="time-input" required>
-                            </td>
-                            <td>${jogador2 ? jogador2.nome : ''}</td>
-                        `;
-                        pairsTableBody.appendChild(row);
-                    }
-                }
             }
 
-            // Salvar emparelhamentos
+            // Handler do botão salvar
             saveButton.addEventListener('click', async () => {
                 const rows = pairsTableBody.querySelectorAll('tr');
                 const agendamentos = [];
@@ -363,11 +287,13 @@
 
                     if (clube1 && clube2) {
                         agendamentos.push({
-                            jogador1: { nome: clube1 },
-                            jogador2: { nome: clube2 },
-                            data: dataInput.value,
-                            hora: horaInput.value,
-                            isClube: true
+                            clube1: clube1,
+                            clube2: clube2,
+                            dataJogo: dataInput.value,
+                            horaJogo: horaInput.value,
+                            isClube: true,
+                            bracket: null,
+                            rondaBracket: null
                         });
                     }
                 });
@@ -392,85 +318,46 @@
                 localStorage.removeItem('jogadoresParaEmparelhar');
 
                 // Preparar dados para enviar ao servidor
-                const emparelhamentosParaEnviar = [];
-                
-                agendamentos.forEach(agendamento => {
-                    // Verificar se os objetos têm a estrutura esperada
-                    const clube1 = agendamento.jogador1 && typeof agendamento.jogador1 === 'object' ? 
-                                (agendamento.jogador1.nome || '') : '';
-                    const clube2 = agendamento.jogador2 && typeof agendamento.jogador2 === 'object' ? 
-                                (agendamento.jogador2.nome || '') : '';
-                    
-                    if (clube1 && clube2) {
-                        emparelhamentosParaEnviar.push({
-                            clube1: clube1,
-                            clube2: clube2,
-                            dataJogo: agendamento.data,
-                            horaJogo: agendamento.hora,
-                            isClube: agendamento.isClube
-                        });
-                    }
-                });
-                
-                // Log para depuração
-                console.log('Dados a enviar:', {
-                    competicaoId: competicaoId,
-                    nomeCompeticao: nomeCompeticao,
-                    emparelhamentos: emparelhamentosParaEnviar
-                });
-                
-                // Enviar dados para o servidor
-                fetch('/Emparelhamento/SalvarEmparelhamentos', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        competicaoId: competicaoId,
-                        nomeCompeticao: nomeCompeticao,
-                        emparelhamentos: emparelhamentosParaEnviar
-                    })
-                })
-                .then(response => {
-                    // Sempre tenta obter o JSON da resposta, mesmo em caso de erro
-                    return response.json().then(data => {
-                        // Adiciona o status à resposta para verificação posterior
-                        return { status: response.status, data };
+                const emparelhamentosParaEnviar = agendamentos.map(agendamento => ({
+                    clube1: agendamento.clube1,
+                    clube2: agendamento.clube2,
+                    dataJogo: agendamento.dataJogo,
+                    horaJogo: agendamento.horaJogo,
+                    isClube: agendamento.isClube,
+                    bracket: agendamento.bracket,
+                    rondaBracket: agendamento.rondaBracket
+                }));
+
+                try {
+                    const response = await fetch('/Emparelhamento/SalvarEmparelhamentos', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            competicaoId: competicaoId,
+                            nomeCompeticao: nomeCompeticao,
+                            emparelhamentos: emparelhamentosParaEnviar
+                        })
                     });
-                })
-                .then(result => {
-                    if (result.status === 200) {
-                        alert('Emparelhamentos salvos com sucesso!');
-                        
-                        // Armazenar o ID da competição e redirecionar
-                        localStorage.setItem('competicaoSelecionadaId', competicaoId);
-                        window.location.href = '/Menu?competicaoId=' + competicaoId;
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        alert(result.mensagem || 'Emparelhamentos salvos com sucesso!');
+                        window.location.href = '/Home';
                     } else {
-                        // Se houver falhas parciais (status 207) ou outros erros
-                        let mensagem = result.data.mensagem || 'Erro ao salvar emparelhamentos.';
-                        
-                        if (result.data.falhas && result.data.falhas.length > 0) {
-                            mensagem += '\n\nFalhas:\n' + result.data.falhas
-                                .map(f => `${f.clube1} vs ${f.clube2}`)
-                                .join('\n');
-                        }
-                        
-                        if (result.data.sucessos && result.data.sucessos.length > 0) {
-                            mensagem += '\n\nSucessos:\n' + result.data.sucessos.join('\n');
-                        }
-                        
-                        alert(mensagem);
+                        alert(result.mensagem || 'Erro ao salvar emparelhamentos.');
                     }
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('Erro:', error);
-                    alert('Erro ao salvar emparelhamentos: ' + error.message);
-                });
+                    alert('Erro ao salvar emparelhamentos.');
+                }
             });
         }
 
-        // Chamar a função de inicialização quando o documento estiver pronto
-        document.addEventListener('DOMContentLoaded', initializeEmparelhamento);
+        // Inicializar
+        initializeEmparelhamento();
     </script>
 </body>
 </html>
