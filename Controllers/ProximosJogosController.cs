@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
@@ -274,6 +274,19 @@ namespace ProjetoLaboratorio25.Controllers
                     {
                         pontuacoes[nome] = 0;
                     }
+                }
+
+                // NOVA REGRA: Não permitir emparelhamento se nenhum participante tiver pelo menos um jogo realizado
+                bool alguemTemJogo = participantes.Any(p =>
+                    jogosRealizados.Any(j =>
+                        (j.Clube1 == (competicao.TipoCompeticao == "equipas" ? p.Clube : p.Nome)) ||
+                        (j.Clube2 == (competicao.TipoCompeticao == "equipas" ? p.Clube : p.Nome))
+                    )
+                );
+
+                if (!alguemTemJogo)
+                {
+                    return BadRequest(new { success = false, mensagem = "Não é possível emparelhar: nenhum participante tem jogos registados ainda." });
                 }
 
                 // Calcular pontuação baseada nos jogos realizados
