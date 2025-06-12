@@ -693,12 +693,14 @@ namespace ProjetoLaboratorio25.Controllers
                     return BadRequest(new { mensagem = "Não há participantes suficientes para gerar emparelhamentos." });
                 }
 
-                // Matriz para controlar se já existe o jogo naquela direção
-                var jogosEntrePares = new HashSet<string>();
+                // Dicionário para contar quantos jogos existem em cada direção (ida e volta)
+                var jogosDirecionais = new Dictionary<string, int>();
                 foreach (var jogo in emparelhamentosExistentes)
                 {
-                    var chaveJogo = $"{jogo.Clube1}>{jogo.Clube2}";
-                    jogosEntrePares.Add(chaveJogo);
+                    var chave = $"{jogo.Clube1.Trim().ToLower()}>{jogo.Clube2.Trim().ToLower()}";
+                    if (!jogosDirecionais.ContainsKey(chave))
+                        jogosDirecionais[chave] = 0;
+                    jogosDirecionais[chave]++;
                 }
 
                 // Gerar novos emparelhamentos
@@ -714,9 +716,10 @@ namespace ProjetoLaboratorio25.Controllers
 
                         var clube1 = participantesList[i];
                         var clube2 = participantesList[j];
+                        var chave = $"{clube1.Trim().ToLower()}>{clube2.Trim().ToLower()}";
 
-                        var chaveJogo = $"{clube1}>{clube2}";
-                        if (!jogosEntrePares.Contains(chaveJogo))
+                        // Só gera se ainda não existe este sentido
+                        if (!jogosDirecionais.ContainsKey(chave))
                         {
                             var novoEmparelhamento = new EmparelhamentoFinal
                             {
@@ -728,6 +731,7 @@ namespace ProjetoLaboratorio25.Controllers
                                 JogoRealizado = false
                             };
                             novosEmparelhamentos.Add(novoEmparelhamento);
+                            jogosDirecionais[chave] = 1;
                         }
                     }
                 }
