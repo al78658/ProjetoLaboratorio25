@@ -272,15 +272,15 @@ namespace ProjetoLaboratorio25.Controllers
                     var nome = competicao.TipoCompeticao == "equipas" ? participante.Clube : participante.Nome;
                     if (!string.IsNullOrEmpty(nome))
                     {
-                        pontuacoes[nome] = 0;
+                        pontuacoes[nome.Trim()] = 0; // Initialize with 0 points and trim the name
                     }
                 }
 
                 // NOVA REGRA: Não permitir emparelhamento se nenhum participante tiver pelo menos um jogo realizado
                 bool alguemTemJogo = participantes.Any(p =>
                     jogosRealizados.Any(j =>
-                        (j.Clube1 == (competicao.TipoCompeticao == "equipas" ? p.Clube : p.Nome)) ||
-                        (j.Clube2 == (competicao.TipoCompeticao == "equipas" ? p.Clube : p.Nome))
+                        (j.Clube1.Trim() == (competicao.TipoCompeticao == "equipas" ? p.Clube?.Trim() : p.Nome?.Trim())) ||
+                        (j.Clube2.Trim() == (competicao.TipoCompeticao == "equipas" ? p.Clube?.Trim() : p.Nome?.Trim()))
                     )
                 );
 
@@ -292,18 +292,26 @@ namespace ProjetoLaboratorio25.Controllers
                 // Calcular pontuação baseada nos jogos realizados
                 foreach (var jogo in jogosRealizados)
                 {
+                    var clube1 = jogo.Clube1.Trim();
+                    var clube2 = jogo.Clube2.Trim();
+
+                    if (!pontuacoes.ContainsKey(clube1))
+                        pontuacoes[clube1] = 0;
+                    if (!pontuacoes.ContainsKey(clube2))
+                        pontuacoes[clube2] = 0;
+
                     if (jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
                     {
-                        pontuacoes[jogo.Clube1] += 3;
+                        pontuacoes[clube1] += 3;
                     }
                     else if (jogo.PontuacaoClube2 > jogo.PontuacaoClube1)
                     {
-                        pontuacoes[jogo.Clube2] += 3;
+                        pontuacoes[clube2] += 3;
                     }
                     else
                     {
-                        pontuacoes[jogo.Clube1] += 1;
-                        pontuacoes[jogo.Clube2] += 1;
+                        pontuacoes[clube1] += 1;
+                        pontuacoes[clube2] += 1;
                     }
                 }
 
