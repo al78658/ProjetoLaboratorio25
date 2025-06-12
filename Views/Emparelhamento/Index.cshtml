@@ -150,7 +150,6 @@
 
     <!-- Tabela de novos emparelhamentos -->
     <div class="table-wrapper">
-        <h3 style="color: white; margin-bottom: 15px;">Novos Emparelhamentos</h3>
         <table>
             <thead>
                 <tr>
@@ -345,7 +344,7 @@
 
                     if (response.ok) {
                         alert(result.mensagem || 'Emparelhamentos salvos com sucesso!');
-                        window.location.href = '/Home';
+                        window.location.href = `/Menu?competicaoId=${competicaoId}`;
                     } else {
                         alert(result.mensagem || 'Erro ao salvar emparelhamentos.');
                     }
