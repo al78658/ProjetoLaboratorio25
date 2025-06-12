@@ -429,10 +429,15 @@
                 const homologacaoCell = document.createElement('td');
                 homologacaoCell.innerHTML = `
                     <button class="homologar-btn" onclick="homologarPartida(${globalIdx})" 
-                            data-idx="${globalIdx}">
-                        ${resultados[globalIdx]?.homologado ? '✓ Homologado' : 'Homologar'}
+                            data-idx="${globalIdx}" ${jogo.jogoRealizado ? 'disabled' : ''}>
+                        ${jogo.jogoRealizado ? '✓ Jogo Registado' : (resultados[globalIdx]?.homologado ? '✓ Homologado' : 'Homologar')}
                     </button>
                 `;
+                if (jogo.jogoRealizado) {
+                    homologacaoCell.querySelector('.homologar-btn').style.backgroundColor = '#4CAF50';
+                    homologacaoCell.querySelector('.homologar-btn').style.color = 'white';
+                    homologacaoCell.querySelector('.homologar-btn').style.cursor = 'not-allowed';
+                }
                 row.appendChild(homologacaoCell);
 
                 tabela.appendChild(row);
@@ -499,6 +504,12 @@
 
         // Adicionar função para homologar partida
         window.homologarPartida = function(idx) {
+            const jogo = agendamentos[idx];
+            if (jogo.jogoRealizado) {
+                alert('Este jogo já foi registado e não pode ser alterado.');
+                return;
+            }
+
             resultados[idx] = resultados[idx] || {};
             resultados[idx].homologado = !resultados[idx].homologado;
             
@@ -526,6 +537,12 @@
                 // Pular as linhas de cabeçalho de data
                 if (row.cells.length === 1) return;
 
+                const jogo = agendamentos[currentGameIndex];
+                if (jogo.jogoRealizado) {
+                    currentGameIndex++;
+                    return;
+                }
+
                 const vitoriaBotoes = row.querySelectorAll('.victory-btn');
                 const vitoriaAtribuida = Array.from(vitoriaBotoes).some(btn => btn.classList.contains('active'));
                 const motivoInput = row.querySelector('.motivo-input');
@@ -534,7 +551,6 @@
                 if (resultado.homologado) {
                     temPartidaHomologada = true;
                     if (vitoriaAtribuida && (!motivoInput || !motivoInput.value.trim())) {
-                        const jogo = agendamentos[currentGameIndex];
                         if (jogo) {
                             alert(`Por favor, forneça um motivo para a vitória atribuída no jogo entre ${jogo.clube1} e ${jogo.clube2}.`);
                             erro = true;
