@@ -217,6 +217,22 @@
             // Se for fase eliminatória, usar os vencedores passados pelo controller
             if (isFaseEliminatoria) {
                 jogadores = @Html.Raw(Json.Serialize(ViewBag.Vencedores ?? new string[] {}));
+                
+                // Para o formato taça (eliminação), apenas permitir emparelhamento inicial
+                // Fases subsequentes serão gerenciadas na página ProximosJogos
+                if (jogadores.length === 0) {
+                    pairsTableBody.innerHTML = `<tr><td colspan="3">
+                        <div style="text-align: center; padding: 20px;">
+                            <p>Formato Taça: As próximas fases devem ser geradas na página "Próximos Jogos".</p>
+                            <a href="/ProximosJogos?competicaoId=${competicaoId}" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: white; border: 1px solid black; border-radius: 4px; text-decoration: none; color: black;">
+                                Ir para Próximos Jogos
+                            </a>
+                        </div>
+                    </td></tr>`;
+                    
+                    if (saveButton) saveButton.style.display = 'none';
+                    return;
+                }
             } else {
                 if (tipoCompeticao === 'equipas') {
                     jogadores = @Html.Raw(Json.Serialize(ViewBag.Clubes ?? new string[] {}))

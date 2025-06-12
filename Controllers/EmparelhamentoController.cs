@@ -447,7 +447,8 @@ namespace ProjetoLaboratorio25.Controllers
                             HoraJogo = TimeSpan.TryParse(e.HoraJogo, out var hora) ? hora : TimeSpan.Zero,
                             PontuacaoClube1 = e.PontuacaoClube1,
                             PontuacaoClube2 = e.PontuacaoClube2,
-                            JogoRealizado = e.JogoRealizado
+                            JogoRealizado = e.JogoRealizado,
+                            RondaBracket = 1 // Set initial round for cup tournament
                         };
 
                         _context.EmparelhamentosFinal.Add(novoEmparelhamento);

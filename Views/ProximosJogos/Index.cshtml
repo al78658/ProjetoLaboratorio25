@@ -165,6 +165,9 @@
                     <button type="button" id="btnNovosEmparelhamentosDuploKO" class="btn" style="display: none; margin-right: 10px;">
                         Novos Emparelhamentos Duplo KO
                     </button>
+                    <button type="button" id="btnGerarProximaFaseTaca" class="btn" style="display: none; margin-right: 10px;">
+                        Gerar Próxima Fase da Taça
+                    </button>
                 </div>
             }
 
@@ -206,6 +209,7 @@
 		const btnGerarCampeonato = document.getElementById('btnGerarCampeonato');
 		const btnGerarSistemaAve = document.getElementById('btnGerarSistemaAve');
         const btnNovosEmparelhamentosDuploKO = document.getElementById('btnNovosEmparelhamentosDuploKO');
+        const btnGerarProximaFaseTaca = document.getElementById('btnGerarProximaFaseTaca');
         
         // Atualizar o título
         document.querySelector('h2').textContent = `Jogos Agendados - ${competicaoNome}`;
@@ -229,12 +233,49 @@
                         tabela.innerHTML = `<tr><td colspan="3">${data.mensagem}</td></tr>`;
                     } else {
                         // Verificar se é uma competição do tipo taça e se todos os jogos têm vencedor
-                        if (data.isTaca && data.todosJogosRealizados && btnAdicionarEmparelhamentos) {
-                            btnAdicionarEmparelhamentos.style.display = 'block';
-                            btnAdicionarEmparelhamentos.onclick = () => {
-                                // Redirecionar para a página de emparelhamento
-                                window.location.href = `/Emparelhamento?competicaoId=${competicaoId}&fase=proxima`;
+                        if (data.isTaca && data.todosJogosRealizados && btnGerarProximaFaseTaca) {
+                            btnGerarProximaFaseTaca.style.display = 'block';
+                            btnGerarProximaFaseTaca.onclick = async () => {
+                                try {
+                                    const response = await fetch(`/ProximosJogos/GerarProximaFaseTaca?competicaoId=${competicaoId}`, {
+                                        method: 'POST'
+                                    });
+                                    const result = await response.json();
+                                    
+                                    if (response.ok) {
+                                        alert(result.mensagem);
+                                        if (result.vencedorAbsoluto) {
+                                            // Se temos um vencedor absoluto, mostrar uma mensagem especial
+                                            tabela.innerHTML = `
+                                                <tr>
+                                                    <td colspan="3" style="text-align: center; padding: 20px;">
+                                                        <h2 style="margin-bottom: 20px;">🏆 Vencedor do Torneio 🏆</h2>
+                                                        <div style="font-size: 24px; background-color: rgba(255,255,255,0.8); padding: 20px; border-radius: 10px;">
+                                                            ${result.vencedorAbsoluto}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                            
+                                            // Esconder o botão de gerar próxima fase
+                                            btnGerarProximaFaseTaca.style.display = 'none';
+                                        } else {
+                                            // Apenas recarregamos os jogos
+                                            carregarJogos();
+                                        }
+                                    } else {
+                                        alert(result.mensagem || 'Erro ao gerar próxima fase');
+                                    }
+                                } catch (error) {
+                                    console.error('Erro:', error);
+                                    alert('Erro ao gerar próxima fase');
+                                }
                             };
+                            
+                            // Não mostrar o outro botão que redireciona para emparelhamento
+                            if (btnAdicionarEmparelhamentos) {
+                                btnAdicionarEmparelhamentos.style.display = 'none';
+                            }
                         }
 
                         // Verificar se é um formato Round-Robin ou Campeonato
