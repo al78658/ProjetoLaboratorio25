@@ -870,7 +870,7 @@ namespace ProjetoLaboratorio25.Controllers
                         emparelhamentosLosersRestantes = 0,
                         isFinal = true,
                         isFinalPhase = true,
-                        derrotasPorEquipe = derrotasPorEquipe // Debug info
+                        derrotasPorEquipe = derrotasPorEquipe
                     });
                 }
 
@@ -1080,24 +1080,6 @@ namespace ProjetoLaboratorio25.Controllers
             }
         }
 
-        private void IncrementarDerrotas(Dictionary<string, int> derrotasPorEquipe, string equipe)
-        {
-            if (!derrotasPorEquipe.ContainsKey(equipe))
-            {
-                derrotasPorEquipe[equipe] = 0;
-            }
-            derrotasPorEquipe[equipe]++;
-        }
-
-        private void IncrementarVitorias(Dictionary<string, int> vitoriasPorEquipe, string equipe)
-        {
-            if (!vitoriasPorEquipe.ContainsKey(equipe))
-            {
-                vitoriasPorEquipe[equipe] = 0;
-            }
-            vitoriasPorEquipe[equipe]++;
-        }
-
         public class EmparelhamentoLabel
         {
             public string Bracket { get; set; }
@@ -1154,6 +1136,24 @@ namespace ProjetoLaboratorio25.Controllers
                 _context.EmparelhamentosFinal.Remove(label);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        private void IncrementarDerrotas(Dictionary<string, int> derrotasPorEquipe, string equipe)
+        {
+            if (!derrotasPorEquipe.ContainsKey(equipe))
+            {
+                derrotasPorEquipe[equipe] = 0;
+            }
+            derrotasPorEquipe[equipe]++;
+        }
+
+        private void IncrementarVitorias(Dictionary<string, int> vitoriasPorEquipe, string equipe)
+        {
+            if (!vitoriasPorEquipe.ContainsKey(equipe))
+            {
+                vitoriasPorEquipe[equipe] = 0;
+            }
+            vitoriasPorEquipe[equipe]++;
         }
     }
 
