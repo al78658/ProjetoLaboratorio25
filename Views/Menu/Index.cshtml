@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -35,9 +35,10 @@
         }
 
         .back-button {
-        position: absolute;
+        position: fixed;
         right: 40px;
         bottom: 40px;
+        z-index: 2000;
         padding: 10px 22px;
         font-size: 18px;
         border: 2px solid #000;
@@ -382,7 +383,7 @@
                     }
                 }
             </script>
-            <button type="button" class="login-button" onclick="window.location.href='/ProximosJogos'">
+            <button type="button" class="login-button" onclick="irParaProximosJogos()">
                 Jogos Agendados
             </button>
         </div>
@@ -451,7 +452,7 @@
         </div>
     </div>
 
-    <a href="#" id="btnVoltar" class="back-button">&lt;Voltar</a>
+    <a href="/Competicoes/Index" class="back-button">Competições</a>
     <script>
         // Função para mostrar/esconder o menu lateral de edição
         function toggleEditSidebar() {
@@ -875,5 +876,18 @@
             </div>
         </div>
     </div>
+    
+
+<script>
+function irParaProximosJogos() {
+    // Tenta obter o ID salvo da competição
+    const competicaoId = localStorage.getItem('competicaoId') || localStorage.getItem('competicaoSelecionadaId');
+    if (competicaoId) {
+        window.location.href = `/ProximosJogos?competicaoId=${competicaoId}`;
+    } else {
+        alert('Nenhuma competição selecionada.');
+    }
+}
+</script>
 </body>
 </html>

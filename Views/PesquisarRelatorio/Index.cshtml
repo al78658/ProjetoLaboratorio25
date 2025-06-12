@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -155,7 +155,17 @@
         </div>
     </div>
 
-    <a href="/Menu" class="back-button">&lt; Voltar</a>
+    <button class="back-button" onclick="voltarParaMenu()">&lt; Voltar</button>
+<script>
+function voltarParaMenu() {
+    const competicaoId = localStorage.getItem('competicaoId') || localStorage.getItem('competicaoSelecionadaId');
+    if (competicaoId) {
+        window.location.href = `/Menu/Index?competicaoId=${competicaoId}`;
+    } else {
+        window.location.href = '/Menu/Index';
+    }
+}
+</script>
 
     <script>
         function atualizarFiltro() {
