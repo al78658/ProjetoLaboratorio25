@@ -560,9 +560,9 @@ namespace ProjetoLaboratorio25.Controllers
                 var jogosJaRealizados = new HashSet<string>();
                 foreach (var jogo in emparelhamentosExistentes)
                 {
-                    // Criar chaves únicas para os pares de equipes/jogadores (em ambas as direções)
-                    var chaveJogo1 = $"{jogo.Clube1}-{jogo.Clube2}";
-                    var chaveJogo2 = $"{jogo.Clube2}-{jogo.Clube1}";
+                    // Criar chaves únicas para os pares de equipes/jogadores (em ambas as direções), padronizando
+                    var chaveJogo1 = $"{jogo.Clube1.Trim().ToLower()}-{jogo.Clube2.Trim().ToLower()}";
+                    var chaveJogo2 = $"{jogo.Clube2.Trim().ToLower()}-{jogo.Clube1.Trim().ToLower()}";
                     jogosJaRealizados.Add(chaveJogo1);
                     jogosJaRealizados.Add(chaveJogo2);
                 }
@@ -586,7 +586,7 @@ namespace ProjetoLaboratorio25.Controllers
                         var clube2 = participantesList[j];
 
                         // Verificar se este jogo já foi criado, agendado ou realizado
-                        var chaveJogo = $"{clube1}-{clube2}";
+                        var chaveJogo = $"{clube1.Trim().ToLower()}-{clube2.Trim().ToLower()}";
                         if (jogosJaRealizados.Contains(chaveJogo))
                         {
                             continue;
