@@ -644,5 +644,16 @@
             }
         });
     </script>
+    <button class="back-button" onclick="voltarParaMenu()">&lt; Voltar</button>
+    <script>
+    function voltarParaMenu() {
+        const competicaoId = localStorage.getItem('competicaoId') || localStorage.getItem('competicaoSelecionadaId');
+        if (competicaoId) {
+            window.location.href = `/Menu/Index?competicaoId=${competicaoId}`;
+        } else {
+            window.location.href = '/Menu/Index';
+        }
+    }
+    </script>
 </body>
 </html>
