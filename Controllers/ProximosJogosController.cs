@@ -70,6 +70,8 @@ namespace ProjetoLaboratorio25.Controllers
                 bool isTaca = configuracaoFase?.Formato?.ToLower() == "eliminacao";
                 bool isRoundRobin = configuracaoFase?.Formato?.ToLower() == "round-robin";
                 bool isDuploKO = configuracaoFase?.Formato?.ToLower() == "duplo-ko";
+                bool isCampeonato = configuracaoFase?.Formato?.ToLower() == "campeonato";
+                bool isSistemaAve = configuracaoFase?.Formato?.ToLower() == "ave";
 
                 // Se for Duplo KO, verificar se estamos na fase final
                 bool isFinalPhase = false;
@@ -164,6 +166,8 @@ namespace ProjetoLaboratorio25.Controllers
                     isTaca,
                     isRoundRobin,
                     isDuploKO,
+                    isCampeonato,
+                    isSistemaAve,
                     todosJogosRealizados,
                     isFinalPhase
                 });

@@ -156,6 +156,12 @@
                     <button type="button" id="btnGerarRoundRobin" class="btn" style="display: none; margin-right: 10px;">
                         Gerar Próximos Jogos Round-Robin
                     </button>
+                    <button type="button" id="btnGerarCampeonato" class="btn" style="display: none; margin-right: 10px;">
+                        Gerar Próximos Jogos de Campeonato
+                    </button>
+                    <button type="button" id="btnGerarSistemaAve" class="btn" style="display: none; margin-right: 10px;">
+                        Gerar Próximos Jogo Sistema AVE
+                    </button>
                     <button type="button" id="btnNovosEmparelhamentosDuploKO" class="btn" style="display: none; margin-right: 10px;">
                         Novos Emparelhamentos Duplo KO
                     </button>
@@ -197,6 +203,8 @@
         const tabela = document.getElementById('tabelaJogos').getElementsByTagName('tbody')[0];
         const btnAdicionarEmparelhamentos = document.getElementById('btnAdicionarEmparelhamentos');
         const btnGerarRoundRobin = document.getElementById('btnGerarRoundRobin');
+		const btnGerarCampeonato = document.getElementById('btnGerarCampeonato');
+		const btnGerarSistemaAve = document.getElementById('btnGerarSistemaAve');
         const btnNovosEmparelhamentosDuploKO = document.getElementById('btnNovosEmparelhamentosDuploKO');
         
         // Atualizar o título
