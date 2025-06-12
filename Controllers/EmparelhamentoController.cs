@@ -727,7 +727,7 @@ namespace ProjetoLaboratorio25.Controllers
                 var competicaoId = request.CompeticaoId;
                 var nomeCompeticao = request.NomeCompeticao;
 
-                // Verificar se é um formato Duplo KO
+                // Verificar se é uma competição do tipo taça
                 var configuracaoFase = await _context.ConfiguracoesFase
                     .Where(cf => cf.CompeticaoId == competicaoId)
                     .OrderByDescending(cf => cf.FaseNumero)
@@ -743,80 +743,100 @@ namespace ProjetoLaboratorio25.Controllers
                     .Where(e => e.CompeticaoId == competicaoId)
                     .ToListAsync();
 
-                // Buscar o último emparelhamento do winners bracket em espera (se existir)
-                var ultimoEmparelhamentoWinners = todosJogos
-                    .FirstOrDefault(e => e.Bracket == "WinnersEspera" && !e.JogoRealizado);
-
-                // Criar dicionário para rastrear derrotas e vitórias por equipe
+                // Contar derrotas para cada equipe
                 var derrotasPorEquipe = new Dictionary<string, int>();
                 var vitoriasPorEquipe = new Dictionary<string, int>();
-
-                // Contar derrotas e vitórias para cada equipe
-                foreach (var jogo in todosJogos.Where(j => j.JogoRealizado))
-                {
-                    if (jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
-                    {
-                        IncrementarVitorias(vitoriasPorEquipe, jogo.Clube1);
-                        IncrementarDerrotas(derrotasPorEquipe, jogo.Clube2);
-                    }
-                    else if (jogo.PontuacaoClube2 > jogo.PontuacaoClube1)
-                    {
-                        IncrementarVitorias(vitoriasPorEquipe, jogo.Clube2);
-                        IncrementarDerrotas(derrotasPorEquipe, jogo.Clube1);
-                    }
-                }
-
-                // Separar equipes por bracket e número de vitórias/derrotas
-                var equipesInvictas = new List<string>(); // 2+ vitórias, 0 derrotas
-                var equipesWinners = new List<string>(); // 0 derrotas (independente de vitórias)
-                var equipesLosers = new List<string>(); // 1 derrota
-                var equipesEliminadas = new List<string>(); // 2 derrotas
 
                 // Primeiro, identificar todas as equipes que participaram
                 var todasEquipes = new HashSet<string>();
                 foreach (var jogo in todosJogos)
                 {
-                    todasEquipes.Add(jogo.Clube1);
-                    todasEquipes.Add(jogo.Clube2);
+                    if (!string.IsNullOrEmpty(jogo.Clube1)) todasEquipes.Add(jogo.Clube1);
+                    if (!string.IsNullOrEmpty(jogo.Clube2)) todasEquipes.Add(jogo.Clube2);
                 }
 
-                // Agora classificar cada equipe
+                // Inicializar contadores para todas as equipes
                 foreach (var equipe in todasEquipes)
                 {
-                    var numDerrotas = derrotasPorEquipe.GetValueOrDefault(equipe, 0);
-                    var numVitorias = vitoriasPorEquipe.GetValueOrDefault(equipe, 0);
+                    derrotasPorEquipe[equipe] = 0;
+                    vitoriasPorEquipe[equipe] = 0;
+                }
 
-                    if (numDerrotas == 0)
+                // Contar vitórias e derrotas apenas de jogos realizados
+                foreach (var jogo in todosJogos.Where(j => j.JogoRealizado))
+                {
+                    if (jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
                     {
-                        if (numVitorias >= 2)
-                        {
-                            equipesInvictas.Add(equipe);
-                        }
-                        else
-                        {
-                            equipesWinners.Add(equipe);
-                        }
+                        vitoriasPorEquipe[jogo.Clube1]++;
+                        derrotasPorEquipe[jogo.Clube2]++;
                     }
-                    else if (numDerrotas == 1)
+                    else if (jogo.PontuacaoClube2 > jogo.PontuacaoClube1)
                     {
-                        equipesLosers.Add(equipe);
-                    }
-                    else if (numDerrotas >= 2)
-                    {
-                        equipesEliminadas.Add(equipe);
+                        vitoriasPorEquipe[jogo.Clube2]++;
+                        derrotasPorEquipe[jogo.Clube1]++;
                     }
                 }
 
-                // Adicionar equipes invictas ao winners bracket também
-                equipesWinners.AddRange(equipesInvictas);
-                equipesInvictas.Clear(); // Limpar lista de invictas já que agora estão no winners
+                // Identificar equipes por número de derrotas
+                var equipesInvictas = todasEquipes.Where(e => derrotasPorEquipe[e] == 0).ToList();
+                var equipesUmaDerrota = todasEquipes.Where(e => derrotasPorEquipe[e] == 1).ToList();
+                var equipesEliminadas = todasEquipes.Where(e => derrotasPorEquipe[e] >= 2).ToList();
+
+                // Verificar se estamos na condição de final
+                if (equipesInvictas.Count == 1 && equipesUmaDerrota.Count == 1)
+                {
+                    var equipaInvicta = equipesInvictas[0];
+                    var equipaUmaDerrota = equipesUmaDerrota[0];
+
+                    // Se existe um jogo em espera, removê-lo
+                    var jogoEmEspera = await _context.EmparelhamentosFinal
+                        .FirstOrDefaultAsync(e => e.CompeticaoId == competicaoId && 
+                                                e.Bracket == "WinnersEspera" && 
+                                                !e.JogoRealizado);
+                    if (jogoEmEspera != null)
+                    {
+                        _context.EmparelhamentosFinal.Remove(jogoEmEspera);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    // Criar o jogo final
+                    var novoEmparelhamento = new EmparelhamentoFinal
+                    {
+                        CompeticaoId = competicaoId,
+                        Clube1 = equipaInvicta,
+                        Clube2 = equipaUmaDerrota,
+                        DataJogo = DateTime.Now,
+                        HoraJogo = TimeSpan.Zero,
+                        JogoRealizado = false,
+                        Bracket = "Final",
+                        RondaBracket = (todosJogos.Max(j => j.RondaBracket) ?? 0) + 1,
+                        Motivo = "Final do Duplo KO"
+                    };
+
+                    _context.EmparelhamentosFinal.Add(novoEmparelhamento);
+                    await _context.SaveChangesAsync();
+
+                    return Ok(new { 
+                        mensagem = "Final do Duplo KO gerada com sucesso.",
+                        competicaoId = competicaoId,
+                        nomeCompeticao = nomeCompeticao,
+                        novosEmparelhamentos = 1,
+                        equipesEliminadas = equipesEliminadas,
+                        equipesWinners = new List<string> { equipaInvicta },
+                        equipesLosers = new List<string> { equipaUmaDerrota },
+                        emparelhamentoEmEspera = false,
+                        emparelhamentosLosersRestantes = 0,
+                        isFinal = true,
+                        isFinalPhase = true,
+                        derrotasPorEquipe = derrotasPorEquipe // Debug info
+                    });
+                }
+
+                // Se não estamos na fase final, continuar com a lógica normal de emparelhamentos
+                var equipesWinners = equipesInvictas;
+                var equipesLosers = equipesUmaDerrota;
 
                 var novosEmparelhamentos = new List<EmparelhamentoFinal>();
-
-                // Determinar a ronda atual
-                var rondaAtual = todosJogos
-                    .Where(e => e.RondaBracket.HasValue)
-                    .Max(e => e.RondaBracket) ?? 0;
 
                 // Calcular número de emparelhamentos possíveis no losers bracket
                 int emparelhamentosLosers = equipesLosers.Count / 2;
@@ -855,7 +875,7 @@ namespace ProjetoLaboratorio25.Controllers
                                 HoraJogo = TimeSpan.Zero,
                                 JogoRealizado = false,
                                 Bracket = "WinnersEspera",
-                                RondaBracket = rondaAtual + 1,
+                                RondaBracket = (todosJogos.Max(j => j.RondaBracket) ?? 0) + 1,
                                 Motivo = "Aguardando resolução do Losers Bracket"
                             });
                         }
@@ -870,7 +890,7 @@ namespace ProjetoLaboratorio25.Controllers
                                 HoraJogo = TimeSpan.Zero,
                                 JogoRealizado = false,
                                 Bracket = "Winners",
-                                RondaBracket = rondaAtual + 1
+                                RondaBracket = (todosJogos.Max(j => j.RondaBracket) ?? 0) + 1
                             });
                         }
                     }
@@ -888,7 +908,7 @@ namespace ProjetoLaboratorio25.Controllers
                                 HoraJogo = TimeSpan.Zero,
                                 JogoRealizado = false,
                                 Bracket = "Winners",
-                                RondaBracket = rondaAtual + 1
+                                RondaBracket = (todosJogos.Max(j => j.RondaBracket) ?? 0) + 1
                             });
                         }
                     }
@@ -923,7 +943,7 @@ namespace ProjetoLaboratorio25.Controllers
                                 HoraJogo = TimeSpan.Zero,
                                 JogoRealizado = false,
                                 Bracket = "Losers",
-                                RondaBracket = rondaAtual + 1
+                                RondaBracket = (todosJogos.Max(j => j.RondaBracket) ?? 0) + 1
                             });
                         }
                         else
@@ -938,7 +958,7 @@ namespace ProjetoLaboratorio25.Controllers
                                 HoraJogo = TimeSpan.Zero,
                                 JogoRealizado = false,
                                 Bracket = "Losers",
-                                RondaBracket = rondaAtual + 1
+                                RondaBracket = (todosJogos.Max(j => j.RondaBracket) ?? 0) + 1
                             });
                         }
                     }
@@ -956,7 +976,7 @@ namespace ProjetoLaboratorio25.Controllers
                                 HoraJogo = TimeSpan.Zero,
                                 JogoRealizado = false,
                                 Bracket = "Losers",
-                                RondaBracket = rondaAtual + 1
+                                RondaBracket = (todosJogos.Max(j => j.RondaBracket) ?? 0) + 1
                             });
                         }
                     }
@@ -994,7 +1014,7 @@ namespace ProjetoLaboratorio25.Controllers
                 await _context.SaveChangesAsync();
 
                 // Verificar se existe um jogo do winners em espera após os novos emparelhamentos
-                var jogoWinnersEsperaFinal = await _context.EmparelhamentosFinal
+                var jogoWinnersEsperaStatus = await _context.EmparelhamentosFinal
                     .FirstOrDefaultAsync(e => e.CompeticaoId == competicaoId && 
                                             e.Bracket == "WinnersEspera" && 
                                             !e.JogoRealizado);
@@ -1007,9 +1027,9 @@ namespace ProjetoLaboratorio25.Controllers
                     equipesEliminadas = equipesEliminadas,
                     equipesWinners = equipesWinners,
                     equipesLosers = equipesLosers,
-                    emparelhamentoEmEspera = jogoWinnersEsperaFinal != null,
+                    emparelhamentoEmEspera = jogoWinnersEsperaStatus != null,
                     emparelhamentosLosersRestantes = emparelhamentosLosers,
-                    jogoWinnersEspera = jogoWinnersEsperaFinal
+                    jogoWinnersEspera = jogoWinnersEsperaStatus
                 });
             }
             catch (Exception ex)

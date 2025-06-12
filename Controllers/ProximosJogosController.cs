@@ -71,6 +71,60 @@ namespace ProjetoLaboratorio25.Controllers
                 bool isRoundRobin = configuracaoFase?.Formato?.ToLower() == "round-robin";
                 bool isDuploKO = configuracaoFase?.Formato?.ToLower() == "duplo-ko";
 
+                // Se for Duplo KO, verificar se estamos na fase final
+                bool isFinalPhase = false;
+                if (isDuploKO)
+                {
+                    // Contar derrotas para cada equipe
+                    var derrotasPorEquipe = new Dictionary<string, int>();
+                    var todosJogos = await _context.EmparelhamentosFinal
+                        .Where(e => e.CompeticaoId == competicaoId && e.JogoRealizado)
+                        .ToListAsync();
+
+                    // Primeiro, identificar todas as equipes
+                    var todasEquipes = new HashSet<string>();
+                    foreach (var jogo in todosJogos)
+                    {
+                        if (!string.IsNullOrEmpty(jogo.Clube1)) todasEquipes.Add(jogo.Clube1);
+                        if (!string.IsNullOrEmpty(jogo.Clube2)) todasEquipes.Add(jogo.Clube2);
+                    }
+
+                    // Inicializar contadores
+                    foreach (var equipe in todasEquipes)
+                    {
+                        derrotasPorEquipe[equipe] = 0;
+                    }
+
+                    // Contar derrotas
+                    foreach (var jogo in todosJogos)
+                    {
+                        if (jogo.PontuacaoClube1 < jogo.PontuacaoClube2)
+                        {
+                            derrotasPorEquipe[jogo.Clube1]++;
+                        }
+                        else if (jogo.PontuacaoClube2 < jogo.PontuacaoClube1)
+                        {
+                            derrotasPorEquipe[jogo.Clube2]++;
+                        }
+                    }
+
+                    // Contar equipes com 0 e 1 derrota
+                    var equipesInvictas = derrotasPorEquipe.Count(x => x.Value == 0);
+                    var equipesUmaDerrota = derrotasPorEquipe.Count(x => x.Value == 1);
+
+                    isFinalPhase = (equipesInvictas == 1 && equipesUmaDerrota == 1);
+
+                    // Debug info
+                    Console.WriteLine($"Equipes invictas: {equipesInvictas}");
+                    Console.WriteLine($"Equipes com uma derrota: {equipesUmaDerrota}");
+                    Console.WriteLine($"isFinalPhase: {isFinalPhase}");
+                    Console.WriteLine("Derrotas por equipe:");
+                    foreach (var kvp in derrotasPorEquipe)
+                    {
+                        Console.WriteLine($"{kvp.Key}: {kvp.Value} derrotas");
+                    }
+                }
+
                 // Verificar se todos os jogos foram realizados
                 var todosJogosRealizados = await _context.EmparelhamentosFinal
                     .Where(e => e.CompeticaoId == competicaoId)
@@ -110,7 +164,8 @@ namespace ProjetoLaboratorio25.Controllers
                     isTaca,
                     isRoundRobin,
                     isDuploKO,
-                    todosJogosRealizados
+                    todosJogosRealizados,
+                    isFinalPhase
                 });
             }
             catch (Exception ex)
