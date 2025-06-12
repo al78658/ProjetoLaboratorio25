@@ -255,19 +255,50 @@ namespace ProjetoLaboratorio25.Controllers
                     return BadRequest(new { success = false, mensagem = "Esta competição não é do formato Sistema Ave." });
                 }
 
-                // Buscar todos os jogos já realizados
+                // Buscar todos os jogos já realizados e agendados
                 var jogosRealizados = await _context.EmparelhamentosFinal
                     .Where(e => e.CompeticaoId == competicaoId && e.JogoRealizado)
                     .ToListAsync();
 
-                // Buscar todos os participantes (equipes ou jogadores)
+                var jogosAgendados = await _context.EmparelhamentosFinal
+                    .Where(e => e.CompeticaoId == competicaoId && !e.JogoRealizado)
+                    .ToListAsync();
+
+                // Verificar se já existem jogos agendados para todos os participantes
                 var participantes = await _context.Jogadores
+                    .Where(j => j.CompeticaoId == competicaoId)
+                    .ToListAsync();
+
+                var participantesComJogosAgendados = new HashSet<string>();
+                foreach (var jogo in jogosAgendados)
+                {
+                    participantesComJogosAgendados.Add(jogo.Clube1.Trim());
+                    participantesComJogosAgendados.Add(jogo.Clube2.Trim());
+                }
+
+                // Verificar se todos os participantes já têm jogos agendados
+                bool todosTemJogosAgendados = participantes.All(p =>
+                {
+                    var nome = competicao.TipoCompeticao == "equipas" ? p.Clube?.Trim() : p.Nome?.Trim();
+                    return !string.IsNullOrEmpty(nome) && participantesComJogosAgendados.Contains(nome);
+                });
+
+                if (todosTemJogosAgendados)
+                {
+                    return BadRequest(new { 
+                        success = false, 
+                        mensagem = "Todos os participantes já têm jogos agendados. Por favor, aguarde até que estes jogos sejam realizados antes de gerar novos emparelhamentos." 
+                    });
+                }
+
+                // Buscar todos os participantes (equipes ou jogadores)
+                var participantesList = await _context.Jogadores
                     .Where(j => j.CompeticaoId == competicaoId)
                     .ToListAsync();
 
                 // Calcular pontuação para cada participante
                 var pontuacoes = new Dictionary<string, int>();
-                foreach (var participante in participantes)
+                foreach (var participante in participantesList)
                 {
                     var nome = competicao.TipoCompeticao == "equipas" ? participante.Clube : participante.Nome;
                     if (!string.IsNullOrEmpty(nome))
@@ -277,7 +308,7 @@ namespace ProjetoLaboratorio25.Controllers
                 }
 
                 // NOVA REGRA: Não permitir emparelhamento se nenhum participante tiver pelo menos um jogo realizado
-                bool alguemTemJogo = participantes.Any(p =>
+                bool alguemTemJogo = participantesList.Any(p =>
                     jogosRealizados.Any(j =>
                         (j.Clube1.Trim() == (competicao.TipoCompeticao == "equipas" ? p.Clube?.Trim() : p.Nome?.Trim())) ||
                         (j.Clube2.Trim() == (competicao.TipoCompeticao == "equipas" ? p.Clube?.Trim() : p.Nome?.Trim()))
