@@ -270,8 +270,9 @@
             for (let i = 0; i < jogadores.length; i += 2) {
                 if (i + 1 < jogadores.length) {
                     const row = document.createElement('tr');
-                    const clube1 = jogadores[i].nome;
-                    const clube2 = jogadores[i + 1].nome;
+                    // Se for fase eliminatória, os jogadores são strings diretas
+                    const clube1 = isFaseEliminatoria ? jogadores[i] : jogadores[i].nome;
+                    const clube2 = isFaseEliminatoria ? jogadores[i + 1] : jogadores[i + 1].nome;
                     
                     row.innerHTML = `
                         <td>${clube1}</td>

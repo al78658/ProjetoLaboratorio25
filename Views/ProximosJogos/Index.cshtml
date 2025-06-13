@@ -481,6 +481,8 @@
                     btnGerarCampeonato.style.display = 'inline-block';
                 } else if (data.formato === 'ave') {
                     btnGerarSistemaAve.style.display = 'inline-block';
+                } else if (data.formato === 'eliminacao') {
+                    btnAdicionarEmparelhamentos.style.display = 'inline-block';
                 }
             });
 
@@ -562,6 +564,13 @@
                     console.error('Erro:', error);
                     alert('Erro ao gerar novos emparelhamentos');
                 }
+            });
+        }
+
+        // Handler para o botão de adicionar emparelhamentos (Taça)
+        if (btnAdicionarEmparelhamentos) {
+            btnAdicionarEmparelhamentos.addEventListener('click', function() {
+                window.location.href = `/Emparelhamento?competicaoId=${competicaoId}&fase=proxima`;
             });
         }
 
