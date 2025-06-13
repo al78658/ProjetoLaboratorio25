@@ -349,14 +349,7 @@
     </div>
 
     <!-- Botão Voltar -->
-    @if (ViewBag.Edicao != null && (bool)ViewBag.Edicao)
-    {
-        <a href="/FormatodaCompeticao?edicao=true" class="back-button">&lt;Voltar</a>
-    }
-    else
-    {
-        <a href="/FormatodaCompeticao" class="back-button">&lt;Voltar</a>
-    }
+    <a href="/FormatodaCompeticao?edicao=false" class="back-button">&lt;Voltar</a>
     <script>
         const formatosConfig = {
             'round-robin': {

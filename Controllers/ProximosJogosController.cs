@@ -132,6 +132,106 @@ namespace ProjetoLaboratorio25.Controllers
                     .Where(e => e.CompeticaoId == competicaoId)
                     .AllAsync(e => e.JogoRealizado);
 
+                // Se for taça, verificar se só resta um vencedor
+                if (isTaca)
+                {
+                    var jogosRealizados = await _context.EmparelhamentosFinal
+                        .Where(e => e.CompeticaoId == competicaoId && e.JogoRealizado)
+                        .ToListAsync();
+
+                    var vitoriasDict = new Dictionary<string, int>();
+                    foreach (var jogo in jogosRealizados)
+                    {
+                        if (jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
+                        {
+                            if (!vitoriasDict.ContainsKey(jogo.Clube1))
+                                vitoriasDict[jogo.Clube1] = 0;
+                            vitoriasDict[jogo.Clube1]++;
+                        }
+                        else if (jogo.PontuacaoClube2 > jogo.PontuacaoClube1)
+                        {
+                            if (!vitoriasDict.ContainsKey(jogo.Clube2))
+                                vitoriasDict[jogo.Clube2] = 0;
+                            vitoriasDict[jogo.Clube2]++;
+                        }
+                    }
+
+                    if (vitoriasDict.Any())
+                    {
+                        var maxVitorias = vitoriasDict.Values.Max();
+                        var clubesComMaisVitorias = vitoriasDict
+                            .Where(kvp => kvp.Value == maxVitorias)
+                            .Select(kvp => kvp.Key)
+                            .ToList();
+
+                        if (clubesComMaisVitorias.Count == 1)
+                        {
+                            return Ok(new
+                            {
+                                mensagem = "Competição encerrada",
+                                vencedorFinal = clubesComMaisVitorias[0]
+                            });
+                        }
+                    }
+                }
+
+                // Se for round-robin, verificar se todos os emparelhamentos possíveis foram feitos
+                if (isRoundRobin)
+                {
+                    var todosJogos = await _context.EmparelhamentosFinal
+                        .Where(e => e.CompeticaoId == competicaoId)
+                        .ToListAsync();
+
+                    var participantes = new HashSet<string>();
+                    foreach (var jogo in todosJogos)
+                    {
+                        if (!string.IsNullOrEmpty(jogo.Clube1)) participantes.Add(jogo.Clube1);
+                        if (!string.IsNullOrEmpty(jogo.Clube2)) participantes.Add(jogo.Clube2);
+                    }
+
+                    var totalParticipantes = participantes.Count;
+                    var totalJogosPossiveis = (totalParticipantes * (totalParticipantes - 1)) / 2;
+
+                    if (todosJogos.Count >= totalJogosPossiveis)
+                    {
+                        // Calcular o vencedor baseado nas vitórias
+                        var vitoriasDict = new Dictionary<string, int>();
+                        foreach (var jogo in todosJogos.Where(j => j.JogoRealizado))
+                        {
+                            if (jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
+                            {
+                                if (!vitoriasDict.ContainsKey(jogo.Clube1))
+                                    vitoriasDict[jogo.Clube1] = 0;
+                                vitoriasDict[jogo.Clube1]++;
+                            }
+                            else if (jogo.PontuacaoClube2 > jogo.PontuacaoClube1)
+                            {
+                                if (!vitoriasDict.ContainsKey(jogo.Clube2))
+                                    vitoriasDict[jogo.Clube2] = 0;
+                                vitoriasDict[jogo.Clube2]++;
+                            }
+                        }
+
+                        if (vitoriasDict.Any())
+                        {
+                            var maxVitorias = vitoriasDict.Values.Max();
+                            var clubesComMaisVitorias = vitoriasDict
+                                .Where(kvp => kvp.Value == maxVitorias)
+                                .Select(kvp => kvp.Key)
+                                .ToList();
+
+                            if (clubesComMaisVitorias.Count == 1)
+                            {
+                                return Ok(new
+                                {
+                                    mensagem = "Competição encerrada",
+                                    vencedorFinal = clubesComMaisVitorias[0]
+                                });
+                            }
+                        }
+                    }
+                }
+
                 // Buscar todos os jogos emparelhados para a competição
                 var jogos = await _context.EmparelhamentosFinal
                     .Where(e => e.CompeticaoId == competicaoId)

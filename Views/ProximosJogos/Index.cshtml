@@ -229,7 +229,22 @@
                     if (data.mensagem) {
                         // Se recebemos uma mensagem específica do servidor
                         console.log(data.mensagem);
-                        tabela.innerHTML = `<tr><td colspan="3">${data.mensagem}</td></tr>`;
+                        tabela.innerHTML = `<tr><td colspan="3">
+                            <div style="text-align: center; padding: 20px;">
+                                <h3 style="color: white; margin-bottom: 20px;">🏆 Competição Encerrada 🏆</h3>
+                                <p style="color: white; font-size: 18px;">Não é possível gerar mais emparelhamentos pois a competição já tem um vencedor final.</p>
+                                ${data.vencedorFinal ? `
+                                <div style="font-size: 24px; color: white; background-color: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; margin-top: 20px;">
+                                    Vencedor: ${data.vencedorFinal}
+                                </div>
+                                ` : ''}
+                            </div>
+                        </td></tr>`;
+                        // Esconder o botão de adicionar emparelhamentos
+                        if (btnAdicionarEmparelhamentos) {
+                            btnAdicionarEmparelhamentos.style.display = 'none';
+                        }
+                        return;
                     }
 
                     // Renderizar os jogos primeiro
