@@ -286,10 +286,10 @@
 
                                                 // Gerar novos emparelhamentos
                                                 fetch('/Emparelhamento/GerarEmparelhamentosDuploKO', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'Content-Type': 'application/json'
-                                                    },
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            },
                                                     body: JSON.stringify({
                                                         competicaoId: competicaoId,
                                                         nomeCompeticao: competicaoNome,
@@ -369,7 +369,7 @@
                             }
                             })
                             .catch(error => {
-                                console.error('Erro:', error);
+                                    console.error('Erro:', error);
                                 alert('Erro ao obter jogos completos');
                             });
                     }

@@ -58,7 +58,14 @@ namespace ProjetoLaboratorio25.Controllers
             ViewBag.Categoria = categoria;
             ViewBag.Codigo = codigo;
 
+            // Filtra os relatórios pela categoria e código
             var reports = _context.Reports.Where(r => r.Categoria == categoria && r.Codigo == codigo);
+
+            // Se for uma competição, verifica se o código corresponde ao ID da competição
+            if (categoria == "competicao")
+            {
+                reports = reports.Where(r => r.Codigo == codigo);
+            }
 
             Report report = id.HasValue
                 ? await reports.FirstOrDefaultAsync(r => r.Id == id.Value)

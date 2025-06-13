@@ -136,7 +136,7 @@
             <form id="pesquisaForm" method="get" action="/Relatorio/ConsultarRelatorio">
                 <label for="categoria">Categoria:</label>
                 <select id="categoria" name="categoria" onchange="atualizarFiltro()">
-                    <option value="competicao">Competição</option>
+                    <option value="competicao" selected>Competição</option>
                     <option value="jogador">Jogador</option>
                     <option value="equipa">Equipa</option>
                 </select>
@@ -146,9 +146,6 @@
                     <input type="text" id="codigo" name="codigo" placeholder="Digite o ID..." />
                 </div>
 
-                <!-- Campo hidden exclusivo para categoria=competicao -->
-                <input type="hidden" id="codigoCompeticaoHidden" name="codigo" />
-
                 <button type="submit" class="btn" style="margin-top: 20px;">Pesquisar</button>
             </form>
 
@@ -156,47 +153,58 @@
     </div>
 
     <button class="back-button" onclick="voltarParaMenu()">&lt; Voltar</button>
-<script>
-function voltarParaMenu() {
-    const competicaoId = localStorage.getItem('competicaoId') || localStorage.getItem('competicaoSelecionadaId');
-    if (competicaoId) {
-        window.location.href = `/Menu/Index?competicaoId=${competicaoId}`;
-    } else {
-        window.location.href = '/Menu/Index';
-    }
-}
-</script>
-
     <script>
+        function voltarParaMenu() {
+            const competicaoId = localStorage.getItem('competicaoId') || localStorage.getItem('competicaoSelecionadaId');
+            if (competicaoId) {
+                window.location.href = `/Menu/Index?competicaoId=${competicaoId}`;
+            } else {
+                window.location.href = '/Menu/Index';
+            }
+        }
+
         function atualizarFiltro() {
             const categoria = document.getElementById("categoria").value;
             const codigoContainer = document.getElementById("codigoContainer");
             const codigoLabel = document.getElementById("codigoLabel");
             const codigoInput = document.getElementById("codigo");
-            const codigoHidden = document.getElementById("codigoCompeticaoHidden");
 
             if (categoria === "competicao") {
-                // Oculta input visível e usa o ID da competição do localStorage
+                // Para competição, usar o ID da competição do localStorage
                 codigoContainer.style.display = "none";
-                const competicaoId = localStorage.getItem("competicaoSelecionadaId");
-                codigoHidden.value = competicaoId || "";
+                const competicaoId = localStorage.getItem("competicaoId") || localStorage.getItem("competicaoSelecionadaId");
+                if (competicaoId) {
+                    codigoInput.value = competicaoId;
+                }
             } else {
-                // Mostra campo para jogador ou equipa
+                // Para jogador ou equipa, mostrar o campo de input
                 codigoContainer.style.display = "block";
-                codigoHidden.value = ""; // limpa campo hidden para não conflitar
-
+                codigoInput.value = "";
                 if (categoria === "jogador") {
-                    codigoLabel.textContent = "Código do Jogador:";
-                    codigoInput.placeholder = "Ex: 12345";
-                } else if (categoria === "equipa") {
+                    codigoLabel.textContent = "Nome do Jogador:";
+                } else {
                     codigoLabel.textContent = "Nome da Equipa:";
-                    codigoInput.placeholder = "Ex: FC Porto";
                 }
             }
         }
 
-        // Aplicar ao carregar
-        document.addEventListener("DOMContentLoaded", atualizarFiltro);
+        // Inicializar o formulário quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            atualizarFiltro();
+            
+            // Adicionar listener para o submit do formulário
+            document.getElementById('pesquisaForm').addEventListener('submit', function(e) {
+                const categoria = document.getElementById('categoria').value;
+                const codigo = document.getElementById('codigo').value;
+                
+                if (categoria === 'competicao') {
+                    const competicaoId = localStorage.getItem('competicaoId') || localStorage.getItem('competicaoSelecionadaId');
+                    if (competicaoId) {
+                        document.getElementById('codigo').value = competicaoId;
+                    }
+                }
+            });
+        });
     </script>
 
 </body>

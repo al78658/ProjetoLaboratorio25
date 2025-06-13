@@ -223,7 +223,26 @@
     </div>
 
     <!-- Botão voltar -->
-    <a href="/Menu?competicaoId=@ViewBag.Codigo" class="back-button">&lt;Voltar</a>
+    <button class="back-button" onclick="voltarParaMenu()">&lt; Voltar</button>
+
+    <script>
+        function voltarParaMenu() {
+            // Primeiro tenta obter o código da ViewBag
+            let competicaoId = '@ViewBag.Codigo';
+            
+            // Se não houver código na ViewBag, tenta do localStorage
+            if (!competicaoId) {
+                competicaoId = localStorage.getItem('competicaoId') || localStorage.getItem('competicaoSelecionadaId');
+            }
+            
+            // Se encontrou um ID, redireciona com ele
+            if (competicaoId) {
+                window.location.href = `/Menu/Index?competicaoId=${competicaoId}`;
+            } else {
+                window.location.href = '/Menu/Index';
+            }
+        }
+    </script>
 
 </body>
 </html>
