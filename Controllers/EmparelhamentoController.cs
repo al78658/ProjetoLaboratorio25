@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
@@ -91,8 +91,11 @@ namespace ProjetoLaboratorio25.Controllers
                     .ThenBy(e => e.HoraJogo)
                     .ToListAsync();
 
-                // Contar vitórias para cada clube
+                // Contar vitórias de cada clube
                 var vitoriasDict = new Dictionary<string, int>();
+                var clubesComMaisVitorias = new List<string>();
+                var maxVitorias = 0;
+
                 foreach (var jogo in jogosRealizados)
                 {
                     if (jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
@@ -109,20 +112,22 @@ namespace ProjetoLaboratorio25.Controllers
                     }
                 }
 
-                // Encontrar o maior número de vitórias
-                var maxVitorias = vitoriasDict.Any() ? vitoriasDict.Max(x => x.Value) : 0;
+                // Encontrar o número máximo de vitórias
+                if (vitoriasDict.Any())
+                {
+                    maxVitorias = vitoriasDict.Values.Max();
+                    clubesComMaisVitorias = vitoriasDict
+                        .Where(kvp => kvp.Value == maxVitorias)
+                        .Select(kvp => kvp.Key)
+                        .ToList();
+                }
 
-                // Pegar apenas os clubes com o maior número de vitórias
-                var clubesComMaisVitorias = vitoriasDict
-                    .Where(x => x.Value == maxVitorias)
-                    .Select(x => x.Key)
-                    .ToList();
-
-                // Se tivermos apenas um clube com o máximo de vitórias, ele é o vencedor absoluto
+                // Verificar se só resta um vencedor
                 if (clubesComMaisVitorias.Count == 1)
                 {
-                    ViewBag.VencedorAbsoluto = clubesComMaisVitorias[0];
                     ViewBag.Vencedores = new List<string>();
+                    ViewBag.NaoHaMaisEmparelhamentos = true;
+                    ViewBag.VencedorFinal = clubesComMaisVitorias[0];
                 }
                 else
                 {
@@ -136,6 +141,7 @@ namespace ProjetoLaboratorio25.Controllers
                     }
 
                     ViewBag.Vencedores = clubesComMaisVitorias;
+                    ViewBag.NaoHaMaisEmparelhamentos = false;
                 }
 
                 ViewBag.IsFaseEliminatoria = true;

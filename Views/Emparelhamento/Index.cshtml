@@ -182,7 +182,7 @@
             const vencedorAbsoluto = "@ViewBag.VencedorAbsoluto";
             
             // Verificar se temos um vencedor absoluto
-            if (vencedorAbsoluto && vencedorAbsoluto !== "") {
+            if (vencedorAbsoluto && vencedorAbsoluto !== "" && tipoCompeticao !== "eliminacao") {
                 // Mostrar mensagem de vencedor absoluto
                 const container = document.querySelector('.table-wrapper');
                 container.innerHTML = `
@@ -221,14 +221,27 @@
                 // Para o formato taça (eliminação), apenas permitir emparelhamento inicial
                 // Fases subsequentes serão gerenciadas na página ProximosJogos
                 if (jogadores.length === 0) {
-                    pairsTableBody.innerHTML = `<tr><td colspan="3">
-                        <div style="text-align: center; padding: 20px;">
-                            <p>Formato Taça: As próximas fases devem ser geradas na página "Próximos Jogos".</p>
-                            <a href="/ProximosJogos?competicaoId=${competicaoId}" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: white; border: 1px solid black; border-radius: 4px; text-decoration: none; color: black;">
-                                Ir para Próximos Jogos
-                            </a>
-                        </div>
-                    </td></tr>`;
+                    // Verificar se é porque não há mais emparelhamentos possíveis
+                    if (@Html.Raw(Json.Serialize(ViewBag.NaoHaMaisEmparelhamentos ?? false))) {
+                        pairsTableBody.innerHTML = `<tr><td colspan="3">
+                            <div style="text-align: center; padding: 20px;">
+                                <h3 style="color: white; margin-bottom: 20px;">🏆 Competição Encerrada 🏆</h3>
+                                <p style="color: white; font-size: 18px;">Não é possível gerar mais emparelhamentos pois a competição já tem um vencedor final.</p>
+                                <div style="font-size: 24px; color: white; background-color: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; margin-top: 20px;">
+                                    Vencedor: @ViewBag.VencedorFinal
+                                </div>
+                            </div>
+                        </td></tr>`;
+                    } else {
+                        pairsTableBody.innerHTML = `<tr><td colspan="3">
+                            <div style="text-align: center; padding: 20px;">
+                                <p>Formato Taça: As próximas fases devem ser geradas na página "Próximos Jogos".</p>
+                                <button onclick="window.location.href='/ProximosJogos?competicaoId=${competicaoId}'" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background-color: white; border: 1px solid black; border-radius: 4px; text-decoration: none; color: black; cursor: pointer;">
+                                    Ir para Próximos Jogos
+                                </button>
+                            </div>
+                        </td></tr>`;
+                    }
                     
                     if (saveButton) saveButton.style.display = 'none';
                     return;

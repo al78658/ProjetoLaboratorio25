@@ -173,9 +173,8 @@ namespace ProjetoLaboratorio25.Controllers
                 // 3. Salvar alterações
                 _context.SaveChanges();
 
-
-                // Após guardar, redireciona SEMPRE para FormatodaCompeticao/Index.cshtml, mantendo o valor de edição
-                return RedirectToAction("Index", "FormatodaCompeticao", new { edicao = edicao });
+                // Após guardar, redireciona SEMPRE para FormatodaCompeticao/Index.cshtml com edicao=false
+                return RedirectToAction("Index", "FormatodaCompeticao", new { edicao = false });
             }
             catch (Exception ex)
             {
