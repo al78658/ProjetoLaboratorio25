@@ -214,7 +214,6 @@
         // Atualizar o título
         document.querySelector('h2').textContent = `Jogos Agendados - ${competicaoNome}`;
         
-        // Carregar jogos do servidor
         function carregarJogos() {
             // Mostrar mensagem de carregamento
             tabela.innerHTML = '<tr><td colspan="3">Carregando jogos...</td></tr>';
@@ -231,219 +230,148 @@
                         // Se recebemos uma mensagem específica do servidor
                         console.log(data.mensagem);
                         tabela.innerHTML = `<tr><td colspan="3">${data.mensagem}</td></tr>`;
-                    } else {
-                        // Verificar se é uma competição do tipo taça e se todos os jogos têm vencedor
-                        if (data.isTaca && data.todosJogosRealizados && btnGerarProximaFaseTaca) {
-                            btnGerarProximaFaseTaca.style.display = 'block';
-                            btnGerarProximaFaseTaca.onclick = async () => {
-                                try {
-                                    const response = await fetch(`/ProximosJogos/GerarProximaFaseTaca?competicaoId=${competicaoId}`, {
-                                        method: 'POST'
+                    }
+
+                    // Renderizar os jogos primeiro
+                    renderJogos(data.jogosPorData);
+                    
+                    // Verificar se é um formato Duplo KO e se todos os jogos têm vencedor
+                    if (data.isDuploKO && btnNovosEmparelhamentosDuploKO) {
+                        // Esconder o botão por padrão
+                        btnNovosEmparelhamentosDuploKO.style.display = 'none';
+                        
+                        // Buscar os dados completos dos jogos
+                        fetch(`/Emparelhamento/ObterEmparelhamentos?competicaoId=${competicaoId}`)
+                            .then(response => response.json())
+                            .then(jogosCompletos => {
+                                console.log('Jogos completos:', jogosCompletos);
+                                
+                                // Verificar se algum jogo tem o motivo Losers Bracket
+                                const temJogoComMotivoLosersBracket = jogosCompletos.some(jogo => {
+                                    // Verificar o motivo de diferentes maneiras
+                                    const motivo = jogo.motivo || jogo.Motivo || '';
+                                    const temMotivo = motivo.includes('Losers Bracket') || 
+                                                    motivo.includes('losers bracket') || 
+                                                    motivo.includes('Losers') ||
+                                                    motivo.includes('losers');
+                                    
+                                    console.log('Jogo:', jogo.id, {
+                                        motivo: motivo,
+                                        motivoOriginal: jogo.motivo,
+                                        motivoAlternativo: jogo.Motivo,
+                                        temMotivo: temMotivo,
+                                        jogoCompleto: jogo
                                     });
-                                    const result = await response.json();
                                     
-                                    if (response.ok) {
-                                        alert(result.mensagem);
-                                        if (result.vencedorAbsoluto) {
-                                            // Se temos um vencedor absoluto, mostrar uma mensagem especial
-                                            tabela.innerHTML = `
-                                                <tr>
-                                                    <td colspan="3" style="text-align: center; padding: 20px;">
-                                                        <h2 style="margin-bottom: 20px;">🏆 Vencedor do Torneio 🏆</h2>
-                                                        <div style="font-size: 24px; background-color: rgba(255,255,255,0.8); padding: 20px; border-radius: 10px;">
-                                                            ${result.vencedorAbsoluto}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            `;
-                                            
-                                            // Esconder o botão de gerar próxima fase
-                                            btnGerarProximaFaseTaca.style.display = 'none';
-                                        } else {
-                                            // Apenas recarregamos os jogos
-                                            carregarJogos();
-                                        }
-                                    } else {
-                                        alert(result.mensagem || 'Erro ao gerar próxima fase');
-                                    }
-                                } catch (error) {
-                                    console.error('Erro:', error);
-                                    alert('Erro ao gerar próxima fase');
-                                }
-                            };
-                            
-                            // Não mostrar o outro botão que redireciona para emparelhamento
-                            if (btnAdicionarEmparelhamentos) {
-                                btnAdicionarEmparelhamentos.style.display = 'none';
-                            }
-                        }
+                                    return temMotivo;
+                                });
 
-                        // Verificar se é um formato Round-Robin ou Campeonato
-                        if ((data.isRoundRobin || data.isCampeonato) && (btnGerarRoundRobin || btnGerarCampeonato)) {
-                            if (data.isRoundRobin && btnGerarRoundRobin) {
-                                btnGerarRoundRobin.style.display = 'block';
-                                btnGerarRoundRobin.onclick = async () => {
-                                    try {
-                                        // Primeiro, obter os jogos já realizados
-                                        const response = await fetch(`/Emparelhamento/ObterEmparelhamentos?competicaoId=${competicaoId}`);
-                                        const jogosExistentes = await response.json();
-                                        
-                                        // Preparar os dados para gerar novos emparelhamentos
-                                        const requestData = {
-                                            competicaoId: competicaoId,
-                                            nomeCompeticao: competicaoNome,
-                                            emparelhamentos: jogosExistentes.map(jogo => ({
-                                                clube1: jogo.clube1,
-                                                clube2: jogo.clube2,
-                                                dataJogo: jogo.dataJogo,
-                                                horaJogo: jogo.horaJogo,
-                                                pontuacaoClube1: jogo.pontuacaoClube1,
-                                                pontuacaoClube2: jogo.pontuacaoClube2,
-                                                jogoRealizado: jogo.jogoRealizado
-                                            }))
-                                        };
+                                console.log('Tem jogo com motivo Losers Bracket:', temJogoComMotivoLosersBracket);
 
-                                        const saveResponse = await fetch('/Emparelhamento/SalvarEmparelhamentos', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json'
-                                            },
-                                            body: JSON.stringify(requestData)
-                                        });
+                                if (temJogoComMotivoLosersBracket) {
+                                    console.log('Existe jogo com motivo Losers Bracket - mostrando botão');
+                                    btnNovosEmparelhamentosDuploKO.style.display = 'block';
+                                    btnNovosEmparelhamentosDuploKO.onclick = function() {
+                                        // Primeiro, buscar o jogo que está em espera
+                                        fetch(`/Emparelhamento/ObterEmparelhamentos?competicaoId=${competicaoId}`)
+                                            .then(response => response.json())
+                                            .then(jogosAntes => {
+                                                const jogoEmEspera = jogosAntes.find(j => j.motivo === "Aguardando resolução do Losers Bracket");
+                                                console.log('Jogo em espera:', jogoEmEspera);
 
-                                        const result = await saveResponse.json();
-                                        
-                                        if (saveResponse.ok) {
-                                            alert(result.mensagem);
-                                            carregarJogos(); // Recarregar a lista de jogos
-                                        } else {
-                                            alert(result.mensagem || 'Erro ao gerar novos emparelhamentos');
-                                        }
-                                    } catch (error) {
-                                        console.error('Erro:', error);
-                                        alert('Erro ao gerar novos emparelhamentos');
-                                    }
-                                };
-                            }
+                                                if (!jogoEmEspera) {
+                                                    console.log('Não encontrou jogo em espera');
+                                                    return;
+                                                }
 
-                            if (data.isCampeonato && btnGerarCampeonato) {
-                                btnGerarCampeonato.style.display = 'block';
-                                btnGerarCampeonato.onclick = async () => {
-                                    try {
-                                        // Primeiro, obter os jogos já realizados
-                                        const response = await fetch(`/Emparelhamento/ObterEmparelhamentos?competicaoId=${competicaoId}`);
-                                        const jogosExistentes = await response.json();
-                                        
-                                        // Preparar os dados para gerar novos emparelhamentos
-                                        const requestData = {
-                                            competicaoId: competicaoId,
-                                            nomeCompeticao: competicaoNome,
-                                            emparelhamentos: jogosExistentes.map(jogo => ({
-                                                clube1: jogo.clube1,
-                                                clube2: jogo.clube2,
-                                                dataJogo: jogo.dataJogo,
-                                                horaJogo: jogo.horaJogo,
-                                                pontuacaoClube1: jogo.pontuacaoClube1,
-                                                pontuacaoClube2: jogo.pontuacaoClube2,
-                                                jogoRealizado: jogo.jogoRealizado
-                                            }))
-                                        };
-
-                                        const saveResponse = await fetch('/Emparelhamento/SalvarEmparelhamentos', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json'
-                                            },
-                                            body: JSON.stringify(requestData)
-                                        });
-
-                                        const result = await saveResponse.json();
-                                        
-                                        if (saveResponse.ok) {
-                                            alert(result.mensagem);
-                                            carregarJogos(); // Recarregar a lista de jogos
-                                        } else {
-                                            alert(result.mensagem || 'Erro ao gerar novos emparelhamentos');
-                                        }
-                                    } catch (error) {
-                                        console.error('Erro:', error);
-                                        alert('Erro ao gerar novos emparelhamentos');
-                                    }
-                                };
-                            }
-                        }
-
-                        // Verificar se é um formato Sistema Ave
-                        if (data.isSistemaAve && btnGerarSistemaAve) {
-                            btnGerarSistemaAve.style.display = 'block';
-                            btnGerarSistemaAve.onclick = async () => {
-                                try {
-                                    const response = await fetch(`/ProximosJogos/GerarSistemaAve?competicaoId=${competicaoId}`);
-                                    const result = await response.json();
-                                    
-                                    if (result.success) {
-                                        alert('Emparelhamentos gerados com sucesso!');
-                                        carregarJogos(); // Recarregar a tabela
-                                    } else {
-                                        alert(result.mensagem || 'Erro ao gerar emparelhamentos');
-                                    }
-                                } catch (error) {
-                                    console.error('Erro:', error);
-                                    alert('Erro ao gerar emparelhamentos');
-                                }
-                            };
-                        }
-
-                        // Verificar se é um formato Duplo KO e se todos os jogos têm vencedor
-                        if (data.isDuploKO && data.todosJogosRealizados && btnNovosEmparelhamentosDuploKO) {
-                            btnNovosEmparelhamentosDuploKO.style.display = 'block';
-                            btnNovosEmparelhamentosDuploKO.onclick = async () => {
-                                try {
-                                    // Obter os jogos já realizados
-                                    const response = await fetch(`/Emparelhamento/ObterEmparelhamentos?competicaoId=${competicaoId}`);
-                                    const jogosExistentes = await response.json();
-                                    
-                                    // Preparar os dados para gerar novos emparelhamentos
-                                    const requestData = {
-                                        competicaoId: competicaoId,
-                                        nomeCompeticao: competicaoNome,
-                                        emparelhamentos: jogosExistentes.map(jogo => ({
-                                            clube1: jogo.clube1,
-                                            clube2: jogo.clube2,
-                                            dataJogo: jogo.dataJogo,
-                                            horaJogo: jogo.horaJogo,
-                                            pontuacaoClube1: jogo.pontuacaoClube1,
-                                            pontuacaoClube2: jogo.pontuacaoClube2,
-                                            jogoRealizado: jogo.jogoRealizado,
-                                            bracket: jogo.bracket,
-                                            rondaBracket: jogo.rondaBracket
-                                        }))
+                                                // Gerar novos emparelhamentos
+                                                fetch('/Emparelhamento/GerarEmparelhamentosDuploKO', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json'
+                                                    },
+                                                    body: JSON.stringify({
+                                                        competicaoId: competicaoId,
+                                                        nomeCompeticao: competicaoNome,
+                                                        excluirJogoId: jogoEmEspera.id
+                                                    })
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    console.log('Resposta do emparelhamento:', data);
+                                                    location.reload();
+                                                })
+                                                .catch(error => {
+                                                    console.error('Erro ao gerar emparelhamentos:', error);
+                                                    alert('Erro ao gerar novos emparelhamentos.');
+                                                });
+                                            })
+                                            .catch(error => {
+                                                console.error('Erro ao buscar jogos:', error);
+                                                alert('Erro ao buscar jogos.');
+                                            });
                                     };
-
-                                    const saveResponse = await fetch('/Emparelhamento/GerarEmparelhamentosDuploKO', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify(requestData)
-                                    });
-
-                                    const result = await saveResponse.json();
-                                    
-                                    if (saveResponse.ok) {
-                                        alert(result.mensagem);
-                                        carregarJogos(); // Recarregar a lista de jogos
-                                    } else {
-                                        alert(result.mensagem || 'Erro ao gerar novos emparelhamentos');
-                                    }
-                                } catch (error) {
-                                    console.error('Erro:', error);
-                                    alert('Erro ao gerar novos emparelhamentos');
+                                    return;
                                 }
-                            };
-                        }
+                                
+                                // Se não houver jogos com motivo Losers Bracket, verificar pontuações
+                                console.log('Nenhum jogo tem motivo Losers Bracket - verificando pontuações');
+                                const todosJogosTemPontuacao = jogosCompletos.every(jogo => {
+                                    const temPontuacoes = jogo.jogoRealizado && 
+                                        jogo.pontuacaoClube1 !== null && 
+                                        jogo.pontuacaoClube2 !== null;
+                                    console.log('Jogo:', jogo.id, 'Tem pontuações:', temPontuacoes);
+                                    return temPontuacoes;
+                                });
 
-                        renderJogos(data.jogosPorData);
+                                console.log('Todos jogos têm pontuações:', todosJogosTemPontuacao);
+                                
+                                if (todosJogosTemPontuacao) {
+                                    btnNovosEmparelhamentosDuploKO.style.display = 'block';
+                                    btnNovosEmparelhamentosDuploKO.onclick = function() {
+                                        fetch(`/Emparelhamento/ObterEmparelhamentos?competicaoId=${competicaoId}`)
+                                            .then(response => response.json())
+                                            .then(jogosExistentes => {
+                                        const requestData = {
+                                            competicaoId: competicaoId,
+                                            nomeCompeticao: competicaoNome,
+                                            emparelhamentos: jogosExistentes.map(jogo => ({
+                                                clube1: jogo.clube1,
+                                                clube2: jogo.clube2,
+                                                dataJogo: jogo.dataJogo,
+                                                horaJogo: jogo.horaJogo,
+                                                pontuacaoClube1: jogo.pontuacaoClube1,
+                                                pontuacaoClube2: jogo.pontuacaoClube2,
+                                                jogoRealizado: jogo.jogoRealizado,
+                                                bracket: jogo.bracket,
+                                                rondaBracket: jogo.rondaBracket
+                                            }))
+                                        };
+
+                                            return fetch('/Emparelhamento/GerarEmparelhamentosDuploKO', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify(requestData)
+                                        });
+                                            })
+                                            .then(response => response.json())
+                                            .then(result => {
+                                            alert(result.mensagem);
+                                                carregarJogos();
+                                            })
+                                            .catch(error => {
+                                        console.error('Erro:', error);
+                                        alert('Erro ao gerar novos emparelhamentos');
+                                            });
+                                };
+                            }
+                            })
+                            .catch(error => {
+                                console.error('Erro:', error);
+                                alert('Erro ao obter jogos completos');
+                            });
                     }
                 })
                 .catch(error => {
@@ -615,7 +543,91 @@
         // Inicializar
         carregarJogos();
     });
-</script>
 
+    function setupWaitingMatches() {
+        const waitingMatches = document.querySelectorAll('tr[data-motivo="Aguardando resolução do Losers Bracket"]');
+        waitingMatches.forEach(match => {
+            const emparelhamentoId = match.getAttribute('data-emparelhamento-id');
+            
+            // Desabilitar campos de pontuação
+            const pontuacaoInputs = [
+                document.getElementById(`pontuacaoClube1_${emparelhamentoId}`),
+                document.getElementById(`pontuacaoClube2_${emparelhamentoId}`)
+            ];
+            
+            pontuacaoInputs.forEach(input => {
+                if (input) {
+                    input.disabled = true;
+                    input.value = '0';
+                    input.style.backgroundColor = '#f0f0f0';
+                }
+            });
+
+            // Marcar o jogo como realizado e desabilitar o checkbox
+            const jogoRealizadoInput = document.getElementById(`jogoRealizado_${emparelhamentoId}`);
+            if (jogoRealizadoInput) {
+                jogoRealizadoInput.checked = true;
+                jogoRealizadoInput.disabled = true;
+            }
+
+            // Desabilitar o botão de atualizar pontuação
+            const updateButton = document.getElementById(`updateButton_${emparelhamentoId}`);
+            if (updateButton) {
+                updateButton.disabled = true;
+                updateButton.style.backgroundColor = '#f0f0f0';
+                updateButton.style.cursor = 'not-allowed';
+            }
+
+            // Adicionar indicador visual de que o jogo está em espera
+            const statusCell = match.querySelector('td:last-child');
+            if (statusCell) {
+                statusCell.innerHTML += '<br><span style="color: #666; font-style: italic;">(Aguardando resolução do Losers Bracket)</span>';
+            }
+        });
+    }
+
+    function atualizarPontuacao(emparelhamentoId) {
+        const pontuacaoClube1 = document.getElementById(`pontuacaoClube1_${emparelhamentoId}`).value;
+        const pontuacaoClube2 = document.getElementById(`pontuacaoClube2_${emparelhamentoId}`).value;
+        const motivo = document.getElementById(`motivo_${emparelhamentoId}`).value;
+
+        // Verificar se é um empate
+        if (pontuacaoClube1 === pontuacaoClube2) {
+            alert('Não é possível registrar empate neste jogo.');
+            return;
+        }
+
+        fetch('/ProximosJogos/AtualizarPontuacao', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                emparelhamentoId: emparelhamentoId,
+                pontuacaoClube1: parseInt(pontuacaoClube1),
+                pontuacaoClube2: parseInt(pontuacaoClube2),
+                motivo: motivo
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.mensagem) {
+                alert(data.mensagem);
+                if (data.mensagem.includes('sucesso')) {
+                    location.reload();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao atualizar pontuações.');
+        });
+    }
+
+    // Chamar a função quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        setupWaitingMatches();
+    });
+</script>
 </body>
 </html>

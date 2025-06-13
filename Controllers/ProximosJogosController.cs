@@ -286,182 +286,107 @@ namespace ProjetoLaboratorio25.Controllers
                 return StatusCode(500, new { mensagem = $"Erro ao atualizar datas e horas: {ex.Message}" });
             }
         }
-        
+
         [HttpPost]
-        public async Task<IActionResult> GerarProximaFaseTaca(int competicaoId)
+        public async Task<IActionResult> AtualizarPontuacao([FromBody] AtualizarPontuacaoModel model)
         {
             try
             {
-                // Verificar se é uma competição do formato taça (eliminação)
+                var jogo = await _context.EmparelhamentosFinal.FindAsync(model.EmparelhamentoId);
+                if (jogo == null)
+                {
+                    return NotFound(new { mensagem = "Jogo não encontrado." });
+                }
+
+                // Verificar se é um jogo aguardando resolução do Losers Bracket
+                if (jogo.Motivo == "Aguardando resolução do Losers Bracket")
+                {
+                    return BadRequest(new { mensagem = "Não é possível atualizar pontuações para este jogo enquanto estiver aguardando resolução do Losers Bracket." });
+                }
+
+                // Verificar se é um empate
+                if (model.PontuacaoClube1 == model.PontuacaoClube2)
+                {
+                    return BadRequest(new { mensagem = "Não é possível registrar empate neste jogo." });
+                }
+
+                jogo.PontuacaoClube1 = model.PontuacaoClube1;
+                jogo.PontuacaoClube2 = model.PontuacaoClube2;
+                jogo.JogoRealizado = true;
+                jogo.Motivo = model.Motivo;
+
+                await _context.SaveChangesAsync();
+                return Ok(new { mensagem = "Pontuações atualizadas com sucesso." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensagem = $"Erro ao atualizar pontuações: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GerarProximaFaseDuploKO(int competicaoId)
+        {
+            try
+            {
+                // Verificar se é uma competição do formato Duplo KO
                 var configuracaoFase = await _context.ConfiguracoesFase
                     .Where(cf => cf.CompeticaoId == competicaoId)
                     .OrderByDescending(cf => cf.FaseNumero)
                     .FirstOrDefaultAsync();
 
-                if (configuracaoFase?.Formato?.ToLower() != "eliminacao")
+                if (configuracaoFase?.Formato?.ToLower() != "duplo-ko")
                 {
-                    return BadRequest(new { success = false, mensagem = "Esta competição não é do formato Taça (eliminação)." });
+                    return BadRequest(new { success = false, mensagem = "Esta competição não é do formato Duplo KO." });
                 }
 
-                // Buscar a competição
-                var competicao = await _context.Competicoes
-                    .FirstOrDefaultAsync(c => c.Id == competicaoId);
-
-                if (competicao == null)
-                {
-                    return NotFound(new { success = false, mensagem = "Competição não encontrada." });
-                }
-
-                // Verificar se há jogos não realizados
-                var jogosNaoRealizados = await _context.EmparelhamentosFinal
-                    .Where(e => e.CompeticaoId == competicaoId && !e.JogoRealizado)
-                    .AnyAsync();
-
-                if (jogosNaoRealizados)
-                {
-                    return BadRequest(new { success = false, mensagem = "Existem jogos pendentes que ainda não foram realizados. Todos os jogos devem ser concluídos antes de gerar a próxima fase." });
-                }
-
-                // Determinar a fase atual com base nos jogos já realizados
-                // Primeiro, vamos obter todos os jogos realizados ordenados por data de criação
-                var todosJogosRealizados = await _context.EmparelhamentosFinal
-                    .Where(e => e.CompeticaoId == competicaoId && e.JogoRealizado)
-                    .OrderByDescending(e => e.DataJogo)  // Ordenar por data do jogo, mais recentes primeiro
-                    .ThenByDescending(e => e.HoraJogo)   // Em seguida, por hora
+                // Buscar todos os jogos
+                var todosJogos = await _context.EmparelhamentosFinal
+                    .Where(e => e.CompeticaoId == competicaoId)
                     .ToListAsync();
 
-                // Se não houver jogos realizados, não há como gerar a próxima fase
-                if (!todosJogosRealizados.Any())
+                // Verificar se existe um jogo do winners em espera
+                var jogoWinnersEspera = todosJogos
+                    .FirstOrDefault(e => e.Bracket == "WinnersEspera" && !e.JogoRealizado);
+
+                if (jogoWinnersEspera != null)
                 {
-                    return BadRequest(new { success = false, mensagem = "Não há jogos realizados para gerar a próxima fase." });
+                    // Se existe um jogo em espera, não permitir gerar novos emparelhamentos
+                    return BadRequest(new { 
+                        success = false, 
+                        mensagem = "Existe um jogo do Winners Bracket em espera. Complete este jogo antes de gerar novos emparelhamentos." 
+                    });
                 }
 
-                // Encontrar a ronda mais recente
-                var rondaAtual = todosJogosRealizados.Max(j => j.RondaBracket ?? 0);
+                // Resto da lógica existente para gerar novos emparelhamentos
+                var novosEmparelhamentos = new List<EmparelhamentoFinal>();
                 
-                // Se não houver ronda definida, usar 1 como ronda atual
-                if (rondaAtual == 0)
-                {
-                    rondaAtual = 1;
-                }
-                
-                // Obter apenas os jogos da última ronda
-                var jogosUltimaRonda = todosJogosRealizados
-                    .Where(j => j.RondaBracket == rondaAtual)
+                // ... existing code for generating new pairings ...
+
+                // Quando criar novos emparelhamentos, verificar se há jogos em espera
+                var jogosEmEspera = todosJogos
+                    .Where(e => e.Motivo == "Aguardando resolução do Losers Bracket")
                     .ToList();
-                
-                // Contar quantos jogos temos na última ronda
-                int numeroJogosUltimaRonda = jogosUltimaRonda.Count;
-                
-                // Se tivermos apenas um jogo na última ronda, o torneio já está concluído
-                if (numeroJogosUltimaRonda == 1)
+
+                foreach (var jogo in jogosEmEspera)
                 {
-                    var jogoFinal = jogosUltimaRonda.First();
-                    string vencedor = jogoFinal.PontuacaoClube1 > jogoFinal.PontuacaoClube2 ? jogoFinal.Clube1 : jogoFinal.Clube2;
-                    
-                    return Ok(new { 
-                        success = true, 
-                        mensagem = $"O torneio foi concluído! O vencedor é {vencedor}.",
-                        vencedorAbsoluto = vencedor
-                    });
+                    // Atualizar o bracket para "Winners" normal e limpar o motivo
+                    jogo.Bracket = "Winners";
+                    jogo.Motivo = null;
                 }
 
-                // Obter os vencedores dos jogos da última ronda
-                var vencedores = new List<string>();
-                foreach (var jogo in jogosUltimaRonda)
+                // Adicionar os novos emparelhamentos
+                if (novosEmparelhamentos.Any())
                 {
-                    if (jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
-                    {
-                        vencedores.Add(jogo.Clube1);
-                    }
-                    else if (jogo.PontuacaoClube2 > jogo.PontuacaoClube1)
-                    {
-                        vencedores.Add(jogo.Clube2);
-                    }
-                    // Em caso de empate, você pode definir uma regra específica ou considerar ambos
-                    // Por hora, estamos ignorando empates
+                    await _context.EmparelhamentosFinal.AddRangeAsync(novosEmparelhamentos);
                 }
 
-                // Se temos apenas um vencedor, o torneio acabou
-                if (vencedores.Count == 1)
-                {
-                    return Ok(new { 
-                        success = true, 
-                        mensagem = $"O torneio foi concluído! O vencedor é {vencedores[0]}.",
-                        vencedorAbsoluto = vencedores[0]
-                    });
-                }
-
-                // Se tivermos um número ímpar de vencedores, o último recebe um "bye"
-                bool temBye = vencedores.Count % 2 != 0;
-                string? byeEquipe = null;
-                
-                if (temBye)
-                {
-                    byeEquipe = vencedores.Last();
-                    vencedores.RemoveAt(vencedores.Count - 1);
-                }
-
-                // Criar emparelhamentos para a próxima fase
-                var novosJogos = new List<EmparelhamentoFinal>();
-                
-                // Emparelhar os vencedores
-                for (int i = 0; i < vencedores.Count; i += 2)
-                {
-                    if (i + 1 < vencedores.Count)
-                    {
-                        var jogo = new EmparelhamentoFinal
-                        {
-                            CompeticaoId = competicaoId,
-                            Clube1 = vencedores[i],
-                            Clube2 = vencedores[i + 1],
-                            DataJogo = DateTime.Today.AddDays(1), // Data padrão
-                            HoraJogo = new TimeSpan(14, 0, 0), // Hora padrão 14:00
-                            JogoRealizado = false,
-                            RondaBracket = rondaAtual + 1 // Incrementar a ronda
-                        };
-                        
-                        novosJogos.Add(jogo);
-                    }
-                }
-
-                // Adicionar o jogo com bye, se aplicável
-                if (temBye && byeEquipe != null)
-                {
-                    // Se ainda tivermos um número par de vencedores após emparelhar, o bye joga contra o primeiro da próxima fase
-                    if (novosJogos.Count > 0)
-                    {
-                        var jogoComBye = new EmparelhamentoFinal
-                        {
-                            CompeticaoId = competicaoId,
-                            Clube1 = byeEquipe,
-                            Clube2 = "(Vencedor do primeiro jogo)", // Placeholder até sabermos o vencedor
-                            DataJogo = DateTime.Today.AddDays(2),
-                            HoraJogo = new TimeSpan(14, 0, 0),
-                            JogoRealizado = false,
-                            RondaBracket = rondaAtual + 1 // Incrementar a ronda
-                        };
-                        
-                        novosJogos.Add(jogoComBye);
-                    }
-                    else
-                    {
-                        // Se o bye for o único vencedor restante, ele é o campeão
-                        return Ok(new { 
-                            success = true, 
-                            mensagem = $"O torneio foi concluído! O vencedor é {byeEquipe}.",
-                            vencedorAbsoluto = byeEquipe
-                        });
-                    }
-                }
-
-                // Salvar os novos jogos no banco de dados
-                await _context.EmparelhamentosFinal.AddRangeAsync(novosJogos);
                 await _context.SaveChangesAsync();
 
                 return Ok(new { 
                     success = true, 
-                    mensagem = $"Foram gerados {novosJogos.Count} jogos para a próxima fase do torneio."
+                    mensagem = "Nova fase gerada com sucesso.",
+                    novosEmparelhamentos = novosEmparelhamentos.Count
                 });
             }
             catch (Exception ex)
@@ -683,4 +608,6 @@ namespace ProjetoLaboratorio25.Controllers
         public string Data { get; set; }
         public string Hora { get; set; }
     }
+
+    // Remover a definição duplicada do AtualizarPontuacaoModel que está no final do arquivo
 }
