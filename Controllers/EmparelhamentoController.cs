@@ -257,7 +257,8 @@ namespace ProjetoLaboratorio25.Controllers
                         e.PontuacaoClube2,
                         e.JogoRealizado,
                         e.Bracket,
-                        e.RondaBracket
+                        e.RondaBracket,
+                        e.Motivo
                     })
                     .ToListAsync();
 
@@ -769,6 +770,7 @@ namespace ProjetoLaboratorio25.Controllers
             {
                 var competicaoId = request.CompeticaoId;
                 var nomeCompeticao = request.NomeCompeticao;
+                var excluirJogoId = request.ExcluirJogoId;
 
                 // Verificar se é uma competição do tipo taça
                 var configuracaoFase = await _context.ConfiguracoesFase
@@ -779,6 +781,19 @@ namespace ProjetoLaboratorio25.Controllers
                 if (configuracaoFase?.Formato?.ToLower() != "duplo-ko")
                 {
                     return BadRequest(new { mensagem = "Esta competição não está configurada como Duplo KO." });
+                }
+
+                // Se tiver um jogo para excluir, removê-lo
+                if (excluirJogoId.HasValue)
+                {
+                    var jogoParaExcluir = await _context.EmparelhamentosFinal
+                        .FirstOrDefaultAsync(e => e.Id == excluirJogoId.Value);
+                    
+                    if (jogoParaExcluir != null)
+                    {
+                        _context.EmparelhamentosFinal.Remove(jogoParaExcluir);
+                        await _context.SaveChangesAsync();
+                    }
                 }
 
                 // Buscar todos os jogos da competição
@@ -1156,6 +1171,34 @@ namespace ProjetoLaboratorio25.Controllers
             }
             vitoriasPorEquipe[equipe]++;
         }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoverMotivoLosersBracket([FromBody] RemoverMotivoModel model)
+        {
+            try
+            {
+                var emparelhamento = await _context.EmparelhamentosFinal.FindAsync(model.EmparelhamentoId);
+                if (emparelhamento == null)
+                {
+                    return NotFound(new { mensagem = "Emparelhamento não encontrado." });
+                }
+
+                // Remover o motivo
+                emparelhamento.Motivo = null;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { mensagem = "Motivo removido com sucesso." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensagem = $"Erro ao remover motivo: {ex.Message}" });
+            }
+        }
+
+        public class RemoverMotivoModel
+        {
+            public int EmparelhamentoId { get; set; }
+        }
     }
 
     public class EmparelhamentoViewModel
@@ -1179,6 +1222,7 @@ namespace ProjetoLaboratorio25.Controllers
         public int CompeticaoId { get; set; }
         public string? NomeCompeticao { get; set; }
         public List<EmparelhamentoViewModel> Emparelhamentos { get; set; } = new List<EmparelhamentoViewModel>();
+        public int? ExcluirJogoId { get; set; }
     }
 
     public class AtualizarDataHoraModel
