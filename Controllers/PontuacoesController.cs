@@ -194,32 +194,20 @@ namespace ProjetoLaboratorio25.Controllers
 
                 Console.WriteLine($"Verificando vitória - Pontuações: {model.PontuacaoClube1}-{model.PontuacaoClube2}, Motivo: {motivo}");
 
-                // Se houver um motivo fornecido, usar isso para determinar o vencedor
+                // Se houver um motivo fornecido (botão de vitória clicado), usar isso para determinar o vencedor
                 if (!string.IsNullOrWhiteSpace(model.Motivo))
                 {
-                    Console.WriteLine("Motivo fornecido, determinando vencedor com base nas pontuações");
-                    if (model.PontuacaoClube1 > model.PontuacaoClube2)
+                    Console.WriteLine("Botão de vitória clicado, determinando vencedor com base no motivo");
+                    if (motivo.Contains(emparelhamento.Clube1))
                     {
                         clubeVitorioso = emparelhamento.Clube1;
                     }
-                    else if (model.PontuacaoClube2 > model.PontuacaoClube1)
+                    else if (motivo.Contains(emparelhamento.Clube2))
                     {
                         clubeVitorioso = emparelhamento.Clube2;
                     }
-                    else
-                    {
-                        // Se as pontuações são iguais, tentar determinar o vencedor pelo motivo
-                        if (motivo.Contains(emparelhamento.Clube1))
-                        {
-                            clubeVitorioso = emparelhamento.Clube1;
-                        }
-                        else if (motivo.Contains(emparelhamento.Clube2))
-                        {
-                            clubeVitorioso = emparelhamento.Clube2;
-                        }
-                    }
                 }
-                // Se não houver motivo, verificar vitória por pontuação
+                // Se não houver motivo (botão de vitória não clicado), verificar vitória por pontuação (11 pontos)
                 else if (model.PontuacaoClube1 >= 11 && model.PontuacaoClube1 > model.PontuacaoClube2)
                 {
                     clubeVitorioso = emparelhamento.Clube1;

@@ -95,13 +95,41 @@ namespace ProjetoLaboratorio25.Controllers
                 var vitoriasDict = new Dictionary<string, int>();
                 foreach (var jogo in jogosRealizados)
                 {
-                    if (jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
+                    bool clube1Venceu = false;
+                    bool clube2Venceu = false;
+
+                    // Verificar se houve vitória por botão - se houver motivo, significa que o botão foi clicado
+                    if (!string.IsNullOrWhiteSpace(jogo.Motivo))
+                    {
+                        // Se o motivo contém o nome do clube1, clube1 venceu
+                        if (jogo.Motivo.Contains(jogo.Clube1))
+                        {
+                            clube1Venceu = true;
+                        }
+                        // Se o motivo contém o nome do clube2, clube2 venceu
+                        else if (jogo.Motivo.Contains(jogo.Clube2))
+                        {
+                            clube2Venceu = true;
+                        }
+                    }
+                    // Se não houve vitória por botão, verificar vitória por 11 pontos
+                    else if (jogo.PontuacaoClube1 >= 11 && jogo.PontuacaoClube1 > jogo.PontuacaoClube2)
+                    {
+                        clube1Venceu = true;
+                    }
+                    else if (jogo.PontuacaoClube2 >= 11 && jogo.PontuacaoClube2 > jogo.PontuacaoClube1)
+                    {
+                        clube2Venceu = true;
+                    }
+
+                    // Atualizar contagem de vitórias
+                    if (clube1Venceu)
                     {
                         if (!vitoriasDict.ContainsKey(jogo.Clube1))
                             vitoriasDict[jogo.Clube1] = 0;
                         vitoriasDict[jogo.Clube1]++;
                     }
-                    else if (jogo.PontuacaoClube2 > jogo.PontuacaoClube1)
+                    else if (clube2Venceu)
                     {
                         if (!vitoriasDict.ContainsKey(jogo.Clube2))
                             vitoriasDict[jogo.Clube2] = 0;

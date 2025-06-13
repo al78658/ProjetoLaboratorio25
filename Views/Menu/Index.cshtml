@@ -643,9 +643,6 @@
             // Chamar a função para carregar a tabela classificativa
             carregarTabelaClassificativa();
             
-            // Recarregar a tabela classificativa a cada 5 segundos para manter os dados atualizados
-            setInterval(carregarTabelaClassificativa, 5000);
-
             // Atualiza o título da secção
             const h2 = document.querySelector('.section h2');
             h2.textContent = `Resultados – ${competicaoNome}`;

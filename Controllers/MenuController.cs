@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjetoLaboratorio25.Data;
 using ProjetoLaboratorio25.Models;
@@ -126,7 +126,35 @@ namespace ProjetoLaboratorio25.Controllers
                         clube2.FramesPerdidos += emp.PontuacaoClube1.Value;
 
                         // Determinar resultado
-                        if (emp.PontuacaoClube1.Value > emp.PontuacaoClube2.Value)
+                        bool clube1Venceu = false;
+                        bool clube2Venceu = false;
+
+                        // Verificar se houve vitória por botão - se houver motivo, significa que o botão foi clicado
+                        if (!string.IsNullOrWhiteSpace(emp.Motivo))
+                        {
+                            // Se o motivo contém o nome do clube1, clube1 venceu
+                            if (emp.Motivo.Contains(emp.Clube1))
+                            {
+                                clube1Venceu = true;
+                            }
+                            // Se o motivo contém o nome do clube2, clube2 venceu
+                            else if (emp.Motivo.Contains(emp.Clube2))
+                            {
+                                clube2Venceu = true;
+                            }
+                        }
+                        // Se não houve vitória por botão, verificar vitória por 11 pontos
+                        else if (emp.PontuacaoClube1.Value >= 11 && emp.PontuacaoClube1.Value > emp.PontuacaoClube2.Value)
+                        {
+                            clube1Venceu = true;
+                        }
+                        else if (emp.PontuacaoClube2.Value >= 11 && emp.PontuacaoClube2.Value > emp.PontuacaoClube1.Value)
+                        {
+                            clube2Venceu = true;
+                        }
+
+                        // Atualizar estatísticas baseado no resultado
+                        if (clube1Venceu)
                         {
                             // Clube 1 venceu
                             clube1.Vitorias++;
@@ -136,7 +164,7 @@ namespace ProjetoLaboratorio25.Controllers
                             clube2.Derrotas++;
                             clube2.Forma.Add("D");
                         }
-                        else if (emp.PontuacaoClube2.Value > emp.PontuacaoClube1.Value)
+                        else if (clube2Venceu)
                         {
                             // Clube 2 venceu
                             clube2.Vitorias++;
