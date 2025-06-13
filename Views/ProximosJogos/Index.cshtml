@@ -479,6 +479,8 @@
                     btnGerarRoundRobin.style.display = 'inline-block';
                 } else if (data.formato === 'campeonato') {
                     btnGerarCampeonato.style.display = 'inline-block';
+                } else if (data.formato === 'ave') {
+                    btnGerarSistemaAve.style.display = 'inline-block';
                 }
             });
 
@@ -523,6 +525,29 @@
                         body: JSON.stringify({
                             competicaoId: competicaoId
                         })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        alert(result.mensagem);
+                        carregarJogos(); // Recarregar a lista de jogos
+                    } else {
+                        alert(result.mensagem || 'Erro ao gerar novos emparelhamentos');
+                    }
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao gerar novos emparelhamentos');
+                }
+            });
+        }
+
+        // Handler para o botão de gerar próximos jogos Sistema AVE
+        if (btnGerarSistemaAve) {
+            btnGerarSistemaAve.addEventListener('click', async function() {
+                try {
+                    const response = await fetch(`/ProximosJogos/GerarSistemaAve?competicaoId=${competicaoId}`, {
+                        method: 'GET'
                     });
 
                     const result = await response.json();
